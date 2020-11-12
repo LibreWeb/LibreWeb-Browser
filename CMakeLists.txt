@@ -25,6 +25,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 #endif()
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_library(libcmark-gfm libcmark-gfm.so REQUIRED)
+find_library(libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
 
 if(ANDROID)
   add_library(browser SHARED
@@ -42,4 +44,4 @@ else()
   )
 endif()
 
-target_link_libraries(browser PRIVATE Qt5::Widgets)
+target_link_libraries(browser PRIVATE Qt5::Widgets libcmark-gfm.so libcmark-gfm-extensions.so)
