@@ -17,14 +17,17 @@
    <widget class="QLabel" name="output">
     <property name="geometry">
      <rect>
-      <x>190</x>
-      <y>80</y>
-      <width>131</width>
-      <height>61</height>
+      <x>30</x>
+      <y>0</y>
+      <width>771</width>
+      <height>291</height>
      </rect>
     </property>
     <property name="text">
      <string>Empty</string>
+    </property>
+    <property name="wordWrap">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

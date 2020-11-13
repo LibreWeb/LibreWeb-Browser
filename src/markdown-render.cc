@@ -37,11 +37,12 @@ QString const MarkdownRender::render()
     }
 
     QTextStream instream(&file);
-    QString line = instream.readLine();
-    const char *LineCStr = line.toStdString().c_str();
+    QString line = instream.readAll();
     file.close();
 
+    const char *LineCStr = line.toLocal8Bit().data();
     char *message = toLayout(LineCStr);
+
     QString output = QString::fromUtf8(message);
     free(message);
     return output;
@@ -154,6 +155,11 @@ int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
 
     case CMARK_NODE_STRONG:
         qDebug() << "Bold" << endl;
+        if (entering) {
+            LIT("[b]");
+        } else {
+            LIT("[/b]");
+        }
         break;
 
     case CMARK_NODE_EMPH:
