@@ -10,7 +10,7 @@ public:
     MarkdownRender();
 
 private:
-    void addMarkdownExtension(cmark_parser *parser, char *extName);
+    void addMarkdownExtension(cmark_parser *parser, const char *extName);
     char * toHTML(const char *markdown_string);
     static int S_render_node(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options);

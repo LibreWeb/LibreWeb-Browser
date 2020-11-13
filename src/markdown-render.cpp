@@ -46,7 +46,7 @@ MarkdownRender::MarkdownRender()
 /**
  * This is a function that will make enabling extensions easier
  */
-void MarkdownRender::addMarkdownExtension(cmark_parser *parser, char *extName) {
+void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extName) {
   cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
   if ( ext )
     cmark_parser_attach_syntax_extension(parser, ext);
@@ -67,23 +67,20 @@ char * MarkdownRender::toHTML(const char *markdown_string)
     addMarkdownExtension(parser, "table");
 
     // cmark AST
-    cmark_node *doc;
+    cmark_node *root_node;
     cmark_parser_feed(parser, markdown_string, strlen(markdown_string));
-    doc = cmark_parser_finish(parser);
+    root_node = cmark_parser_finish(parser);
     cmark_parser_free(parser);
 
-    // no cmake_node_dump() ?
-
-    cmark_node_mem(doc);
-    // qDebug() << "AST" << doc->content.mem << endl;
+    cmark_node_mem(root_node);
 
     // Render
-    char *html = cmark_render_html(doc, options, NULL);
-    char *somethingElse = renderWithMem(doc, options, 0, cmark_node_mem(doc));
+    char *html = cmark_render_html(root_node, options, NULL);
+    char *somethingElse = renderWithMem(root_node, options, 0, cmark_node_mem(root_node));
 
     printf("My renderer: %s", somethingElse);
 
-    cmark_node_free(doc);
+    cmark_node_free(root_node);
 
     return html;
 }
