@@ -42,5 +42,5 @@ else()
   )
 endif()
 
-target_link_libraries (browser LINK_PUBLIC CommonMarker)
+target_link_libraries (browser LINK_PUBLIC CommonMarker CommonMarkerExtensions)
 target_link_libraries (browser PRIVATE Qt5::Widgets)

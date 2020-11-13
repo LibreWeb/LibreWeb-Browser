@@ -1,6 +1,6 @@
 #include "markdown-render.h"
 
-// #include <cmark-gfm-core-extensions.h>
+#include <cmark-gfm-core-extensions.h>
 
 #include <string.h>
 #include <QCoreApplication>
@@ -35,11 +35,9 @@ MarkdownRender::MarkdownRender()
  * This is a function that will make enabling extensions easier
  */
 void MarkdownRender::addMarkdownExtension(cmark_parser *parser, char *extName) {
-/*
   cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
   if ( ext )
     cmark_parser_attach_syntax_extension(parser, ext);
-*/
 }
 
 // A function to convert HTML to markdown
@@ -53,8 +51,8 @@ char * MarkdownRender::to_html(const char *markdown_string)
     cmark_parser *parser = cmark_parser_new(options);
 
     // Add extensions
-    //addMarkdownExtension(parser, "strikethrough");
-    //addMarkdownExtension(parser, "table");
+    addMarkdownExtension(parser, "strikethrough");
+    addMarkdownExtension(parser, "table");
 
     // cmark AST
     cmark_node *doc;
