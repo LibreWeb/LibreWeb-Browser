@@ -122,6 +122,6 @@ endif()
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmark-gfm_version.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_version.h)
 
-add_library (CommonMarker ${LIBRARY_SOURCES})
-target_include_directories(CommonMarker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_library (LibCommonMarker ${LIBRARY_SOURCES})
+target_include_directories(LibCommonMarker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 

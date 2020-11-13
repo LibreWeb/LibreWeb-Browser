@@ -15,9 +15,9 @@ private:
     QString exePath;
 
     void addMarkdownExtension(cmark_parser *parser, const char *extName);
-    char * toLayout(const char *markdown_string);
-    static int S_render_node(cmark_renderer *renderer, cmark_node *node,
+    char * parseAndRender(const QString& filePath);
+    static int renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options);
-    char * renderWithMem(cmark_node *root, int options, int width, cmark_mem *mem);
+    char * renderToLayout(cmark_node *root, int options, int width, cmark_llist *extensions);
 };
 #endif // MARKDOWN_RENDER_H

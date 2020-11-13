@@ -1,12 +1,13 @@
 #include "markdown-render.h"
 
-#include <cmark-gfm-core-extensions.h>
-#include <string.h>
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
 #include <QDir>
 #include <QTextStream>
+#include <cmark-gfm-core-extensions.h>
+#include <string.h>
+#include <time.h> 
 
 #include "node.h"
 #include "syntax_extension.h"
@@ -35,13 +36,7 @@ QString const MarkdownRender::render()
     {
         qDebug() << "error opening file: " << file.error();
     }
-
-    QTextStream instream(&file);
-    QString line = instream.readAll();
-    file.close();
-
-    const char *LineCStr = line.toLocal8Bit().data();
-    char *message = toLayout(LineCStr);
+    char *message = parseAndRender(filePath);
 
     QString output = QString::fromUtf8(message);
     free(message);
@@ -57,11 +52,11 @@ void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extN
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-char *MarkdownRender::toLayout(const char *markdown_string)
+char *MarkdownRender::parseAndRender(const QString& filePath)
 {
     int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.
 
-    //cmark_gfm_core_extensions_ensure_registered();
+    cmark_gfm_core_extensions_ensure_registered();
 
     // Modified version of cmark_parse_document in blocks.c
     cmark_parser *parser = cmark_parser_new(options);
@@ -69,28 +64,41 @@ char *MarkdownRender::toLayout(const char *markdown_string)
     // Add extensions
     addMarkdownExtension(parser, "strikethrough");
     addMarkdownExtension(parser, "table");
+    
+    // Start measurement
+    clock_t t; 
+    t = clock(); 
 
-    // cmark AST
+    // Parse to AST with cmark
     cmark_node *root_node;
-    cmark_parser_feed(parser, markdown_string, strlen(markdown_string));
-    root_node = cmark_parser_finish(parser);
+    FILE * file;
+    file = fopen(filePath.toStdString().c_str(), "r");
+    // TODO: Copy/paste cmark_parse_file() content, allowing me to add extensions to the parser.
+    root_node = cmark_parse_file(file, options);
+    fclose(file);
+
     cmark_parser_free(parser);
 
     cmark_node_mem(root_node);
 
     // Render
+    char *output = renderToLayout(root_node, options, 0, NULL);
+    // Stop measurement
+    t = clock() - t; 
+    double timeDuration = (((double)t)/CLOCKS_PER_SEC) * 1000; // ms
+
     char *html = cmark_render_html(root_node, options, NULL);
-    char *output = renderWithMem(root_node, options, 0, cmark_node_mem(root_node));
 
     printf("HTML render: %s", html);
     printf("My render: %s", output);
+    qDebug() << "Duration parse & render:" << timeDuration << "ms" << endl;
 
     cmark_node_free(root_node);
 
     return output;
 }
 
-int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
+int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options)
 {
     bool entering = (ev_type == CMARK_EVENT_ENTER);
@@ -190,7 +198,7 @@ int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
     return 1;
 }
 
-char *MarkdownRender::renderWithMem(cmark_node *root, int options, int width, cmark_mem *mem)
+char *MarkdownRender::renderToLayout(cmark_node *root, int options, int width, cmark_llist *extensions)
 {
-    return cmark_render(mem, root, options, width, outc, S_render_node);
+    return cmark_render(cmark_node_mem(root), root, options, width, outc, renderNode);
 }

@@ -49,5 +49,5 @@ include_directories(${cmark_binary_dir})
 
 include_directories(lib/commonmarker/src)
 
-target_link_libraries (browser LINK_PUBLIC CommonMarker CommonMarkerExtensions)
+target_link_libraries (browser LINK_PUBLIC LibCommonMarker LibCommonMarkerExtensions)
 target_link_libraries (browser PRIVATE Qt5::Widgets)

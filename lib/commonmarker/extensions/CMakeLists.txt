@@ -18,5 +18,5 @@ include_directories (
 include (GenerateExportHeader)
 include_directories (. ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library (CommonMarkerExtensions ${LIBRARY_SOURCES})
-target_include_directories (CommonMarkerExtensions PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+add_library (LibCommonMarkerExtensions ${LIBRARY_SOURCES})
+target_link_libraries(LibCommonMarkerExtensions LibCommonMarker)
