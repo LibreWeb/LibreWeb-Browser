@@ -11,6 +11,10 @@
 #include "node.h"
 #include "syntax_extension.h"
 
+#define OUT(s, wrap, escaping) renderer->out(renderer, node, s, wrap, escaping)
+#define LIT(s) renderer->out(renderer, node, s, false, LITERAL)
+#define CR() renderer->cr(renderer)
+
 static inline void outc(cmark_renderer *renderer, cmark_node *node, 
                         cmark_escaping escape,
                         int32_t c, unsigned char nextc) {
@@ -35,7 +39,7 @@ MarkdownRender::MarkdownRender()
 
     char *html = toHTML(LineCStr);
 
-    printf("%s", html);
+    printf("HTML renderer: %s", html);
     free(html);
 }
 
@@ -75,7 +79,9 @@ char * MarkdownRender::toHTML(const char *markdown_string)
 
     // Render
     char *html = cmark_render_html(doc, options, NULL);
-    char *something = renderWithMem(doc, options, 0, cmark_node_mem(doc));
+    char *somethingElse = renderWithMem(doc, options, 0, cmark_node_mem(doc));
+
+    printf("My renderer: %s", somethingElse);
 
     cmark_node_free(doc);
 
@@ -85,6 +91,8 @@ char * MarkdownRender::toHTML(const char *markdown_string)
 int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options)
 {
+    bool entering = (ev_type == CMARK_EVENT_ENTER);
+
     switch (node->type) {
     case CMARK_NODE_DOCUMENT:
         qDebug() << "Document" << endl;
@@ -123,6 +131,9 @@ int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
 
     case CMARK_NODE_TEXT:
         qDebug() << "Text" << endl;
+
+        // False = no wrap, we didn't specify a width
+        OUT(cmark_node_get_literal(node), false, NORMAL);
         break;
 
     case CMARK_NODE_LINEBREAK:
@@ -146,6 +157,11 @@ int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
 
     case CMARK_NODE_EMPH:
         qDebug() << "Italic" << endl;
+        if (entering) {
+            LIT("_");
+        } else {
+            LIT("_");
+        }
         break;
 
     case CMARK_NODE_LINK:
