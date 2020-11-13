@@ -42,5 +42,11 @@ else()
   )
 endif()
 
+# Get the cmark binary dir for config.h
+get_property(cmark_binary_dir GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
+include_directories(${cmark_binary_dir})
+
+include_directories(lib/commonmarker/src)
+
 target_link_libraries (browser LINK_PUBLIC CommonMarker CommonMarkerExtensions)
 target_link_libraries (browser PRIVATE Qt5::Widgets)
