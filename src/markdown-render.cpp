@@ -85,7 +85,86 @@ char * MarkdownRender::toHTML(const char *markdown_string)
 int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options)
 {
-    qDebug() << "Type:" << node->type << endl;
+    switch (node->type) {
+    case CMARK_NODE_DOCUMENT:
+        qDebug() << "Document" << endl;
+        break;
+
+    case CMARK_NODE_BLOCK_QUOTE:
+        break;
+
+    case CMARK_NODE_LIST:
+        qDebug() << "List" << endl;
+        break;
+
+    case CMARK_NODE_ITEM:
+        qDebug() << "Item" << endl;
+        break;
+
+    case CMARK_NODE_HEADING:
+        qDebug() << "Heading" << endl;
+        break;
+
+    case CMARK_NODE_CODE_BLOCK:
+        break;
+
+    case CMARK_NODE_HTML_BLOCK:
+        break;
+
+    case CMARK_NODE_CUSTOM_BLOCK:
+        break;
+
+    case CMARK_NODE_THEMATIC_BREAK:
+        break;
+
+    case CMARK_NODE_PARAGRAPH:
+        qDebug() << "Paragraph" << endl;
+        break;
+
+    case CMARK_NODE_TEXT:
+        qDebug() << "Text" << endl;
+        break;
+
+    case CMARK_NODE_LINEBREAK:
+        break;
+
+    case CMARK_NODE_SOFTBREAK:
+        break;
+
+    case CMARK_NODE_CODE:
+        break;
+
+    case CMARK_NODE_HTML_INLINE:
+        break;
+
+    case CMARK_NODE_CUSTOM_INLINE:
+        break;
+
+    case CMARK_NODE_STRONG:
+        qDebug() << "Bold" << endl;
+        break;
+
+    case CMARK_NODE_EMPH:
+        qDebug() << "Italic" << endl;
+        break;
+
+    case CMARK_NODE_LINK:
+        break;
+
+    case CMARK_NODE_IMAGE:
+        break;
+
+    case CMARK_NODE_FOOTNOTE_REFERENCE:
+        break;
+
+    case CMARK_NODE_FOOTNOTE_DEFINITION:
+        break;
+    default:
+        assert(false);
+        break;
+    }
+
+    return 1;
 }
 
 char * MarkdownRender::renderWithMem(cmark_node *root, int options, int width, cmark_mem *mem)
