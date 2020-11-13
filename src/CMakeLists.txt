@@ -24,21 +24,22 @@ find_package (Qt5 COMPONENTS Widgets REQUIRED)
 find_library (libcmark-gfm libcmark-gfm.so REQUIRED)
 find_library (libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
 
+set(SOURCES 
+  main.cc
+  markdown-render.cc
+  markdown-render.h
+  mainwindow.cc
+  mainwindow.h
+  mainwindow.ui
+)
+
 if(ANDROID)
   add_library (browser SHARED
-    main.cpp
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+    ${SOURCES}
   )
 else()
   add_executable (browser
-    main.cpp
-    markdown-render.cpp
-    markdown-render.h
-    mainwindow.cpp
-    mainwindow.h
-    mainwindow.ui
+    ${SOURCES}
   )
 endif()
 
