@@ -1,24 +1,45 @@
-#include "mainwindow.h"
+#include "markdown-render.h"
 
-#include <string.h>
-#include <cmark-gfm.h>
 #include <cmark-gfm-core-extensions.h>
 
-#include <QApplication>
+#include <string.h>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
 #include <QDir>
 #include <QTextStream>
 
+MarkdownRender::MarkdownRender()
+{
+    QString exePath = QCoreApplication::applicationDirPath();
+    QString filePath = exePath + QDir::separator() + "../../test.md";
+
+    QFile file(filePath);
+    if(!file.open(QIODevice::ReadOnly))
+    {
+        qDebug() << "error opening file: " << file.error();
+    }
+
+    QTextStream instream(&file);
+    QString line = instream.readLine();
+    const char *LineCStr = line.toStdString().c_str();
+    file.close();
+
+    char *html = to_html(LineCStr);
+
+    printf("%s", html);
+    free(html);
+}
+
 // This is a function that will make enabling extensions easier later on.
-void addMarkdownExtension(cmark_parser *parser, char *extName) {
+void MarkdownRender::addMarkdownExtension(cmark_parser *parser, char *extName) {
   cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
   if ( ext )
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
 // A function to convert HTML to markdown
-char *to_html(const char *markdown_string)
+char * MarkdownRender::to_html(const char *markdown_string)
 {
     int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.
 
@@ -38,40 +59,13 @@ char *to_html(const char *markdown_string)
     cmark_parser_free(parser);
 
     // no cmake_node_dump() ?
-    qDebug() << "AST" << doc << endl;
+    // qDebug() << "AST" << doc->content.mem << endl;
 
     // Render
     char *html = cmark_render_html(doc, options, NULL);
+
     cmark_node_free(doc);
 
     return html;
 }
 
-int main(int argc, char *argv[])
-{
-    QApplication a(argc, argv);
-    MainWindow w;
-
-    QString exePath = QCoreApplication::applicationDirPath();
-    QString filePath = exePath + QDir::separator() + "../test.md";
-
-    QFile file(filePath);
-    if(!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << file.error();
-        return -1;
-    }
-
-    QTextStream instream(&file);
-    QString line = instream.readLine();
-    const char *LineCStr = line.toStdString().c_str();
-    file.close();
-
-    char *html = to_html(LineCStr);
-
-    printf("%s", html);
-    free(html);
-
-    w.show();
-    return a.exec();
-}
