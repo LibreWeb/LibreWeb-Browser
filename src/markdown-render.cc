@@ -91,7 +91,7 @@ char *MarkdownRender::parseAndRender(const QString& filePath)
 
     printf("HTML render: %s", html);
     printf("My render: %s", output);
-    qDebug() << "Duration parse & render:" << timeDuration << "ms" << endl;
+    qDebug() << "Content loaded, parsed & rendered time:" << timeDuration << "ms" << endl;
 
     cmark_node_free(root_node);
 
