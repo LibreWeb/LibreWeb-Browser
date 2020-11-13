@@ -13,3 +13,9 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::setLabel(QString text)
+{
+    QLabel *label = findChild<QLabel *>("output");
+    if(label)
+        label->setText(text);
+}

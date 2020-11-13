@@ -23,8 +23,12 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
 
 MarkdownRender::MarkdownRender()
 {
-    QString exePath = QCoreApplication::applicationDirPath();
-    QString filePath = exePath + QDir::separator() + "../../test.md";
+    exePath = QCoreApplication::applicationDirPath();
+}
+
+QString const MarkdownRender::render()
+{
+   QString filePath = exePath + QDir::separator() + "../../test.md";
 
     QFile file(filePath);
     if(!file.open(QIODevice::ReadOnly))
@@ -37,10 +41,10 @@ MarkdownRender::MarkdownRender()
     const char *LineCStr = line.toStdString().c_str();
     file.close();
 
-    char *html = toHTML(LineCStr);
-
-    printf("HTML renderer: %s", html);
-    free(html);
+    char *message = toLayout(LineCStr);
+    QString output = QString::fromUtf8(message);
+    free(message);
+    return output;
 }
 
 /**
@@ -52,8 +56,7 @@ void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extN
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-// A function to convert HTML to markdown
-char * MarkdownRender::toHTML(const char *markdown_string)
+char *MarkdownRender::toLayout(const char *markdown_string)
 {
     int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.
 
@@ -76,13 +79,14 @@ char * MarkdownRender::toHTML(const char *markdown_string)
 
     // Render
     char *html = cmark_render_html(root_node, options, NULL);
-    char *somethingElse = renderWithMem(root_node, options, 0, cmark_node_mem(root_node));
+    char *output = renderWithMem(root_node, options, 0, cmark_node_mem(root_node));
 
-    printf("My renderer: %s", somethingElse);
+    printf("HTML render: %s", html);
+    printf("My render: %s", output);
 
     cmark_node_free(root_node);
 
-    return html;
+    return output;
 }
 
 int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
@@ -180,7 +184,7 @@ int MarkdownRender::S_render_node(cmark_renderer *renderer, cmark_node *node,
     return 1;
 }
 
-char * MarkdownRender::renderWithMem(cmark_node *root, int options, int width, cmark_mem *mem)
+char *MarkdownRender::renderWithMem(cmark_node *root, int options, int width, cmark_mem *mem)
 {
     return cmark_render(mem, root, options, width, outc, S_render_node);
 }

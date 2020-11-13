@@ -15,6 +15,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void setLabel(QString text);
 private:
     Ui::MainWindow *ui;
 };

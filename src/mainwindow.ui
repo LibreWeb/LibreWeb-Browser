@@ -11,20 +11,20 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Browser</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="output">
     <property name="geometry">
      <rect>
-      <x>70</x>
-      <y>30</y>
-      <width>81</width>
-      <height>16</height>
+      <x>190</x>
+      <y>80</y>
+      <width>131</width>
+      <height>61</height>
      </rect>
     </property>
     <property name="text">
-     <string>Hello world</string>
+     <string>Empty</string>
     </property>
    </widget>
   </widget>
