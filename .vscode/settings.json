@@ -2,6 +2,10 @@
     "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
     "files.associations": {
         "qapplication": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "qdir": "cpp",
+        "qfile": "cpp",
+        "*.tcc": "cpp",
+        "qmainwindow": "cpp"
     }
 }

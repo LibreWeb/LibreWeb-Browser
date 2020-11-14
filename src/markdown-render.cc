@@ -1,12 +1,8 @@
 #include "markdown-render.h"
 
-#include <QCoreApplication>
-#include <QDebug>
-#include <QFile>
-#include <QDir>
-#include <QTextStream>
+#include <filesystem>
+#include <string>
 #include <cmark-gfm-core-extensions.h>
-#include <string.h>
 #include <time.h> 
 
 #include "node.h"
@@ -24,23 +20,15 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
 
 MarkdownRender::MarkdownRender()
 {
-    exePath = QCoreApplication::applicationDirPath();
+    exePath = std::filesystem::current_path().string();
 }
 
-QString const MarkdownRender::render()
+std::string const MarkdownRender::render()
 {
-   QString filePath = exePath + QDir::separator() + "../../test.md";
+    std::string filePath = exePath.append("/test.md");
+    printf("Path: %s\n", filePath.c_str());
 
-    QFile file(filePath);
-    if(!file.open(QIODevice::ReadOnly))
-    {
-        qDebug() << "error opening file: " << file.error();
-    }
-    char *message = parseAndRender(filePath);
-
-    QString output = QString::fromUtf8(message);
-    free(message);
-    return output;
+    return parseAndRender(filePath);
 }
 
 /**
@@ -52,8 +40,9 @@ void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extN
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-char *MarkdownRender::parseAndRender(const QString& filePath)
+std::string MarkdownRender::parseAndRender(const std::string& filePath)
 {
+    std::string output("");
     int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.
 
     cmark_gfm_core_extensions_ensure_registered();
@@ -71,29 +60,33 @@ char *MarkdownRender::parseAndRender(const QString& filePath)
 
     // Parse to AST with cmark
     cmark_node *root_node;
-    FILE * file;
-    file = fopen(filePath.toStdString().c_str(), "r");
-    // TODO: Copy/paste cmark_parse_file() content, allowing me to add extensions to the parser.
-    root_node = cmark_parse_file(file, options);
-    fclose(file);
+    FILE *file;
+    if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
+    {
+        // TODO: Copy/paste cmark_parse_file() content, allowing me to add extensions to the parser.
+        root_node = cmark_parse_file(file, options);
+        fclose(file);
+ 
+        // Render
+        char *charStr = renderToLayout(root_node, options, 0, NULL);
+        output = std::string(charStr);
+        free(charStr);
+
+        // Stop measurement
+        t = clock() - t; 
+        double timeDuration = (((double)t)/CLOCKS_PER_SEC) * 1000; // ms
+
+        char *html = cmark_render_html(root_node, options, NULL);
+
+        printf("\nHTML render: %s", html);
+        printf("My render: %s", output.c_str());
+        printf("Content loaded, parsed & rendered time: %f ms", timeDuration);
+    
+        free(html);
+        cmark_node_free(root_node);
+    }
 
     cmark_parser_free(parser);
-
-    cmark_node_mem(root_node);
-
-    // Render
-    char *output = renderToLayout(root_node, options, 0, NULL);
-    // Stop measurement
-    t = clock() - t; 
-    double timeDuration = (((double)t)/CLOCKS_PER_SEC) * 1000; // ms
-
-    char *html = cmark_render_html(root_node, options, NULL);
-
-    printf("HTML render: %s", html);
-    printf("My render: %s", output);
-    qDebug() << "Content loaded, parsed & rendered time:" << timeDuration << "ms" << endl;
-
-    cmark_node_free(root_node);
 
     return output;
 }
@@ -105,22 +98,22 @@ int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
 
     switch (node->type) {
     case CMARK_NODE_DOCUMENT:
-        qDebug() << "Document" << endl;
+        printf("Document\n");
         break;
 
     case CMARK_NODE_BLOCK_QUOTE:
         break;
 
     case CMARK_NODE_LIST:
-        qDebug() << "List" << endl;
+        printf("List\n");
         break;
 
     case CMARK_NODE_ITEM:
-        qDebug() << "Item" << endl;
+        printf("Item\n");
         break;
 
     case CMARK_NODE_HEADING:
-        qDebug() << "Heading" << endl;
+        printf("Heading\n");
         break;
 
     case CMARK_NODE_CODE_BLOCK:
@@ -136,11 +129,11 @@ int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
         break;
 
     case CMARK_NODE_PARAGRAPH:
-        qDebug() << "Paragraph" << endl;
+        printf("Paragraph\n");
         break;
 
     case CMARK_NODE_TEXT:
-        qDebug() << "Text" << endl;
+        printf("Text\n");
 
         // False = no wrap, we didn't specify a width
         OUT(cmark_node_get_literal(node), false, NORMAL);
@@ -162,7 +155,7 @@ int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
         break;
 
     case CMARK_NODE_STRONG:
-        qDebug() << "Bold" << endl;
+        printf("Bold\n");
         if (entering) {
             LIT("[b]");
         } else {
@@ -171,7 +164,7 @@ int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
         break;
 
     case CMARK_NODE_EMPH:
-        qDebug() << "Italic" << endl;
+        printf("Italic\n");
         if (entering) {
             LIT("_");
         } else {

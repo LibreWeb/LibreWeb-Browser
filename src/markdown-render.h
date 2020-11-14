@@ -1,7 +1,7 @@
 #ifndef MARKDOWN_RENDER_H
 #define MARKDOWN_RENDER_H
 
-#include <QString>
+#include <string>
 #include <cmark-gfm.h>
 #include "render.h"
 
@@ -9,13 +9,13 @@ class MarkdownRender
 {
 public:
     MarkdownRender();
-    QString const render();
+    std::string const render();
 
 private:
-    QString exePath;
+    std::string exePath;
 
     void addMarkdownExtension(cmark_parser *parser, const char *extName);
-    char * parseAndRender(const QString& filePath);
+    std::string parseAndRender(const std::string &filePath);
     static int renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options);
     char * renderToLayout(cmark_node *root, int options, int width, cmark_llist *extensions);
