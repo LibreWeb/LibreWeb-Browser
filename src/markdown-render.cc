@@ -75,12 +75,12 @@ std::string MarkdownRender::parseAndRender(const std::string& filePath)
         // Stop measurement
         t = clock() - t; 
         double timeDuration = (((double)t)/CLOCKS_PER_SEC) * 1000; // ms
+        printf("\n\nContent loaded, parsed & rendered time: %f ms\n", timeDuration);
 
         char *html = cmark_render_html(root_node, options, NULL);
 
-        printf("\nHTML render: %s", html);
+        printf("HTML render: %s", html);
         printf("My render: %s", output.c_str());
-        printf("Content loaded, parsed & rendered time: %f ms", timeDuration);
     
         free(html);
         cmark_node_free(root_node);
