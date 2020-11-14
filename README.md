@@ -27,6 +27,13 @@ The current plan:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
+## Topology
+
+```plantuml
+Bob -> Alice : hello
+Alice -> Bob : hi
+```
+
 ## Devs
 
 Decentralized Browser written in C and C++20. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
