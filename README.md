@@ -27,11 +27,14 @@ The current plan:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
-## Topology
+## Top level design
 
 ```plantuml
-Bob -> Alice : hello
-Alice -> Bob : hi
+(*) --> "Get file online /\nRead from disk"
+-->[Doc in memory] "Parse document (CommonMark)"
+-->[AST output] "Render"
+-->[Layout] "Draw on screen"
+-->[Output visable in GUI] (*)
 ```
 
 ## Devs
@@ -46,9 +49,13 @@ We can also still change the language of the source code (iso markdown). Atleast
 
 #### Qt
 
-Qt has support for [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) using [QTextDocument class](https://doc.qt.io/qt-5/qtextdocument.html).
+Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) can't be used, since that only supports HTML to rich text. Or you need to use the built-in markdown parser, in both cases doesn't give use the right flexibility we need.
 
-See also [Calligra](https://github.com/KDE/calligra) Word  (and more) using Qt.
+See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) example. 
+
+From `baysmith`: It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
+
+See also [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text as well?
 
 #### Dear Imgui
 
