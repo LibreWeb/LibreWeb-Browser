@@ -6,6 +6,9 @@
         "qdir": "cpp",
         "qfile": "cpp",
         "*.tcc": "cpp",
-        "qmainwindow": "cpp"
+        "qmainwindow": "cpp",
+        "qtextedit": "cpp",
+        "new": "cpp",
+        "qvboxlayout": "cpp"
     }
 }

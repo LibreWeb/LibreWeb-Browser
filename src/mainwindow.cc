@@ -1,21 +1,34 @@
 #include "mainwindow.h"
-#include "./ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+#include <QVBoxLayout>
+#include <QMenuBar>
+#include <QMainWindow>
+#include <QWidget>
+#include <QTextEdit>
+#include <QSizePolicy>
+
+MainWindow::MainWindow()
 {
-    ui->setupUi(this);
+    resize(600, 400);
+    setWindowTitle("Browser");
+
+    QMenu *fileMenu = new QMenu("File");
+    fileMenu->addAction("New");
+    fileMenu->addAction("Exit");
+
+    menuBar()->addMenu(fileMenu);
+
+    QWidget *centralWidget = new QWidget;
+    setCentralWidget(centralWidget);
+    QVBoxLayout *layout = new QVBoxLayout(centralWidget);
+    layout->setContentsMargins(5, 5, 5, 5);
+
+    textEdit = new QTextEdit();
+    textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    layout->addWidget(textEdit);
 }
 
-MainWindow::~MainWindow()
+void MainWindow::setOutput(const QString& text)
 {
-    delete ui;
-}
-
-void MainWindow::setLabel(const QString& text)
-{
-    QLabel *label = findChild<QLabel *>("output");
-    if(label)
-        label->setText(text);
+    textEdit->setText(text);
 }

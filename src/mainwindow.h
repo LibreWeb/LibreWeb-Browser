@@ -2,22 +2,26 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QString>
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
+class QAction;
+class QTextEdit;
 QT_END_NAMESPACE
 
+//! [0]
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    MainWindow();
+    void setOutput(const QString& text);
 
-    void setLabel(const QString& text);
+//private slots:
+//    void newFile();
+
 private:
-    Ui::MainWindow *ui;
+    QTextEdit *textEdit;
 };
-#endif // MAINWINDOW_H
+
+#endif
