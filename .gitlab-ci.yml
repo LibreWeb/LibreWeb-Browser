@@ -1,0 +1,4 @@
+image: "danger89/cmake:latest"
+
+static_code_analysis:
+  script: ./check.sh
