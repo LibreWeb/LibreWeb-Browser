@@ -29,13 +29,27 @@ The current plan:
 
 ## Text on Screen Flowchart
 
+**Prepare steps**
+
+```plantuml
+(*) --> "Load fonts glyphs (ttf)/default font"
+--> "Create Font Atlas"
+--> "Create Viewport"
+-->[Ready for render] (*)
+```
+
+**Text rendering**
+
 ```plantuml
 (*) --> "Get file online /\nRead from disk"
--->[Doc in memory] "Parse document (CommonMark)"
--->[AST output] "Render"
--->[Layout] "Draw on screen"
--->[Output visable in GUI] (*)
+-->[Content in memory] "Parse document"
+-->[AST output] "Convert AST to Bitmap struct"
+-->[Ready for painter] "Paint text on Viewport"
+-->[Text visable on Screen] (*)
 ```
+
+*ttf* = TrueType Font
+*AST* = Abstract Syntax Tree
 
 ## Devs
 
