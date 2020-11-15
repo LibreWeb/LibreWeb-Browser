@@ -23,12 +23,8 @@ MainWindow::MainWindow()
     QVBoxLayout *layout = new QVBoxLayout(centralWidget);
     layout->setContentsMargins(5, 5, 5, 5);
 
-    // TextEdit supports markdown input as QString (but we don't want to use Qt's implemention), with Qt version 5.14
-    // TextEdit supports QTextDocument, but it only supports HTML as 'rich text'...
-    // Bottom-line: If we directly want to render rich text, we need to create our own version of TextEdit and/or create a 2D layout.
-    // Meaning we can just better use a 2D engine after all.
-
-    // We want full control, reading TrueType fonts, creating a Font/glyph Atlas. Calculate bitmap and render our text on the screen.
+    // We will not use TextEdit, it does only support HTML (and markdown, but we don't want to use the built-in parser).
+    // Instead, we can try QPainter in Qt or use a 2D engine (using ttf, glyphs atlas, render bitmap text).
     textEdit = new QTextEdit();
     textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     layout->addWidget(textEdit);

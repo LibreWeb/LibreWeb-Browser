@@ -66,7 +66,9 @@ We can also still change the language of the source code (iso markdown). Atleast
 
 Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) can't be used, since that only supports HTML to rich text. Or you need to use the built-in markdown parser, in both cases doesn't give use the right flexibility we need. Thus in Qt we can try to use low-level [QPainter](https://github.com/yinyunqiao/qtbase/blob/master/src/gui/painting/qpainter.cpp) calls, by setting a viewport (rectangle), and [draw the text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114).
 
-See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for an example. 
+See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for a code example. 
+
+See [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
 
 By `baysmith`: 
 
@@ -76,7 +78,7 @@ See also [Calligra](https://github.com/KDE/calligra) Word processor using Qt, ma
 
 #### Dear Imgui
 
-Imgui is used for Games but also applications. For example the Unity Editor is using Imgui!
+[Imgui](https://github.com/ocornut/imgui) is used for Games but also applications. For example the Unity Editor is using Imgui!
 
 For some inspiration; there exists [Text Editor #1](https://github.com/BalazsJako/ImGuiColorTextEdit), [Text Editor #2](https://github.com/Rezonality/zep) created with Imgui.
 
