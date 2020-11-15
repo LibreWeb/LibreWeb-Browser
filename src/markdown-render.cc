@@ -5,8 +5,8 @@
 #include <cmark-gfm-core-extensions.h>
 #include <time.h> 
 
-#include "node.h"
-#include "syntax_extension.h"
+#include <node.h>
+#include <syntax_extension.h>
 
 #define OUT(s, wrap, escaping) renderer->out(renderer, node, s, wrap, escaping)
 #define LIT(s) renderer->out(renderer, node, s, false, LITERAL)
@@ -25,10 +25,10 @@ MarkdownRender::MarkdownRender()
 
 std::string const MarkdownRender::render()
 {
-    std::string filePath = exePath.append("/test.md");
+    std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
-    return parseAndRender(filePath);
+    return parseRenderFromFile(filePath);
 }
 
 /**
@@ -40,7 +40,7 @@ void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extN
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-std::string MarkdownRender::parseAndRender(const std::string& filePath)
+std::string MarkdownRender::parseRenderFromFile(const std::string& filePath)
 {
     std::string output("");
     int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.

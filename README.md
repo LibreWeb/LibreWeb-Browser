@@ -27,7 +27,7 @@ The current plan:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
-## Top level design
+## Text on Screen Flowchart
 
 ```plantuml
 (*) --> "Get file online /\nRead from disk"
@@ -49,13 +49,15 @@ We can also still change the language of the source code (iso markdown). Atleast
 
 #### Qt
 
-Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) can't be used, since that only supports HTML to rich text. Or you need to use the built-in markdown parser, in both cases doesn't give use the right flexibility we need.
+Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) can't be used, since that only supports HTML to rich text. Or you need to use the built-in markdown parser, in both cases doesn't give use the right flexibility we need. Thus in Qt we can try to use low-level [QPainter](https://github.com/yinyunqiao/qtbase/blob/master/src/gui/painting/qpainter.cpp) calls, by setting a viewport (rectangle), and [draw the text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114).
 
-See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) example. 
+See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for an example. 
 
-From `baysmith`: It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
+By `baysmith`: 
 
-See also [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text as well?
+    It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
+
+See also [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
 
 #### Dear Imgui
 
@@ -64,3 +66,5 @@ Imgui is used for Games but also applications. For example the Unity Editor is u
 For some inspiration; there exists [Text Editor #1](https://github.com/BalazsJako/ImGuiColorTextEdit), [Text Editor #2](https://github.com/Rezonality/zep) created with Imgui.
 
 But there are many more demos and projects out there using Imgui!
+
+See also [Fonts documentation](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) of Imgui.
