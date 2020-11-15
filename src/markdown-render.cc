@@ -18,10 +18,7 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
     cmark_render_code_point(renderer, c);
 }
 
-MarkdownRender::MarkdownRender()
-{
-    exePath = std::filesystem::current_path().string();
-}
+MarkdownRender::MarkdownRender(): exePath(std::filesystem::current_path().string()) {}
 
 std::string const MarkdownRender::render()
 {
@@ -59,10 +56,11 @@ std::string MarkdownRender::parseRenderFromFile(const std::string& filePath)
     t = clock(); 
 
     // Parse to AST with cmark
-    cmark_node *root_node;
     FILE *file;
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
     {
+        cmark_node *root_node;
+
         // TODO: Copy/paste cmark_parse_file() content, allowing me to add extensions to the parser.
         root_node = cmark_parse_file(file, options);
         fclose(file);
