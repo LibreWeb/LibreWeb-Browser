@@ -27,7 +27,7 @@ The current plan:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
-## Text on Screen Flowchart
+## Text on Screen Flowcharts
 
 **Prepare steps**
 
@@ -49,6 +49,7 @@ The current plan:
 ```
 
 *ttf* = TrueType Font
+
 *AST* = Abstract Syntax Tree
 
 ## Devs
