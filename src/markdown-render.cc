@@ -1,6 +1,5 @@
 #include "markdown-render.h"
 
-#include <filesystem>
 #include <string>
 #include <cmark-gfm-core-extensions.h>
 #include <time.h> 
@@ -19,36 +18,8 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
 }
 
 MarkdownRender::MarkdownRender():
-    exePath(std::filesystem::current_path().string()),
     options(CMARK_OPT_DEFAULT) {}
 
-/**
- * Helper wrapper for testing/demo
- */
-std::string const MarkdownRender::renderDemoFile()
-{
-    std::string output = "";
-    std::string filePath = exePath.append("/../../test.md");
-    printf("Path: %s\n", filePath.c_str());
-
-    cmark_node *root_node = parseFile(filePath);
-    if (root_node != NULL) {
-        output = renderHTML(root_node);
-        //output = renderMyLayout(root_node);
-
-        cmark_node_free(root_node);
-    }
-    return output;
-}
-
-/**
- * This is a function that will make enabling extensions easier
- */
-void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extName) {
-  cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
-  if ( ext )
-    cmark_parser_attach_syntax_extension(parser, ext);
-}
 
 /**
  * Parse markdown by file path
@@ -88,6 +59,15 @@ std::string const MarkdownRender::renderHTML(cmark_node *node)
 std::string const MarkdownRender::renderMyLayout(cmark_node *node)
 {
     return std::string(renderLayout(node, options, 0, NULL));
+}
+
+/**
+ * This is a function that will make enabling extensions easier
+ */
+void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extName) {
+  cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
+  if ( ext )
+    cmark_parser_attach_syntax_extension(parser, ext);
 }
 
 char *MarkdownRender::renderLayout(cmark_node *root, int options, int width, cmark_llist *extensions)

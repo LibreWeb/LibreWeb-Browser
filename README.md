@@ -60,6 +60,8 @@ The GUI-toolkit or 2D/3D engine used displaying the content is not yet decided. 
 
 We can also still change the language of the source code (iso markdown). Atleast no HTML and JavaScript anymore, content is king after all.
 
+For the development environment I'm using VSCodium with `C/C++`, `Cmake` and `Cmake Tools` extensions installed.
+
 ### GUIs
 
 #### Qt

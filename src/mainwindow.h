@@ -6,6 +6,8 @@
 QT_BEGIN_NAMESPACE
 class QAction;
 class QTextEdit;
+class QGraphicsView;
+class Scene;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -14,13 +16,18 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
-    void setOutput(const QString& text);
+    void setOutputToTextEdit(const QString& text);
+    void drawOutputToScene(const QString& text);
 
 //private slots:
 //    void newFile();
 
 private:
+    QGraphicsView *view;
+    Scene *scene;
     QTextEdit *textEdit;
+
+    // void resizeEvent(QResizeEvent *);
 };
 
 #endif

@@ -13,10 +13,7 @@ public:
     std::string const renderHTML(cmark_node *node);
     std::string const renderMyLayout(cmark_node *node);
 
-    std::string const renderDemoFile(); // As an example
-
 private:
-    std::string exePath;
     int options;
 
     void addMarkdownExtension(cmark_parser *parser, const char *extName);

@@ -2,20 +2,33 @@
 #include "markdown-render.h"
 #include "mainwindow.h"
 
+#include <filesystem>
 #include <QApplication>
 #include <QTextDocument>
 #include <QString>
 
 int main(int argc, char *argv[])
 {
-    MarkdownRender md; 
+    MarkdownRender mdRender; 
     
-    QString output = QString::fromStdString(md.renderDemoFile());
+    std::string exePath = std::filesystem::current_path().string();
+    std::string htmlOutput, myOutput = "";
+    std::string filePath = exePath.append("/../../test.md");
+    printf("Path: %s\n", filePath.c_str());
+
+    cmark_node *root_node = mdRender.parseFile(filePath);
+    if (root_node != NULL) {
+        htmlOutput = mdRender.renderHTML(root_node);
+        myOutput = mdRender.renderMyLayout(root_node);
+
+        cmark_node_free(root_node);
+    }
 
     QApplication app(argc, argv);
 
     MainWindow window;
-    window.setOutput(output);
+    window.setOutputToTextEdit(QString::fromStdString(htmlOutput));
+    window.drawOutputToScene(QString::fromStdString(myOutput));
     window.show();
     return app.exec();
 }

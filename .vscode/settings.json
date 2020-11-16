@@ -64,6 +64,8 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "variant": "cpp",
-        "bit": "cpp"
+        "bit": "cpp",
+        "qsizepolicy": "cpp",
+        "qgraphicsscene": "cpp"
     }
 }

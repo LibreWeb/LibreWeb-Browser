@@ -30,6 +30,8 @@ set(SOURCES
   markdown-render.h
   mainwindow.cc
   mainwindow.h
+  scene.h
+  scene.cc
 )
 
 if(ANDROID)
