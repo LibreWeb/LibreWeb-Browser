@@ -63,6 +63,8 @@ void MainWindow::setOutputToTextEdit(const QString& text)
 // TODO: Create a new Render class for converting AST and render it to the scene, by calculating the positions, etc.
 //       So the input parameter will be a root node, render the right Qt objects with their positions and settings, and drop in on the scene.
 //       Basically cmark parse and Qt are comming togther.
+// TODO: WHen we have a seperate render class for this, it make sense to rename MarkdownRender class to just MarkdownParser..
+
 void MainWindow::drawOutputToScene(const QString& text)
 {
     QGraphicsTextItem *textItem = new QGraphicsTextItem(text);
