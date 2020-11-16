@@ -53,12 +53,18 @@ cmark_node * MarkdownRender::parseFile(const std::string &filePath)
 
 std::string const MarkdownRender::renderHTML(cmark_node *node)
 {
-    return std::string(cmark_render_html(node, options, NULL));
+    char *tmp = cmark_render_html(node, options, NULL);
+    std::string output = std::string(tmp);
+    free(tmp);
+    return output;
 }
 
 std::string const MarkdownRender::renderMyLayout(cmark_node *node)
 {
-    return std::string(renderLayout(node, options, 0, NULL));
+    char *tmp = renderLayout(node, options, 0, NULL);
+    std::string output = std::string(tmp);
+    free(tmp);
+    return output;
 }
 
 /**
