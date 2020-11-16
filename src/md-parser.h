@@ -1,14 +1,14 @@
-#ifndef MARKDOWN_RENDER_H
-#define MARKDOWN_RENDER_H
+#ifndef MD_PARSER_H
+#define MD_PARSER_H
 
 #include <string>
 #include <cmark-gfm.h>
 #include <render.h>
 
-class MarkdownRender
+class Parser
 {
 public:
-    MarkdownRender();
+    Parser();
     cmark_node * parseFile(const std::string &filePath);
     std::string const renderHTML(cmark_node *node);
     std::string const renderMyLayout(cmark_node *node);
@@ -21,4 +21,4 @@ private:
     static int renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options);
 };
-#endif // MARKDOWN_RENDER_H
+#endif

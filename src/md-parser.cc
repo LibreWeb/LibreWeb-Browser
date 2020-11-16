@@ -1,4 +1,4 @@
-#include "markdown-render.h"
+#include "md-parser.h"
 
 #include <string>
 #include <cmark-gfm-core-extensions.h>
@@ -17,7 +17,7 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
     cmark_render_code_point(renderer, c);
 }
 
-MarkdownRender::MarkdownRender():
+Parser::Parser():
     options(CMARK_OPT_DEFAULT) {}
 
 
@@ -25,7 +25,7 @@ MarkdownRender::MarkdownRender():
  * Parse markdown by file path
  * @return AST structure (of type cmark_node)
  */
-cmark_node * MarkdownRender::parseFile(const std::string &filePath)
+cmark_node * Parser::parseFile(const std::string &filePath)
 {
     // Modified version of cmark_parse_document in blocks.c
     cmark_parser *parser = cmark_parser_new(options);
@@ -51,7 +51,7 @@ cmark_node * MarkdownRender::parseFile(const std::string &filePath)
     return NULL;    
 }
 
-std::string const MarkdownRender::renderHTML(cmark_node *node)
+std::string const Parser::renderHTML(cmark_node *node)
 {
     char *tmp = cmark_render_html(node, options, NULL);
     std::string output = std::string(tmp);
@@ -59,7 +59,7 @@ std::string const MarkdownRender::renderHTML(cmark_node *node)
     return output;
 }
 
-std::string const MarkdownRender::renderMyLayout(cmark_node *node)
+std::string const Parser::renderMyLayout(cmark_node *node)
 {
     char *tmp = renderLayout(node, options, 0, NULL);
     std::string output = std::string(tmp);
@@ -70,18 +70,18 @@ std::string const MarkdownRender::renderMyLayout(cmark_node *node)
 /**
  * This is a function that will make enabling extensions easier
  */
-void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extName) {
+void Parser::addMarkdownExtension(cmark_parser *parser, const char *extName) {
   cmark_syntax_extension *ext = cmark_find_syntax_extension(extName);
   if ( ext )
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-char *MarkdownRender::renderLayout(cmark_node *root, int options, int width, cmark_llist *extensions)
+char *Parser::renderLayout(cmark_node *root, int options, int width, cmark_llist *extensions)
 {
     return cmark_render(cmark_node_mem(root), root, options, width, outc, renderNode);
 }
 
-int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
+int Parser::renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options)
 {
     bool entering = (ev_type == CMARK_EVENT_ENTER);

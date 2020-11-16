@@ -1,5 +1,5 @@
 
-#include "markdown-render.h"
+#include "md-parser.h"
 #include "mainwindow.h"
 
 #include <filesystem>
@@ -9,17 +9,17 @@
 
 int main(int argc, char *argv[])
 {
-    MarkdownRender mdRender; 
+    Parser parser; 
     
     std::string exePath = std::filesystem::current_path().string();
     std::string htmlOutput, myOutput = "";
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
-    cmark_node *root_node = mdRender.parseFile(filePath);
+    cmark_node *root_node = parser.parseFile(filePath);
     if (root_node != NULL) {
-        htmlOutput = mdRender.renderHTML(root_node);
-        myOutput = mdRender.renderMyLayout(root_node);
+        htmlOutput = parser.renderHTML(root_node);
+        myOutput = parser.renderMyLayout(root_node);
 
         cmark_node_free(root_node);
     }

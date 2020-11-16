@@ -26,8 +26,10 @@ find_library (libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
 
 set(SOURCES 
   main.cc
-  markdown-render.cc
-  markdown-render.h
+  md-parser.cc
+  md-parser.h
+  md-render.cc
+  md-render.h
   mainwindow.cc
   mainwindow.h
   scene.h
