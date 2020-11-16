@@ -18,14 +18,27 @@ static inline void outc(cmark_renderer *renderer, cmark_node *node,
     cmark_render_code_point(renderer, c);
 }
 
-MarkdownRender::MarkdownRender(): exePath(std::filesystem::current_path().string()) {}
+MarkdownRender::MarkdownRender():
+    exePath(std::filesystem::current_path().string()),
+    options(CMARK_OPT_DEFAULT) {}
 
-std::string const MarkdownRender::render()
+/**
+ * Helper wrapper for testing/demo
+ */
+std::string const MarkdownRender::renderDemoFile()
 {
+    std::string output = "";
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
-    return parseRenderFromFile(filePath);
+    cmark_node *root_node = parseFile(filePath);
+    if (root_node != NULL) {
+        output = renderHTML(root_node);
+        //output = renderMyLayout(root_node);
+
+        cmark_node_free(root_node);
+    }
+    return output;
 }
 
 /**
@@ -37,23 +50,20 @@ void MarkdownRender::addMarkdownExtension(cmark_parser *parser, const char *extN
     cmark_parser_attach_syntax_extension(parser, ext);
 }
 
-std::string MarkdownRender::parseRenderFromFile(const std::string& filePath)
+/**
+ * Parse markdown by file path
+ * @return AST structure (of type cmark_node)
+ */
+cmark_node * MarkdownRender::parseFile(const std::string &filePath)
 {
-    std::string output("");
-    int options = CMARK_OPT_DEFAULT; // You can also use CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE to enforce double tilde.
-
-    cmark_gfm_core_extensions_ensure_registered();
-
     // Modified version of cmark_parse_document in blocks.c
     cmark_parser *parser = cmark_parser_new(options);
 
     // Add extensions
     addMarkdownExtension(parser, "strikethrough");
     addMarkdownExtension(parser, "table");
-    
-    // Start measurement
-    clock_t t; 
-    t = clock(); 
+  
+    cmark_parser_free(parser);
 
     // Parse to AST with cmark
     FILE *file;
@@ -61,32 +71,28 @@ std::string MarkdownRender::parseRenderFromFile(const std::string& filePath)
     {
         cmark_node *root_node;
 
-        // TODO: Copy/paste cmark_parse_file() content, allowing me to add extensions to the parser.
+        // TODO: Copy/paste cmark_parse_file() content to here, allowing me to add extensions to the parser.
         root_node = cmark_parse_file(file, options);
         fclose(file);
- 
-        // Render
-        char *charStr = renderToLayout(root_node, options, 0, NULL);
-        output = std::string(charStr);
-        free(charStr);
 
-        // Stop measurement
-        t = clock() - t; 
-        double timeDuration = (((double)t)/CLOCKS_PER_SEC) * 1000; // ms
-        printf("\n\nContent loaded, parsed & rendered time: %f ms\n", timeDuration);
-
-        char *html = cmark_render_html(root_node, options, NULL);
-
-        printf("HTML render: %s", html);
-        printf("My render: %s", output.c_str());
-    
-        free(html);
-        cmark_node_free(root_node);
+        return root_node;
     }
+    return NULL;    
+}
 
-    cmark_parser_free(parser);
+std::string const MarkdownRender::renderHTML(cmark_node *node)
+{
+    return std::string(cmark_render_html(node, options, NULL));
+}
 
-    return output;
+std::string const MarkdownRender::renderMyLayout(cmark_node *node)
+{
+    return std::string(renderLayout(node, options, 0, NULL));
+}
+
+char *MarkdownRender::renderLayout(cmark_node *root, int options, int width, cmark_llist *extensions)
+{
+    return cmark_render(cmark_node_mem(root), root, options, width, outc, renderNode);
 }
 
 int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
@@ -189,7 +195,3 @@ int MarkdownRender::renderNode(cmark_renderer *renderer, cmark_node *node,
     return 1;
 }
 
-char *MarkdownRender::renderToLayout(cmark_node *root, int options, int width, cmark_llist *extensions)
-{
-    return cmark_render(cmark_node_mem(root), root, options, width, outc, renderNode);
-}

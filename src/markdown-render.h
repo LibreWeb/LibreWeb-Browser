@@ -9,15 +9,19 @@ class MarkdownRender
 {
 public:
     MarkdownRender();
-    std::string const render();
+    cmark_node * parseFile(const std::string &filePath);
+    std::string const renderHTML(cmark_node *node);
+    std::string const renderMyLayout(cmark_node *node);
+
+    std::string const renderDemoFile(); // As an example
 
 private:
     std::string exePath;
+    int options;
 
     void addMarkdownExtension(cmark_parser *parser, const char *extName);
-    std::string parseRenderFromFile(const std::string &filePath);
+    char * renderLayout(cmark_node *root, int options, int width, cmark_llist *extensions);
     static int renderNode(cmark_renderer *renderer, cmark_node *node,
                          cmark_event_type ev_type, int options);
-    char * renderToLayout(cmark_node *root, int options, int width, cmark_llist *extensions);
 };
 #endif // MARKDOWN_RENDER_H

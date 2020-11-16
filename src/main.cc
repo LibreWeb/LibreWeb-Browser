@@ -8,8 +8,9 @@
 
 int main(int argc, char *argv[])
 {
-    MarkdownRender md;
-    QString output = QString::fromStdString(md.render());
+    MarkdownRender md; 
+    
+    QString output = QString::fromStdString(md.renderDemoFile());
 
     QApplication app(argc, argv);
 

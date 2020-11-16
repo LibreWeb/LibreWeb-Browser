@@ -32,5 +32,5 @@ MainWindow::MainWindow()
 
 void MainWindow::setOutput(const QString& text)
 {
-    textEdit->setText(text);
+    textEdit->setHtml(text);
 }
