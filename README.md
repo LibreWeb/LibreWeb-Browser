@@ -64,17 +64,23 @@ We can also still change the language of the source code (iso markdown). Atleast
 
 #### Qt
 
-Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html) can't be used, since that only supports HTML to rich text. Or you need to use the built-in markdown parser, in both cases doesn't give use the right flexibility we need. Thus in Qt we can try to use low-level [QPainter](https://github.com/yinyunqiao/qtbase/blob/master/src/gui/painting/qpainter.cpp) calls, by setting a viewport (rectangle), and [draw the text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114).
+Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html)/QTextDocument can't be used, since that only supports HTML for rich text. Or the use of built-in markdown parser, in both cases doesn't give us the right flexibility we need. 
 
-See [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for a code example. 
+Meaning we can try to use low-level [QPainter](https://doc.qt.io/qt-5/qpainter.html) calls on a viewport/paint device (like QPixmap, QWidget, QPicture and QOpenGLPaintDevice), see [Qt GUI](https://doc.qt.io/qt-5/qtgui-index.html) module. We can also use Qt Quick Scene Graph for OpenGL rendering. Or use 2D renderer using either raster paint engine (without OpenGL calls).
 
-See [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
+But first let's try using [QGraphicsTextItem](https://doc.qt.io/qt-5/qgraphicstextitem.html) on a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html).
+
+Examples:
+
+* [Drawing text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114) with QPainter.
+* [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for a code example. 
+* [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
 
 By `baysmith`: 
 
     It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
 
-See also [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
+* [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
 
 #### Dear Imgui
 
