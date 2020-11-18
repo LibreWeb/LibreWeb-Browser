@@ -1,5 +1,9 @@
 #include "mainwindow.h"
 #include "scene.h"
+#include "md-parser.h"
+#include "md-render.h"
+
+#include <filesystem>
 
 #include <QVBoxLayout>
 #include <QMenuBar>
@@ -28,8 +32,7 @@ MainWindow::MainWindow()
     QVBoxLayout *layout = new QVBoxLayout(centralWidget);
     layout->setContentsMargins(5, 5, 5, 5);
 
-    scene = new Scene();
-    scene->setSceneRect(QRectF(0, 0, 200, 180));
+    scene = new Scene(this);
     view = new QGraphicsView(scene);
     //view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     view->setAlignment(Qt::Alignment::enum_type::AlignLeft);
@@ -40,6 +43,32 @@ MainWindow::MainWindow()
     textEdit = new QTextEdit();
     textEdit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     layout->addWidget(textEdit);
+
+    // Setup parser & renderer
+    setupParser();
+}
+
+void MainWindow::setupParser()
+{
+    parser = new Parser();
+    renderer = new Renderer(scene);
+
+    std::string exePath = std::filesystem::current_path().string();
+    std::string htmlOutput = "";
+    std::string filePath = exePath.append("/../../test.md");
+    printf("Path: %s\n", filePath.c_str());
+
+    cmark_node *root_node = parser->parseFile(filePath);
+    if (root_node != NULL) {
+        htmlOutput = parser->renderHTML(root_node);
+
+        // Render AST to scene
+        renderer->renderDocument(root_node);
+
+        cmark_node_free(root_node);
+    }
+
+    setOutputToTextEdit(QString::fromStdString(htmlOutput));
 }
 
 /**
@@ -58,22 +87,4 @@ void MainWindow::resizeEvent(QResizeEvent *) {
 void MainWindow::setOutputToTextEdit(const QString& text)
 {
     textEdit->setHtml(text);
-}
-
-// TODO: Create a new Render class for converting AST and render it to the scene, by calculating the positions, etc.
-//       So the input parameter will be a root node, render the right Qt objects with their positions and settings, and drop in on the scene.
-//       Basically cmark parse and Qt are comming togther.
-// TODO: WHen we have a seperate render class for this, it make sense to rename MarkdownRender class to just MarkdownParser..
-
-void MainWindow::drawOutputToScene(const QString& text)
-{
-    QGraphicsTextItem *textItem = new QGraphicsTextItem(text);
-    QFont font;
-    font.setBold(true);
-    font.setFamily("Open Sans"); // Arial
-    textItem->setFont(font);
-    textItem->setPos(10, 40);
-    textItem->setTextWidth(200);
-
-    scene->addItem(textItem);
 }

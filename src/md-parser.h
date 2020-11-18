@@ -5,6 +5,9 @@
 #include <cmark-gfm.h>
 #include <render.h>
 
+/**
+ * Parser class will parse the content to a AST model
+ */
 class Parser
 {
 public:

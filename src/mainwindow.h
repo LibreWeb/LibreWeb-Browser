@@ -3,11 +3,13 @@
 
 #include <QMainWindow>
 
+class Scene;
+class Parser;
+class Renderer;
 QT_BEGIN_NAMESPACE
 class QAction;
 class QTextEdit;
 class QGraphicsView;
-class Scene;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -17,16 +19,18 @@ class MainWindow : public QMainWindow
 public:
     MainWindow();
     void setOutputToTextEdit(const QString& text);
-    void drawOutputToScene(const QString& text);
 
 //private slots:
 //    void newFile();
 
 private:
     QGraphicsView *view;
-    Scene *scene;
     QTextEdit *textEdit;
+    Scene *scene;
+    Parser *parser;
+    Renderer *renderer;
 
+    void setupParser();
     // void resizeEvent(QResizeEvent *);
 };
 

@@ -2,7 +2,6 @@
 
 #include <string>
 #include <cmark-gfm-core-extensions.h>
-#include <time.h> 
 
 #include <node.h>
 #include <syntax_extension.h>
