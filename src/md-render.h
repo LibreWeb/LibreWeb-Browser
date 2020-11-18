@@ -4,8 +4,10 @@
 #include <string>
 #include <cmark-gfm.h>
 #include <render.h>
+#include <QtGlobal>
 
 class Scene;
+class QRectF;
 
 /**
  * The Renderer will use Qt to render AST directly to a QGraphicsScene
@@ -18,8 +20,14 @@ public:
 
 private:
     Scene *scene;
+    bool bold;
+    bool italic;
+    qreal currentX;
+    qreal currentY;
+    qreal heighestHigh;
+    qreal paragraphOffsetY;
 
     void renderNode(cmark_node *node, cmark_event_type ev_type);
-    void drawText(const std::string& text);
+    QRectF const drawText(const std::string& text, bool bold = false, bool italic = false);
 };
 #endif
