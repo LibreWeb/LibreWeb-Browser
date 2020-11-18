@@ -3,8 +3,9 @@
 #include "cmark-gfm.h"
 
 #include <node.h>
-#include <QGraphicsTextItem>
 #include <QFont>
+#include <QGraphicsTextItem>
+#include <QGraphicsRectItem>
 
 Renderer::Renderer(Scene* scene) : 
     scene(scene),
@@ -71,6 +72,7 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_PARAGRAPH:
         printf("Paragraph\n");
+        // Move to left again
         currentX = 0;
         currentY += heighestHigh + paragraphOffsetY;
         
@@ -84,8 +86,6 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
             currentX += rec.size().width();
             if (rec.size().height() > heighestHigh)
                 heighestHigh = rec.size().height();
-            printf("Width: %f\n", rec.size().width());
-            printf("Height: %f\n", rec.size().height());
         }
         break;
 
@@ -143,11 +143,12 @@ QRectF const Renderer::drawText(const std::string& text, bool bold, bool italic)
         font.setItalic(true);
     font.setFamily("Open Sans"); // Arial
     textItem->setFont(font);
-    //textItem->setTextWidth(200);
-
     textItem->setPos(currentX, currentY);
-
     scene->addItem(textItem);
+
+    QGraphicsRectItem* box = new QGraphicsRectItem(textItem->boundingRect());
+    box->setPos(currentX, currentY);
+    scene->addItem(box);
 
     return textItem->boundingRect();
 }
