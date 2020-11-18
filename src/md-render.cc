@@ -6,15 +6,19 @@
 #include <QFont>
 #include <QGraphicsTextItem>
 #include <QGraphicsRectItem>
+#include <QGraphicsSimpleTextItem>
+#include <QPainter>
 
 Renderer::Renderer(Scene* scene) : 
     scene(scene),
+    sceneMarginX(3.0),
+    sceneMarginY(3.0),
     bold(false),
     italic(false),
     currentX(0.0),
     currentY(0.0),
     heighestHigh(0.0),
-    paragraphOffsetY(2.0) {
+    paragraphOffsetHeight(5.0) {
 }
 
 /**
@@ -41,6 +45,10 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
     switch (node->type) {
     case CMARK_NODE_DOCUMENT:
         printf("Document\n");
+        if (entering) {
+            currentX = sceneMarginX;
+            currentY = sceneMarginY;
+        }
         break;
 
     case CMARK_NODE_BLOCK_QUOTE:
@@ -73,8 +81,9 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_PARAGRAPH:
         printf("Paragraph\n");
         // Move to left again
-        currentX = 0;
-        currentY += heighestHigh + paragraphOffsetY;
+        currentX = sceneMarginX;
+        // New paragraph
+        currentY += heighestHigh + paragraphOffsetHeight;
         
         // Reset heighest high (Y-axis)
         heighestHigh = 0;
@@ -83,9 +92,9 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_TEXT: {
             printf("Text\n");
             const QRectF rec = drawText(cmark_node_get_literal(node), bold, italic);
-            currentX += rec.size().width();
-            if (rec.size().height() > heighestHigh)
-                heighestHigh = rec.size().height();
+            currentX += rec.width();
+            if (rec.height() > heighestHigh)
+                heighestHigh = rec.height();
         }
         break;
 
@@ -135,7 +144,9 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
 
 QRectF const Renderer::drawText(const std::string& text, bool bold, bool italic)
 {
-    QGraphicsTextItem *textItem = new QGraphicsTextItem(QString::fromStdString(text));
+    // We can still extend the QGraphicsSimpleTextItem class (or QAbstractGraphicsShapeItem) and override paint method.
+    // Or just use QPainter with a paint device (like QWidgets), to have maximal control.
+    QGraphicsSimpleTextItem *textItem = new QGraphicsSimpleTextItem(QString::fromStdString(text));
     QFont font;
     if (bold)
         font.setBold(true);
@@ -146,9 +157,12 @@ QRectF const Renderer::drawText(const std::string& text, bool bold, bool italic)
     textItem->setPos(currentX, currentY);
     scene->addItem(textItem);
 
-    QGraphicsRectItem* box = new QGraphicsRectItem(textItem->boundingRect());
-    box->setPos(currentX, currentY);
-    scene->addItem(box);
+    if (false) {
+        // For debugging only
+        QGraphicsRectItem* box = new QGraphicsRectItem(textItem->boundingRect());
+        box->setPos(currentX, currentY);
+        scene->addItem(box);
+    }
 
     return textItem->boundingRect();
 }

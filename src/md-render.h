@@ -20,12 +20,14 @@ public:
 
 private:
     Scene *scene;
+    qreal sceneMarginX;
+    qreal sceneMarginY;
     bool bold;
     bool italic;
     qreal currentX;
     qreal currentY;
     qreal heighestHigh;
-    qreal paragraphOffsetY;
+    qreal paragraphOffsetHeight;
 
     void renderNode(cmark_node *node, cmark_event_type ev_type);
     QRectF const drawText(const std::string& text, bool bold = false, bool italic = false);
