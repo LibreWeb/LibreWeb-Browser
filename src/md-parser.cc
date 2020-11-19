@@ -6,19 +6,7 @@
 #include <node.h>
 #include <syntax_extension.h>
 
-#define OUT(s, wrap, escaping) renderer->out(renderer, node, s, wrap, escaping)
-#define LIT(s) renderer->out(renderer, node, s, false, LITERAL)
-#define CR() renderer->cr(renderer)
-
-static inline void outc(cmark_renderer *renderer, cmark_node *node, 
-                        cmark_escaping escape,
-                        int32_t c, unsigned char nextc) {
-    cmark_render_code_point(renderer, c);
-}
-
-Parser::Parser():
-    options(CMARK_OPT_DEFAULT) {}
-
+Parser::Parser(): options(CMARK_OPT_DEFAULT) {}
 
 /**
  * Parse markdown by file path
