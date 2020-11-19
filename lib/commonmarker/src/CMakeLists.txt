@@ -3,6 +3,8 @@ set(PROJECT_VERSION_MINOR 29)
 set(PROJECT_VERSION_PATCH 0)
 set(PROJECT_VERSION_GFM 0)
 
+set (CMAKE_INCLUDE_CURRENT_DIR ON)
+
 set(HEADERS
   cmark-gfm.h
   cmark-gfm-extension_api.h
@@ -121,11 +123,3 @@ endif()
   
 add_library (LibCommonMarker ${LIBRARY_SOURCES})
 target_include_directories(LibCommonMarker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-
-install(FILES
-  cmark-gfm.h
-  cmark-gfm-extension_api.h
-  ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_export.h
-  ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_version.h
-  DESTINATION include
-)
