@@ -1,10 +1,10 @@
 #ifndef MD_RENDER_H
 #define MD_RENDER_H
 
-#include <string>
 #include <cmark-gfm.h>
 #include <render.h>
 #include <QtGlobal>
+#include <QString>
 
 class Scene;
 class QRectF;
@@ -24,12 +24,21 @@ private:
     qreal sceneMarginY;
     bool bold;
     bool italic;
+    int headingLevel;
+    int listLevel;
     qreal currentX;
     qreal currentY;
+    QString fontFamilty;
+    qreal wordSpacing;
     qreal heighestHigh;
-    qreal paragraphOffsetHeight;
+    qreal paragraphHeightOffset;
+    qreal headingHeightOffset;
+    qreal listXOffset;
+
+    qreal bulletWithTemp;
 
     void renderNode(cmark_node *node, cmark_event_type ev_type);
-    QRectF const drawText(const std::string& text, bool bold = false, bool italic = false);
+    QRectF const drawText(const QString& text);
+    QRectF const drawBullet();
 };
 #endif

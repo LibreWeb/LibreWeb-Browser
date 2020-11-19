@@ -35,7 +35,7 @@ MainWindow::MainWindow()
     scene = new Scene(this);
     view = new QGraphicsView(scene);
     //view->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    view->setAlignment(Qt::Alignment::enum_type::AlignLeft);
+    view->setAlignment(Qt::Alignment::enum_type::AlignTop|Qt::Alignment::enum_type::AlignLeft);
     layout->addWidget(view);
 
     // We will not use TextEdit, it does only support HTML (and markdown, but we don't want to use the built-in parser).
