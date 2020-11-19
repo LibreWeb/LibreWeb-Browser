@@ -1,4 +1,4 @@
-image: "danger89/cmake:latest"
+image: "danger89/qt-cmake:latest"
 
 static_code_analysis:
   script: ./check.sh
