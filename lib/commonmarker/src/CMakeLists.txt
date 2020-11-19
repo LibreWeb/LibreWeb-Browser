@@ -119,9 +119,13 @@ if(CMAKE_BUILD_TYPE STREQUAL "Ubsan")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=undefined")
 endif()
   
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmark-gfm_version.h.in
-  ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_version.h)
-
 add_library (LibCommonMarker ${LIBRARY_SOURCES})
 target_include_directories(LibCommonMarker PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
+install(FILES
+  cmark-gfm.h
+  cmark-gfm-extension_api.h
+  ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_export.h
+  ${CMAKE_CURRENT_BINARY_DIR}/cmark-gfm_version.h
+  DESTINATION include
+)
