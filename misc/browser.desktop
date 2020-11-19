@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=Browser
+Comment=Decentralized WWWW
+Exec=/usr/bin/browser
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=browser
+Categories=Settings;Utility;
+Keywords=Browser;Internet;WWW
