@@ -9,10 +9,10 @@ build:
     name: "Packages + Documentation"
     expire_in: 1 week
     paths:
-    - doc/doxygen/
-    - build_prod/WineGUI-*.deb
-    - build_prod/WineGUI-*.rpm
-    - build_prod/WineGUI-*.tar.gz
+    #- doc/doxygen/
+    - build_prod/browser-*.deb
+    - build_prod/browser-*.rpm
+    - build_prod/browser-*.tar.gz
   cache:
       key: "$CI_PIPELINE_ID"
       paths:
