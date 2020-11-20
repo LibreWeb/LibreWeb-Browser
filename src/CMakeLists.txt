@@ -16,17 +16,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(PROJECT_TARGET browser)
 
 
-# Add workaround for std filesystem in older GCC versions
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
-        message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
-    elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-        message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lstdc++fs")
-        target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
-    endif()
-endif()
-
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.
 # They need to be set before the find_package(Qt5 ...) call.
@@ -68,6 +57,16 @@ else()
   )
 endif()
 
+# Add workaround for std filesystem in older GCC versions
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
+        message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
+    elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
+        target_link_libraries(${PROJECT_TARGET} -lstdc++fs)
+        target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
+    endif()
+endif()
 
 # Add to include list the cmark binary directory for config.h, .._version.h & .._export.h
 get_property(cmark_binary_dir GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
