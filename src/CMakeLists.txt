@@ -63,7 +63,8 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
     elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
         message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
-        add_compile_options("-lstdc++fs")
+        # Add stdc++fs library in older GCC compiler versions
+        set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
         target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
     endif()
 endif()
@@ -79,7 +80,7 @@ include_directories(${cmark_extensions_binary_dir})
 include_directories(lib/commonmarker/src)
 
 # TODO: 1x target_link_libraries?
-target_link_libraries (${PROJECT_TARGET} LINK_PUBLIC LibCommonMarker LibCommonMarkerExtensions)
+target_link_libraries (${PROJECT_TARGET} LINK_PUBLIC LibCommonMarker LibCommonMarkerExtensions ${CXX_FILESYSTEM_LIBRARIES})
 target_link_libraries (${PROJECT_TARGET} PRIVATE Qt5::Widgets)
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)
