@@ -6,7 +6,7 @@ set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 
 # Also add -lstdc++fs for older GCC compilers 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -lstdc++fs")
+set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
@@ -15,6 +15,18 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(PROJECT_TARGET browser)
+
+
+# Add workaround for std filesystem in older GCC versions
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
+        message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
+    elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+        message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
+        target_link_libraries(${PROJECT_TARGET} -lstdc++fs)
+        target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
+    endif()
+endif()
 
 # QtCreator supports the following variables for Android, which are identical to qmake Android variables.
 # Check http://doc.qt.io/qt-5/deployment-android.html for more information.

@@ -64,11 +64,13 @@ For the development environment I'm using VSCodium with `C/C++`, `Cmake` and `Cm
 
 ## Depedencies
 
+For the build you need at least:
+
 * GCC 9 or higher (GCC 8 should also work)
 * CMake
 * Qt (`qt5-default` package)
 
-For Release packaing:
+For Release packaging:
 
 * CPack
 

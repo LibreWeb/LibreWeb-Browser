@@ -3,7 +3,13 @@
 #include "md-parser.h"
 #include "md-render.h"
 
+#ifdef LEGACY_CXX
+#include <experimental/filesystem>
+namespace n_fs = ::std::experimental::filesystem;
+#else
 #include <filesystem>
+namespace n_fs = ::std::filesystem;
+#endif
 
 #include <QVBoxLayout>
 #include <QMenuBar>
@@ -53,7 +59,7 @@ void MainWindow::setupParser()
     parser = new Parser();
     renderer = new Renderer(scene);
 
-    std::string exePath = std::filesystem::current_path().string();
+    std::string exePath = n_fs::current_path().string();
     std::string htmlOutput = "";
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
