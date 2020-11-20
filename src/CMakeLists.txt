@@ -5,7 +5,8 @@ set (CMAKE_AUTOUIC ON)
 set (CMAKE_AUTOMOC ON)
 set (CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra")
+# Also add -lstdc++fs for older GCC compilers 
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -lstdc++fs")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 

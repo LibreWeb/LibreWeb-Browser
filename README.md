@@ -62,6 +62,16 @@ We can also still change the language of the source code (iso markdown). Atleast
 
 For the development environment I'm using VSCodium with `C/C++`, `Cmake` and `Cmake Tools` extensions installed.
 
+## Depedencies
+
+* GCC 9 or higher (GCC 8 should also work)
+* CMake
+* Qt (`qt5-default` package)
+
+For Release packaing:
+
+* CPack
+
 ### GUIs
 
 #### Qt
