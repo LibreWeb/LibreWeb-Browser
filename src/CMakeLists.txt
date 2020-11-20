@@ -45,7 +45,7 @@ set(SOURCES
 )
 
 # TODO: Why is the executable 'browser' detetected as shared lib? I Just want to have an executable
-#       Maybe because I build shared libs in other CMakeLists, .. uhm
+#       Maybe because I build shared libs in other CMakeLists, strange..?
 if(ANDROID)
   add_library (${PROJECT_TARGET} SHARED
     ${SOURCES}
@@ -57,9 +57,13 @@ else()
 endif()
 
 
-# Get the cmark binary dir for config.h
+# Add to include list the cmark binary directory for config.h, .._version.h & .._export.h
 get_property(cmark_binary_dir GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
 include_directories(${cmark_binary_dir})
+
+# Add to include list the cmark extensions binary directory for ..._export.h
+get_property(cmark_extensions_binary_dir GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
+include_directories(${cmark_extensions_binary_dir})
 
 include_directories(lib/commonmarker/src)
 
