@@ -3,6 +3,10 @@
 #include "md-parser.h"
 #include "md-render.h"
 
+#include <chrono>
+#include <iostream>
+
+
 #ifdef LEGACY_CXX
 #include <experimental/filesystem>
 namespace n_fs = ::std::experimental::filesystem;
@@ -64,17 +68,31 @@ void MainWindow::setupParser()
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
+
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+
     cmark_node *root_node = parser->parseFile(filePath);
     if (root_node != NULL) {
         htmlOutput = parser->renderHTML(root_node);
 
+        auto t0 = Time::now();
+        
         // Render AST to scene
         renderer->renderDocument(root_node);
+
+        auto t1 = Time::now();
+        fsec fs = t1 - t0;
+        ms d = std::chrono::duration_cast<ms>(fs);
+        printf("Duration\n");
+        std::cout << "ms: " << d.count() << std::endl;
 
         cmark_node_free(root_node);
     }
 
     setOutputToTextEdit(QString::fromStdString(htmlOutput));
+
 }
 
 /**

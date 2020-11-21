@@ -67,6 +67,7 @@
         "bit": "cpp",
         "qsizepolicy": "cpp",
         "qgraphicsscene": "cpp",
-        "qstring": "cpp"
+        "qstring": "cpp",
+        "qtglobal": "cpp"
     }
 }

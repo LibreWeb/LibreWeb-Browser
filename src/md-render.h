@@ -8,6 +8,7 @@
 
 class Scene;
 class QRectF;
+class QFont;
 
 /**
  * The Renderer will use Qt to render AST directly to a QGraphicsScene
@@ -20,6 +21,8 @@ public:
 
 private:
     Scene *scene;
+    QFont *font;
+    int defaultFontSize;
     qreal sceneMarginX;
     qreal sceneMarginY;
     bool bold;

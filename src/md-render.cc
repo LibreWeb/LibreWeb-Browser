@@ -11,6 +11,7 @@
 
 Renderer::Renderer(Scene* scene) : 
     scene(scene),
+    defaultFontSize(12),
     sceneMarginX(3.0),
     sceneMarginY(3.0),
     bold(false),
@@ -26,6 +27,9 @@ Renderer::Renderer(Scene* scene) :
     headingHeightOffset(10.0),
     listXOffset(15.0),
     bulletWithTemp(0.0) {
+    font = new QFont();
+    font->setPixelSize(defaultFontSize);
+    font->setFamily(fontFamilty);
 }
 
 /**
@@ -207,39 +211,39 @@ QRectF const Renderer::drawText(const QString& text)
     // We can still extend the QGraphicsSimpleTextItem class (or QAbstractGraphicsShapeItem) and override paint method.
     // Or just use QPainter with a paint device (like QWidgets), to have maximal control.
     QGraphicsSimpleTextItem *textItem = new QGraphicsSimpleTextItem(text);
-    QFont font;
-    if (bold)
-        font.setBold(true);
-    if (italic)
-        font.setItalic(true);
-    
+    font->setBold(bold);
+    font->setItalic(italic);
+
     if (headingLevel > 0) {
-        font.setBold(true);
+        font->setBold(true);
         switch(headingLevel) {
         case 1:
-            font.setPixelSize(24);
+            font->setPixelSize(24);
             break;
         case 2:
-            font.setPixelSize(20);
+            font->setPixelSize(20);
             break;
         case 3:
-            font.setPixelSize(16);
+            font->setPixelSize(16);
             break;
         case 4:
-            font.setPixelSize(14);
+            font->setPixelSize(14);
             break;
         case 5:
-            font.setPixelSize(12);
+            font->setPixelSize(12);
             break;
         default:
             break;
         }
     }
 
-    font.setFamily(fontFamilty);
-    textItem->setFont(font);
+    textItem->setFont(*font);
     textItem->setPos(currentX, currentY);
     scene->addItem(textItem);
+
+    if (headingLevel > 0) {
+        font->setPixelSize(defaultFontSize);
+    }
 
     return textItem->boundingRect();
 }
@@ -247,9 +251,7 @@ QRectF const Renderer::drawText(const QString& text)
 QRectF const Renderer::drawBullet()
 {
     QGraphicsSimpleTextItem *bullet = new QGraphicsSimpleTextItem("\u2022");
-    QFont font;
-    font.setFamily(fontFamilty);
-    bullet->setFont(font);
+    bullet->setFont(*font);
     bullet->setPos(currentX, currentY);
     scene->addItem(bullet);
     return bullet->boundingRect();
