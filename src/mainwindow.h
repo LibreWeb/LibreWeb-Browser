@@ -5,7 +5,7 @@
 
 class Scene;
 class Parser;
-class Renderer;
+class QtRenderer;
 QT_BEGIN_NAMESPACE
 class QAction;
 class QTextEdit;
@@ -28,7 +28,7 @@ private:
     QTextEdit *textEdit;
     Scene *scene;
     Parser *parser;
-    Renderer *renderer;
+    QtRenderer *renderer;
 
     void setupParser();
     // void resizeEvent(QResizeEvent *);

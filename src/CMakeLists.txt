@@ -37,8 +37,11 @@ set(SOURCES
   main.cc
   md-parser.cc
   md-parser.h
-  md-render.cc
-  md-render.h
+  renderer-interface.h
+  qt-renderer.cc
+  qt-renderer.h
+  imgui-renderer.cc
+  imgui-renderer.h
   mainwindow.cc
   mainwindow.h
   scene.h

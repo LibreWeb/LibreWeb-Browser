@@ -1,4 +1,4 @@
-#include "md-render.h"
+#include "qt-renderer.h"
 #include "scene.h"
 #include "cmark-gfm.h"
 
@@ -9,8 +9,8 @@
 #include <QGraphicsSimpleTextItem>
 #include <QPainter>
 
-Renderer::Renderer(Scene* scene) : 
-    scene(scene),
+QtRenderer::QtRenderer():
+    scene(NULL),
     defaultFontSize(12),
     sceneMarginX(3.0),
     sceneMarginY(3.0),
@@ -32,10 +32,15 @@ Renderer::Renderer(Scene* scene) :
     font->setFamily(fontFamilty);
 }
 
+void QtRenderer::setScene(Scene* scene)
+{
+    this->scene = scene;
+}
+
 /**
  * Render the whole document to scene/screen
  */
-void Renderer::renderDocument(cmark_node *root, int width)
+void QtRenderer::renderDocument(cmark_node *root, int width)
 {
     cmark_event_type ev_type;
     cmark_iter *iter = cmark_iter_new(root);
@@ -49,7 +54,7 @@ void Renderer::renderDocument(cmark_node *root, int width)
  * Calculates the locations, render and paint the content/objects
  * to a QGraphicsScene
  */
-void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
+void QtRenderer::renderNode(cmark_node *node, cmark_event_type ev_type)
 {
     bool entering = (ev_type == CMARK_EVENT_ENTER);
     
@@ -203,16 +208,16 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
-QRectF const Renderer::drawText(const QString& text)
+QRectF const QtRenderer::drawText(const QString& text)
 {
     // We can still extend the QGraphicsSimpleTextItem class (or QAbstractGraphicsShapeItem) and override paint method.
     // Or just use QPainter with a paint device (like QWidgets), to have maximal control.
     QGraphicsSimpleTextItem *textItem = new QGraphicsSimpleTextItem(text);
-    font->setBold(bold);
-    font->setItalic(italic);
+    //font->setBold(bold);
+    //font->setItalic(italic);
 
     if (headingLevel > 0) {
-        font->setBold(true);
+        //font->setBold(true);
         switch(headingLevel) {
         case 1:
             font->setPixelSize(24);
@@ -245,7 +250,7 @@ QRectF const Renderer::drawText(const QString& text)
     return textItem->boundingRect();
 }
 
-QRectF const Renderer::drawBullet()
+QRectF const QtRenderer::drawBullet()
 {
     QGraphicsSimpleTextItem *bullet = new QGraphicsSimpleTextItem("\u2022");
     bullet->setFont(*font);

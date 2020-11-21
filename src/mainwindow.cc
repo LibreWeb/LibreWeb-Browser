@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "scene.h"
 #include "md-parser.h"
-#include "md-render.h"
+#include "qt-renderer.h"
 
 #include <chrono>
 #include <iostream>
@@ -61,7 +61,8 @@ MainWindow::MainWindow()
 void MainWindow::setupParser()
 {
     parser = new Parser();
-    renderer = new Renderer(scene);
+    renderer = new QtRenderer();
+    renderer->setScene(scene);
 
     std::string exePath = n_fs::current_path().string();
     std::string htmlOutput = "";

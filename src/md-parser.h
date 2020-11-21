@@ -6,7 +6,7 @@
 #include <render.h>
 
 /**
- * Parser class will parse the content to a AST model
+ * \class Parser Markdown parser class, parse the content to an AST model
  */
 class Parser
 {
