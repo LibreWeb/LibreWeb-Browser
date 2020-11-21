@@ -10,6 +10,7 @@ struct cmark_node;
 class RendererI
 {
 public:
+    virtual ~RendererI() {};
     // TODO: Combien those two sets to 1, create an abstract class for setting a scene in Qt and/or Imgui.
     virtual void setScene(Scene *scene) = 0;// For Qt
     virtual void setUnknownYet() = 0; // For Imgui

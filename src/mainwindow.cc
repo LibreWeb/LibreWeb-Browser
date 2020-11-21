@@ -30,12 +30,12 @@ MainWindow::MainWindow()
     resize(600, 400);
     setWindowTitle("Browser");
 
-    QMenu *fileMenu = new QMenu("File");
-    fileMenu->addAction("Open...");
-    fileMenu->addAction("New...");
-    fileMenu->addAction("Exit");
+    QMenu fileMenu("File");
+    fileMenu.addAction("Open...");
+    fileMenu.addAction("New...");
+    fileMenu.addAction("Exit");
 
-    menuBar()->addMenu(fileMenu);
+    menuBar()->addMenu(&fileMenu);
 
     QWidget *centralWidget = new QWidget;
     setCentralWidget(centralWidget);
@@ -56,6 +56,16 @@ MainWindow::MainWindow()
 
     // Setup parser & renderer
     setupParser();
+}
+
+MainWindow::~MainWindow()
+{
+    delete scene;
+    delete view;
+    delete textEdit;
+    delete parser;
+    delete renderer;
+    delete menuBar();
 }
 
 void MainWindow::setupParser()

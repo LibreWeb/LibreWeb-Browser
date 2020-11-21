@@ -32,6 +32,11 @@ QtRenderer::QtRenderer():
     font->setFamily(fontFamilty);
 }
 
+QtRenderer::~QtRenderer()
+{
+    delete font;
+}
+
 void QtRenderer::setScene(Scene* scene)
 {
     this->scene = scene;
@@ -213,11 +218,11 @@ QRectF const QtRenderer::drawText(const QString& text)
     // We can still extend the QGraphicsSimpleTextItem class (or QAbstractGraphicsShapeItem) and override paint method.
     // Or just use QPainter with a paint device (like QWidgets), to have maximal control.
     QGraphicsSimpleTextItem *textItem = new QGraphicsSimpleTextItem(text);
-    //font->setBold(bold);
-    //font->setItalic(italic);
+    font->setBold(bold);
+    font->setItalic(italic);
 
     if (headingLevel > 0) {
-        //font->setBold(true);
+        font->setBold(true);
         switch(headingLevel) {
         case 1:
             font->setPixelSize(24);

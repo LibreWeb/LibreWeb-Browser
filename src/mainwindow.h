@@ -18,15 +18,16 @@ class MainWindow : public QMainWindow
 
 public:
     MainWindow();
+    ~MainWindow();
     void setOutputToTextEdit(const QString& text);
 
 //private slots:
 //    void newFile();
 
 private:
+    Scene *scene;
     QGraphicsView *view;
     QTextEdit *textEdit;
-    Scene *scene;
     Parser *parser;
     QtRenderer *renderer;
 

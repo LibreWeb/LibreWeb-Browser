@@ -18,6 +18,7 @@ class QtRenderer : public RendererI
 {
 public:
     explicit QtRenderer();
+    ~QtRenderer();
 
     void setScene(Scene *scene) override;
     void setUnknownYet() override {}; // No implementation
