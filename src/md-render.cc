@@ -130,8 +130,6 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_PARAGRAPH:
-        printf("p\n");
-
         // Skip paragraph if listing is enabled
         if (listLevel == 0) {
             // Move to left again
@@ -145,7 +143,6 @@ void Renderer::renderNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_TEXT: {
-            printf("text\n");
             const QRectF rec = drawText(cmark_node_get_literal(node));
             // Skip paragraph if listing is enabled
             if (listLevel == 0) {
