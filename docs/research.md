@@ -13,6 +13,14 @@ Instead of using Qt / QtSkia, we can directly use Skia. Skia is also used for Go
 
 Skia supports several (platform-dependent) back-ends, including one for CPU-based software rasterization, one for Portable Document Format (PDF) output, and one for GPU-accelerated OpenGL, OpenGL ES, Vulkan, and Metal one.
 
+Doing advanced text manipulation in Skia can be achieved by combining [`SkTextBlob`](https://api.skia.org/classSkTextBlob.html#details), [`SkPaint`](https://skia.org/user/api/skpaint_overview) and [`SkTypeface`](https://api.skia.org/classSkFont.html#details) / [`SkFontStyle`](https://api.skia.org/classSkFontStyle.html).
+
+
+* [Pre-build Skia library](https://github.com/aseprite/skia/releases)
+* [Desktop Library using Skia](https://github.com/aseprite/laf)
+* [Maybe look into RichTextKit](https://github.com/toptensoftware/RichTextKit) (although using SkiaSharp bleh)
+* [API overview](https://skia.org/user/api/)
+
 **Conclusion:** *No Conclusion yet* - Under investigation
 
 ## GTK+ / Cairo
@@ -78,8 +86,6 @@ By `baysmith`:
 
     It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
 * [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
-
-
 
 ## ImGui
 
