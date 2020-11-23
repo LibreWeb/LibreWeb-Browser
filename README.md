@@ -54,13 +54,15 @@ The current plan:
 
 ## Devs
 
-Decentralized Browser written in C and C++20. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
+Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
 
-The GUI-toolkit or 2D/3D engine used displaying the content is not yet decided. Can be anything really, like: Qt, wxWidgets or Imgui.
+The GUI toolkit and 2D/vector graphics engine is not yet decided (see research below).
 
 We can also still change the language of the source code (iso markdown). Atleast no HTML and JavaScript anymore, content is king after all.
 
-For the development environment I'm using VSCodium with `C/C++`, `Cmake` and `Cmake Tools` extensions installed.
+### Development Environment
+
+I'm using VSCodium editor, with the following extensions installed: `C/C++`, `Cmake` and `Cmake Tools` .
 
 ## Depedencies
 
@@ -68,40 +70,14 @@ For the build you need at least:
 
 * GCC 9 or higher (GCC 8 should also work)
 * CMake
-* Qt (`qt5-default` package)
+* Qt (`qt5-default` package) -> for now
 
 For Release packaging:
 
 * CPack
 
-### GUIs
+### 2D/Vector engines - Under Research
 
-#### Qt
+We are currently in an exploration phase, which 2D vector graphics rendering library we should us.
 
-Qt [Rich Text Processing](https://doc.qt.io/qt-5/richtext.html)/QTextDocument can't be used, since that only supports HTML for rich text. Or the use of built-in markdown parser, in both cases doesn't give us the right flexibility we need. 
-
-Meaning we can try to use low-level [QPainter](https://doc.qt.io/qt-5/qpainter.html) calls on a viewport/paint device (like QPixmap, QWidget, QPicture and QOpenGLPaintDevice), see [Qt GUI](https://doc.qt.io/qt-5/qtgui-index.html) module. We can also use Qt Quick Scene Graph for OpenGL rendering. Or use 2D renderer using either raster paint engine (without OpenGL calls).
-
-But first let's try using [QGraphicsTextItem](https://doc.qt.io/qt-5/qgraphicstextitem.html) on a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html).
-
-Examples:
-
-* [Drawing text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114) with QPainter.
-* [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for a code example. 
-* [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
-
-By `baysmith`: 
-
-    It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
-
-* [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
-
-#### Dear Imgui
-
-[Imgui](https://github.com/ocornut/imgui) is used for Games but also applications. For example the Unity Editor is using Imgui!
-
-For some inspiration; there exists [Text Editor #1](https://github.com/BalazsJako/ImGuiColorTextEdit), [Text Editor #2](https://github.com/Rezonality/zep) created with Imgui.
-
-But there are many more demos and projects out there using Imgui!
-
-See also [Fonts documentation](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md) of Imgui.
+See [research document](docs/research.md) for more information and conclusions based on facts.

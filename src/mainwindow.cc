@@ -124,6 +124,7 @@ void MainWindow::setOutputToTextEdit(const QString& text)
     
     auto htmlStart = Time::now();
 
+    // Possible rendering is done in seperate thread? Returning this function faster.
     textEdit->setHtml(text);
 
     auto htmlEnd = Time::now();
