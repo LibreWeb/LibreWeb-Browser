@@ -31,9 +31,15 @@ Even the Skia "Hello World" example code is building and including their own pri
 
 There is code in Skia which is not even C++10 lot alone C++14 complient.
 
-## GTK+ / Cairo
+## GTK+
+
+### Cairo
 
 GTK+ is using the Cairo 2D graphics renderer using rasterization (CPU). But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG.
+
+### OpenGL/Vulkan
+
+Since GTK version 4, they are no longer using Cairo, but directly OpenGL/Vulkan calls. Using `GtkSnapshot`.
 
 **Conclusion:** *No Conclusion yet* - Under investigation
 
