@@ -5,23 +5,31 @@
 
 *Goal:* We want to draw text on the screen as fast as possible. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`.
 
-## Skia
+## Skia / QtSkia
 
-Skia is a 2D graphics library. Using for drwaing text, geometries, and images. Support backends CPU raster, OpenGL/Vulkan. Both for display and SVG/PDF (can also read those files).
+Skia is a 2D graphics library. Using for drwaing text, geometries, and images. Support backends CPU raster, OpenGL/Vulkan. Both for display and SVG/PDF (can also read those files). 
+Skia is also used for Google Chrome/Chrome OS, Firefox, Android, LibreOffice and more.
 
-Instead of using Qt / QtSkia, we can directly use Skia. Skia is also used for Google Chrome/Chrome OS, Firefox, Android, LibreOffice and more.
+[Studies](https://www.facebook.com/notes/beagleboardorg-foundation/comparing-html-rendering-performance-with-qtwebkit-and-qt-native-classes/439968524361/) has shown with the Matrix GUI (developed by Texas Instruments for ARM based SoCs) that (Qt)WebKit is much much faster in rendering then the built-in Qt renderer.
 
 Skia supports several (platform-dependent) back-ends, including one for CPU-based software rasterization, one for Portable Document Format (PDF) output, and one for GPU-accelerated OpenGL, OpenGL ES, Vulkan, and Metal one.
 
 Doing advanced text manipulation in Skia can be achieved by combining [`SkTextBlob`](https://api.skia.org/classSkTextBlob.html#details), [`SkPaint`](https://skia.org/user/api/skpaint_overview) and [`SkTypeface`](https://api.skia.org/classSkFont.html#details) / [`SkFontStyle`](https://api.skia.org/classSkFontStyle.html).
-
 
 * [Pre-build Skia library](https://github.com/aseprite/skia/releases)
 * [Desktop Library using Skia](https://github.com/aseprite/laf)
 * [Maybe look into RichTextKit](https://github.com/toptensoftware/RichTextKit) (although using SkiaSharp bleh)
 * [API overview](https://skia.org/user/api/)
 
-**Conclusion:** *No Conclusion yet* - Under investigation
+Skia is ported to Qt, called QtSkia. The Qt WebEgine renders web pages by using Skia and is not using QPainter or Qt for this purpose. 
+
+**Conclusion:** *No Conclusion yet* - Looks like a big no.
+
+Skia project is a mess to setup and build against. Beining one of the most used graphical libaries, its also the one with the biggest mess. There are no packages delivered, not static or dynamically linked. Meaning building an application and link to Skia is very hard.
+
+Even the Skia "Hello World" example code is building and including their own private header files (including but not limited by tools/sk_app folder which has includes to private headers). Bottom line: there is no clear separation of concerns. It's really hard to get something compiled with a static library from aseprite binaries. The static library is properbly build against a different GLIBC: undefined reference to symbol 'pthread_getspecific@@GLIBC_2.2.5'.
+
+There is code in Skia which is not even C++10 lot alone C++14 complient.
 
 ## GTK+ / Cairo
 
@@ -67,15 +75,6 @@ We can try using a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 
 
 **Conclusion:** Will NOT be used.
 
-#### QtSkia
-
-Skia is ported to Qt, called QtSkia. The Qt WebEgine renders web pages by using Skia and is not using QPainter or Qt for this purpose. 
-
-[Studies](https://www.facebook.com/notes/beagleboardorg-foundation/comparing-html-rendering-performance-with-qtwebkit-and-qt-native-classes/439968524361/) has shown with the Matrix GUI (developed by Texas Instruments for ARM based SoCs) that (Qt)WebKit is much much faster in rendering then the built-in Qt renderer.
-
-Why using QtSkia, if we can just directly using Skia?
-
-**Conclusion:** *No Conclusion yet* - Under investigation
 
 ### Qt examples/links
 
