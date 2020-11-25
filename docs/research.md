@@ -1,57 +1,14 @@
 # Research topics
 
+1. *First Goal:* We want to draw text on the screen as fast as possible. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`.
 
-## Graphical frameworks & renderers
+## GUI libraries
 
-*Goal:* We want to draw text on the screen as fast as possible. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`.
-
-## Skia / QtSkia
-
-Skia is a 2D graphics library. Using for drwaing text, geometries, and images. Support backends CPU raster, OpenGL/Vulkan. Both for display and SVG/PDF (can also read those files). 
-Skia is also used for Google Chrome/Chrome OS, Firefox, Android, LibreOffice and more.
-
-[Studies](https://www.facebook.com/notes/beagleboardorg-foundation/comparing-html-rendering-performance-with-qtwebkit-and-qt-native-classes/439968524361/) has shown with the Matrix GUI (developed by Texas Instruments for ARM based SoCs) that (Qt)WebKit is much much faster in rendering then the built-in Qt renderer.
-
-Skia supports several (platform-dependent) back-ends, including one for CPU-based software rasterization, one for Portable Document Format (PDF) output, and one for GPU-accelerated OpenGL, OpenGL ES, Vulkan, and Metal one.
-
-Doing advanced text manipulation in Skia can be achieved by combining [`SkTextBlob`](https://api.skia.org/classSkTextBlob.html#details), [`SkPaint`](https://skia.org/user/api/skpaint_overview) and [`SkTypeface`](https://api.skia.org/classSkFont.html#details) / [`SkFontStyle`](https://api.skia.org/classSkFontStyle.html).
-
-* [Pre-build Skia library](https://github.com/aseprite/skia/releases)
-* [Desktop Library using Skia](https://github.com/aseprite/laf)
-* [Maybe look into RichTextKit](https://github.com/toptensoftware/RichTextKit) (although using SkiaSharp bleh)
-* [API overview](https://skia.org/user/api/)
-
-Skia is ported to Qt, called QtSkia. The Qt WebEgine renders web pages by using Skia and is not using QPainter or Qt for this purpose. 
-
-**Conclusion:** *No Conclusion yet* - Looks like a big no.
-
-Skia project is a mess to setup and build against. Beining one of the most used graphical libaries, its also the one with the biggest mess. There are no packages delivered, not static or dynamically linked. Meaning building an application and link to Skia is very hard.
-
-Even the Skia "Hello World" example code is building and including their own private header files (including but not limited by tools/sk_app folder which has includes to private headers). Bottom line: there is no clear separation of concerns. It's really hard to get something compiled with a static library from aseprite binaries. The static library is properbly build against a different GLIBC: undefined reference to symbol 'pthread_getspecific@@GLIBC_2.2.5'.
-
-There is code in Skia which is not even C++10 lot alone C++14 complient.
-
-## GTK+
-
-### Cairo
-
-GTK+ is using the Cairo 2D graphics renderer using rasterization (CPU). But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG.
-
-### OpenGL/Vulkan
-
-Since GTK version 4, they are no longer using Cairo, but directly OpenGL/Vulkan calls. Using `GtkSnapshot`.
-
-**Conclusion:** *No Conclusion yet* - Under investigation
-
-## NanoVG
-
-[NanoVG](https://github.com/memononen/nanovg) is a 2D vector drawing library on top of OpenGL for UI and visualization. Its very small, with a lean API.
-
-**Conclusion:** *No Conclusion yet* - Under investigation
+See the list of GUI libraries below.
 
 ### Qt
 
-Qt has many Qt-classes, features and APIs for drawing and rendering. See the following sub-items:
+Qt has many sub-classes, features and APIs for drawing and rendering. See the sub-items below for more info.
 
 #### Rich Text
 
@@ -79,20 +36,100 @@ We can try using a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 
 
 *Very bad* performance has been discovered during testing, by creating items to the scene. Even with small number of objects and changing the font to bold or italic will cause 20ms.
 
-**Conclusion:** Will NOT be used.
-
-
-### Qt examples/links
+#### Qt links
 
 * [Drawing text](https://github.com/radekp/qt/blob/master/src/gui/text/qtextlayout.cpp#L1114) with QPainter.
 * [Mifit Text render](https://github.com/mifit/mifit/blob/master/libs/opengl/Text.cpp) for a code example. 
 * [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
-By `baysmith`: 
-
-    It generates image atlas dynamically using a QPainter to draw to a texture which is displayed with quads. I don't know how much less efficient it is to draw the characters to the image on demand rather than prebaking, but I need the flexibility to change the font to anything the system provides.
 * [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
 
-## ImGui
+**Conclusion:** No, QGraphics will NOT be used, way too slow.
+
+### GTK+
+
+#### GTK + Cairo
+
+GTK+ is using the Cairo 2D graphics renderer using rasterization (CPU) bvy default. But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG.
+
+Problem is its only raster graphics using the CPU. Which isn't that bad, but I really miss hardware acceleration via OpenGL/Vulkan (cairo-gl will never be stable and is a dead-end). There is no vector generation. Cairo can however be used [together with SDL](https://www.cairographics.org/SDL/) they claim.
+
+#### GTK +  OpenGL/Vulkan
+
+Since GTK version 4, they are no longer using Cairo, but directly OpenGL/Vulkan calls. Using `GtkSnapshot`.
+
+**Conclusion:** *No Conclusion yet* - Under investigation
+
+### Skia / QtSkia
+
+Skia is a 2D graphics library. Using for drawing text, geometries, and images. Support backends CPU raster, OpenGL/Vulkan. Both for display and SVG/PDF (can also read those files). 
+Skia is also used for Google Chrome/Chrome OS, Firefox, Android, LibreOffice and more.
+
+[Studies](https://www.facebook.com/notes/beagleboardorg-foundation/comparing-html-rendering-performance-with-qtwebkit-and-qt-native-classes/439968524361/) has shown with the Matrix GUI (developed by Texas Instruments for ARM based SoCs) that (Qt)WebKit is much much faster in rendering then the built-in Qt renderer.
+
+Skia supports several (platform-dependent) back-ends, including one for CPU-based software rasterization, one for Portable Document Format (PDF) output, and one for GPU-accelerated OpenGL, OpenGL ES, Vulkan, and Metal one.
+
+Doing advanced text manipulation in Skia can be achieved by combining [`SkTextBlob`](https://api.skia.org/classSkTextBlob.html#details), [`SkPaint`](https://skia.org/user/api/skpaint_overview) and [`SkTypeface`](https://api.skia.org/classSkFont.html#details) / [`SkFontStyle`](https://api.skia.org/classSkFontStyle.html).
+
+* [Pre-build Skia library](https://github.com/aseprite/skia/releases)
+* [Desktop Library using Skia](https://github.com/aseprite/laf)
+* [Maybe look into RichTextKit](https://github.com/toptensoftware/RichTextKit) (although using SkiaSharp bleh)
+* [API overview](https://skia.org/user/api/)
+
+Skia is ported to Qt, called QtSkia. The Qt WebEgine renders web pages by using Skia and is not using QPainter or Qt for this purpose.  Skia is quite a mess, but one of the biggest graphical engines. Too bad Skia doesn't release any static or dynamic libraries what so ever.
+
+Meaning the app and Skia has quite a tight build relationship. Even the Skia "Hello World" example code is building and including their own private header files (including but not limited by tools/sk_app folder which has includes to private headers). Bottom line: there is no clear separation of concerns. 
+
+After 2 full days, I gave up to build of an independent hello world example linking skia as static library. It's really really hard to getting started, this is a red flag.
+
+**Conclusion:** Looks like a no.
+
+## Multimedia libraries / Vector graphics engine
+
+See the list of multimedia libraries below.
+
+### OpenGL / Libraries using OpenGL
+
+Directly using OpenGL calls (which is not ideal). Or use much better alternatives like raylib, SDL or SFML media libraries. [SDL2](http://wiki.libsdl.org/FrontPage) is mature for sure.
+
+SFML project didn't release a new release a long time ago (2 years old). However, SFML has a much better APIs, they claim. And should be easier to use with the native C++ interface/API.
+
+#### SDL
+
+**Conclusion:** *No Conclusion yet*
+
+#### SFML
+
+**Conclusion:** *No Conclusion yet*
+
+#### raylib
+
+[Raylib](https://www.raylib.com/) is a very nice a simple and easy-to-use, well documented library written in C. With no external dependencies.
+
+There is already a seperate [raygui](https://github.com/raysan5/raygui) for GUI development.
+
+**Conclusion:** *No Conclusion yet*
+
+### Blend2D
+
+No really yet mature. But looks very promissing, its a 2D vector graphics engine written in C++! No hardware acceleration yet, which is really bad for a vector engine.
+
+**Conclusion:** *No Conclusion yet*
+
+### OpenVG
+
+OpenVG is part of the Khronos group, which is a plus. But it looks a bit too much enterprise ended. I don't see any packages or source code?  Also the project looks dead. But they claim OpenVG is meant for e-books readers and such.
+
+**Conclusion:** No, dead-ish project.
+
+### NanoVG
+
+[NanoVG](https://github.com/memononen/nanovg) is a 2D vector drawing library on top of OpenGL for UI and visualization. Its very small, with a lean API.
+
+**Conclusion:** *No Conclusion yet* - Under investigation
+
+### ImGui
+
+ImGui is a GUI framework but actually not traditional GUI application. Instead the backends are only hardware accelerated using OpenGL.
 
 For some inspiration; there exists [Text Editor #1](https://github.com/BalazsJako/ImGuiColorTextEdit), [Text Editor #2](https://github.com/Rezonality/zep) created with Imgui.
 
@@ -101,7 +138,6 @@ For some inspiration; there exists [Text Editor #1](https://github.com/BalazsJak
 After testing the Imgui demo window using GLFW library + Vulkan backend, I discover a lot of mouse lag when dragging windows over the screen.
 Also the application suffered quite some screen tearing (even with VSYNC on).
 
-My expectation is that there are some huge synchronization issues with Imgui and OpenGL/Vulkan backends. Therefor is my advice is not to use Imgui for text rendering applications until futher notice.
+My expectation is that there are some huge synchronization issues with Imgui and OpenGL/Vulkan backends. Therefor is my advice is not to use Imgui for text rendering applications until futher notice. This is a shame.
 
-**Conclusion:** Will NOT be used.
-
+**Conclusion:** No, Will NOT be used, some very strange performance issues under Linux (X11).
