@@ -1,4 +1,4 @@
-image: "danger89/qt-cmake:latest"
+image: https://gitlab.melroy.org/DWWW/dependency_proxy/containers/danger89/qt-cmake:latest
 
 static_code_analysis:
   script: ./check.sh
