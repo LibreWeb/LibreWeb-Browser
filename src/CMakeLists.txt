@@ -19,9 +19,6 @@ set(PROJECT_TARGET browser)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-find_library(libcmark-gfm libcmark-gfm.so REQUIRED)
-find_library(libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
-
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM gtkmm-3.0)
 pkg_check_modules(CAIRO REQUIRED cairo)
