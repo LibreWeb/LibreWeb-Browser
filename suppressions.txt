@@ -1,2 +1,3 @@
 missingIncludeSystem
 missingInclude:lib/*
+unusedFunction:src/render-area.cc:203

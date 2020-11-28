@@ -13,11 +13,9 @@ class Parser
 public:
     Parser();
     cmark_node * parseFile(const std::string &filePath);
-    std::string const renderHTML(cmark_node *node);
 
 private:
     int options;
-
     void addMarkdownExtension(cmark_parser *parser, const char *extName);
 };
 #endif

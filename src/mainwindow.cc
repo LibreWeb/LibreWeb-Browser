@@ -38,13 +38,12 @@ void MainWindow::setupParser()
     parser = new Parser();
 
     std::string exePath = n_fs::current_path().string();
-    std::string htmlOutput = "";
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
     cmark_node *root_node = parser->parseFile(filePath);
     if (root_node != NULL) {
-        htmlOutput = parser->renderHTML(root_node);
+        // For HTML: parser->renderHTML(root_node);
         // Render AST to drawing area
         m_renderArea.renderDocument(root_node);
         cmark_node_free(root_node);
