@@ -1,13 +1,13 @@
 
 #include "mainwindow.h"
-
-#include <QApplication>
+#include <gtkmm/application.h>
 
 int main(int argc, char *argv[])
 {
-    QApplication app(argc, argv);
+    auto app = Gtk::Application::create(argc, argv, "org.gtkmm.example");
 
     MainWindow window;
-    window.show();
-    return app.exec();
+
+    //Shows the window and returns when it is closed.
+    return app->run(window);
 }

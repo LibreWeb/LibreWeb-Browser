@@ -45,11 +45,11 @@ We can try using a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 
 
 **Conclusion:** No, QGraphics will NOT be used, way too slow.
 
-### GTK+
+### GTK
 
 #### GTK + Cairo
 
-GTK+ is using the Cairo 2D graphics renderer using rasterization (CPU) bvy default. But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG.
+GTK is using the Cairo 2D graphics renderer using rasterization (CPU) bvy default. But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG. GTK is also much more lightweight in comparison with Qt.
 
 Problem is its only raster graphics using the CPU. Which isn't that bad, but I really miss hardware acceleration via OpenGL/Vulkan (cairo-gl will never be stable and is a dead-end). There is no vector generation. Cairo can however be used [together with SDL](https://www.cairographics.org/SDL/) they claim.
 

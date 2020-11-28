@@ -2,6 +2,9 @@
 #include "scene.h"
 #include "cmark-gfm.h"
 
+#include <chrono>
+#include <iostream>
+
 #include <node.h>
 #include <QFont>
 #include <QGraphicsTextItem>
@@ -215,6 +218,11 @@ void QtRenderer::renderNode(cmark_node *node, cmark_event_type ev_type)
 
 QRectF const QtRenderer::drawText(const QString& text)
 {
+    typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+    auto t0 = Time::now();
+
     // We can still extend the QGraphicsSimpleTextItem class (or QAbstractGraphicsShapeItem) and override paint method.
     // Or just use QPainter with a paint device (like QWidgets), to have maximal control.
     QGraphicsSimpleTextItem *textItem = new QGraphicsSimpleTextItem(text);
@@ -252,6 +260,11 @@ QRectF const QtRenderer::drawText(const QString& text)
         font->setPixelSize(defaultFontSize);
     }
 
+    auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    ms d = std::chrono::duration_cast<ms>(fs);
+    std::cout << "Draw Text: " << d.count() << " ms . Content: " << text.toStdString().c_str() << std::endl;
+    
     return textItem->boundingRect();
 }
 

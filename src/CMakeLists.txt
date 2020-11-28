@@ -1,9 +1,7 @@
 # TODO: Maybe move this CMake file to cmake folder and include it in the top-level Cmake file?
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set (CMAKE_AUTOUIC ON)
-set (CMAKE_AUTOMOC ON)
-set (CMAKE_AUTORCC ON)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 set(CMAKE_CXX_FLAGS "-Wall -Wextra")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
@@ -11,54 +9,41 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT CYGWIN)
+  set(CMAKE_CXX_EXTENSIONS OFF)
+endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(PROJECT_TARGET browser)
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
-# QtCreator supports the following variables for Android, which are identical to qmake Android variables.
-# Check http://doc.qt.io/qt-5/deployment-android.html for more information.
-# They need to be set before the find_package(Qt5 ...) call.
+find_library(libcmark-gfm libcmark-gfm.so REQUIRED)
+find_library(libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
 
-#if(ANDROID)
-#    set(ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/android")
-#    if (ANDROID_ABI STREQUAL "armeabi-v7a")
-#        set(ANDROID_EXTRA_LIBS
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libcrypto.so
-#            ${CMAKE_CURRENT_SOURCE_DIR}/path/to/libssl.so)
-#    endif()
-#endif()
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(GTKMM gtkmm-3.0)
+pkg_check_modules(CAIRO REQUIRED cairo)
 
-find_package (Qt5 COMPONENTS Widgets REQUIRED)
-find_library (libcmark-gfm libcmark-gfm.so REQUIRED)
-find_library (libcmark-gfm-extensions libcmark-gfm-extensions.so REQUIRED)
+add_definitions(${GTKMM_CFLAGS_OTHER})
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  # Include CPack packaging settings
+  #include(packaging)
+endif()
 
 set(SOURCES 
   main.cc
-  md-parser.cc
-  md-parser.h
-  renderer-interface.h
-  qt-renderer.cc
-  qt-renderer.h
-  imgui-renderer.cc
-  imgui-renderer.h
   mainwindow.cc
   mainwindow.h
-  scene.h
-  scene.cc
+  md-parser.cc
+  md-parser.h
+  render-area.cc
+  render-area.h
 )
 
-# TODO: Why is the executable 'browser' detetected as shared lib? I Just want to have an executable
-#       Maybe because I build shared libs in other CMakeLists, strange..?
-if(ANDROID)
-  add_library (${PROJECT_TARGET} SHARED
-    ${SOURCES}
-  )
-else()
-  add_executable (${PROJECT_TARGET}
-    ${SOURCES}
-  )
-endif()
+add_executable(${PROJECT_TARGET} ${SOURCES})
 
 # Add workaround for std filesystem in older GCC versions
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -72,18 +57,25 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     endif()
 endif()
 
-# Add to include list the cmark binary directory for config.h, .._version.h & .._export.h
-get_property(cmark_binary_dir GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
-include_directories(${cmark_binary_dir})
+# Get include list the cmark binary directory for config.h, .._version.h & .._export.h
+# Get include list the cmark extensions binary directory for ..._export.h
+get_property(CMAKE_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
+get_property(CMAKE_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
-# Add to include list the cmark extensions binary directory for ..._export.h
-get_property(cmark_extensions_binary_dir GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
-include_directories(${cmark_extensions_binary_dir})
+target_include_directories(${PROJECT_TARGET} PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${CMAKE_BINARY_DIR}
+    ${CMAKE_EXTENSIONS_BINARY_DIR}
+    ${GTKMM_INCLUDE_DIRS}
+    ${CAIRO_INCLUDE_DIRS}
+    lib/commonmarker/src
+  )
 
-include_directories(lib/commonmarker/src)
+target_link_directories(${PROJECT_TARGET} PRIVATE
+  ${GTKMM_LIBRARY_DIRS}
+  ${CAIRO_LIBRARY_DIRS}
+)
 
-# TODO: 1x target_link_libraries?
-target_link_libraries (${PROJECT_TARGET} LINK_PUBLIC LibCommonMarker LibCommonMarkerExtensions ${CXX_FILESYSTEM_LIBRARIES})
-target_link_libraries (${PROJECT_TARGET} PRIVATE Qt5::Widgets)
+target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)

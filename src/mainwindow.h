@@ -1,38 +1,30 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
+#include <gtkmm/window.h>
+#include <gtkmm/scrolledwindow.h>
+#include "render-area.h"
 
-class Scene;
 class Parser;
-class QtRenderer;
-QT_BEGIN_NAMESPACE
-class QAction;
-class QTextEdit;
-class QGraphicsView;
-QT_END_NAMESPACE
 
-class MainWindow : public QMainWindow
+class MainWindow : public Gtk::Window
 {
-    Q_OBJECT
-
 public:
     MainWindow();
-    ~MainWindow();
-    void setOutputToTextEdit(const QString& text);
+    virtual ~MainWindow();
 
-//private slots:
-//    void newFile();
+protected:
+    // Signal handlers:
+    // Our new improved on_button_clicked(). (see below)
+    void on_button_clicked(Glib::ustring data);
 
+    // Child widgets
+    Gtk::ScrolledWindow m_scrolledWindow;
+    RenderArea m_renderArea;
 private:
-    Scene *scene;
-    QGraphicsView *view;
-    QTextEdit *textEdit;
     Parser *parser;
-    QtRenderer *renderer;
 
-    void setupParser();
-    // void resizeEvent(QResizeEvent *);
+     void setupParser();
 };
 
 #endif
