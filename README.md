@@ -56,9 +56,9 @@ The current plan:
 
 Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
 
-The GUI toolkit and 2D/vector graphics engine is not yet decided (see research below).
+Browser is using GTK as UI library including Pango & Cairo for text drawing and manipulation.
 
-We can also still change the language of the source code (iso markdown). Atleast no HTML and JavaScript anymore, content is king after all.
+For now we will use markdown as the source of the site. No HTML and JavaScript anymore, content is king after all.
 
 ### Development Environment
 
@@ -70,7 +70,8 @@ For the build you need at least:
 
 * GCC 9 or higher (GCC 8 should also work)
 * CMake
-* Qt (`qt5-default` package) -> for now
+* GTK & Cairo & Pango (including C++ bindings):
+    - Install: `libgtkmm-3.0-dev` under Debian based distros
 
 For Release packaging:
 

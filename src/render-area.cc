@@ -1,6 +1,7 @@
 #include "render-area.h"
-
 #include "node.h"
+
+#define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
 RenderArea::RenderArea()
 :   currentX(0),
@@ -14,32 +15,73 @@ RenderArea::RenderArea()
     paragraphHeightOffset(5),
     headingHeightOffset(10),
     listXOffset(15),
-    bulletPointDynamicOffset(0)
+    bulletPointDynamicOffset(0),
+    isBold(false),
+    isItalic(false),
+    fontSize(10),
+    fontFamily("Ubuntu")
 {
     // Resize the drawing area to get scroll bars
     set_size_request(800, 1000);
+
+    createPangoContexts();
 }
 
 RenderArea::~RenderArea()
 {
 }
 
-void RenderArea::renderDocument(cmark_node *root_node)
+void RenderArea::createPangoContexts()
 {
+    defaultFont.set_family(fontFamily);
+    defaultFont.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    
+    boldFont.set_family(fontFamily);
+    boldFont.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    boldFont.set_weight(Pango::WEIGHT_BOLD);
+
+    italicFont.set_family(fontFamily);
+    italicFont.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    italicFont.set_style(Pango::Style::STYLE_ITALIC);
+
+    boldItalicFont.set_family(fontFamily);
+    boldItalicFont.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    boldItalicFont.set_weight(Pango::WEIGHT_BOLD);
+    boldItalicFont.set_style(Pango::Style::STYLE_ITALIC);
+
+    heading1Font.set_family(fontFamily);
+    heading1Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XXX_LARGE);
+    heading1Font.set_weight(Pango::WEIGHT_BOLD);
+
+    heading2Font.set_family(fontFamily);
+    heading2Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XX_LARGE);
+    heading2Font.set_weight(Pango::WEIGHT_BOLD);
+
+    heading3Font.set_family(fontFamily);
+    heading3Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_X_LARGE);
+    heading3Font.set_weight(Pango::WEIGHT_BOLD);
+
+    heading4Font.set_family(fontFamily);
+    heading4Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_LARGE);
+    heading4Font.set_weight(Pango::WEIGHT_BOLD);
+}
+
+void RenderArea::processDocument(cmark_node *root_node)
+{
+    textList.clear(); // reset
+
     cmark_event_type ev_type;
     cmark_iter *iter = cmark_iter_new(root_node);
     while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {
         cmark_node *cur = cmark_iter_get_node(iter);
-        renderNode(cur, ev_type);
+        processNode(cur, ev_type);
     }
-    // TODO: call the draw text/etc. methods below.
 }
 
 /**
- * Calculates the locations, render and paint the content/objects
- * to a QGraphicsScene
+ * Calculates the drawing locations and parse each node in the AST
  */
-void RenderArea::renderNode(cmark_node *node, cmark_event_type ev_type)
+void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
 {
     bool entering = (ev_type == CMARK_EVENT_ENTER);
     
@@ -138,15 +180,61 @@ void RenderArea::renderNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_TEXT: {
-            printf("Text: %s\n", cmark_node_get_literal(node));
-            /*const QRectF rec = drawText(cmark_node_get_literal(node));
-            // Skip paragraph if listing is enabled
-            if (listLevel == 0) {
-                currentX += rec.width();
+        // Instead of creating seperate pango layouts we may want to use Pango attributes,
+        // for changing parts of the text. Which is most likely be faster.
+        // https://developer.gnome.org/pango/stable/pango-Text-Attributes.html
+        // Pango is using a simple parser for parsing (X)HTML:
+        // https://developer.gnome.org/glib/stable/glib-Simple-XML-Subset-Parser.html
+        // We can use simular parse functions and using their own 'OpenTag' struct containing a list of Pango attributes:
+        // https://gitlab.gnome.org/GNOME/pango/-/blob/master/pango/pango-markup.c#L515
+
+        // For some reason Pango::Layout:create objects doesn't show up in cairo content
+        auto layout = create_pango_layout(cmark_node_get_literal(node));
+        if (headingLevel > 0) {
+            switch (headingLevel)
+            {
+            case 1:
+                layout->set_font_description(heading1Font);
+                break;
+            case 2:
+                layout->set_font_description(heading2Font);
+                break;
+            case 3:
+                layout->set_font_description(heading3Font);
+                break;
+            case 4:
+                layout->set_font_description(heading4Font);
+                break;
+            default:
+                break;
             }
-            if (rec.height() > heighestHigh)
-                heighestHigh = rec.height();
-            */
+        } else if (isBold && isItalic) {
+            layout->set_font_description(boldItalicFont);
+        } else if (isBold) {
+            layout->set_font_description(boldFont);
+        } else if (isItalic) {
+            layout->set_font_description(italicFont);
+        } else {
+            layout->set_font_description(defaultFont);
+        }
+        //layout->set_width(100);
+        int textWidth;
+        int textHeight;
+        layout->get_pixel_size(textWidth, textHeight);
+
+        // Add text to list
+        text textStruct;
+        textStruct.x = currentX;
+        textStruct.y = currentY;
+        textStruct.layout = layout;
+        textList.push_back(textStruct);
+
+        if (textHeight > heighestHigh)
+            heighestHigh = textHeight;
+        // Skip paragraph if listing is enabled,
+        // in all other cases increase x with text width
+        if (listLevel == 0)
+            currentX += textWidth;
         }
         break;
 
@@ -176,11 +264,11 @@ void RenderArea::renderNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_STRONG:
-        //bold = entering;
+        isBold = entering;
         break;
 
     case CMARK_NODE_EMPH:
-        //italic = entering;
+        isItalic = entering;
         break;
 
     case CMARK_NODE_LINK:
@@ -200,82 +288,27 @@ void RenderArea::renderNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
+// Overrided method of GTK DrawingArea
 bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
     Gtk::Allocation allocation = get_allocation();
+    // Total drawing area size
     const int width = allocation.get_width();
     const int height = allocation.get_height();
 
-    const int rectangle_width = width;
-    const int rectangle_height = height / 2;
-
-    // Draw a black rectangle
-    cr->set_source_rgb(0.0, 0.0, 0.0);
-    draw_rectangle(cr, rectangle_width, rectangle_height);
-
-    // and some white text
+    // White background
     cr->set_source_rgb(1.0, 1.0, 1.0);
-    draw_text(cr, rectangle_width, rectangle_height);
-
-    // flip the image vertically
-    // see http://www.cairographics.org/documentation/cairomm/reference/classCairo_1_1Matrix.html
-    // the -1 corresponds to the yy part (the flipping part)
-    // the height part is a translation (we could have just called cr->translate(0, height) instead)
-    // it's height and not height / 2, since we want this to be on the second part of our drawing
-    // (otherwise, it would draw over the previous part)
-    Cairo::Matrix matrix(1.0, 0.0, 0.0, -1.0, 0.0, height);
-
-    // apply the matrix
-    cr->transform(matrix);
-
-    // white rectangle
-    cr->set_source_rgb(1.0, 1.0, 1.0);
-    draw_rectangle(cr, rectangle_width, rectangle_height);
-
-    // black text
-    cr->set_source_rgb(0.0, 0.0, 0.0);
-    draw_text(cr, rectangle_width, rectangle_height);
-
-
-    draw_text(cr, 300, 110);
-    draw_text(cr, 200, 150);
-    draw_text(cr, 100, 240);
-    draw_text(cr, 400, 280);
-
-    return true;
-}
-
-void RenderArea::draw_rectangle(const Cairo::RefPtr<Cairo::Context>& cr,
-                            int width, int height)
-{
     cr->rectangle(0, 0, width, height);
     cr->fill();
-}
 
-void RenderArea::draw_text(const Cairo::RefPtr<Cairo::Context>& cr,
-                       int rectangle_width, int rectangle_height)
-{
-    // http://developer.gnome.org/pangomm/unstable/classPango_1_1FontDescription.html
-    Pango::FontDescription font;
+    // Set to black for text
+    cr->set_source_rgb(0.0, 0.0, 0.0);
 
-    font.set_family("Ubuntu");
-    font.set_weight(Pango::WEIGHT_BOLD);
-    if (rectangle_width < 150)
-        font.set_style(Pango::Style::STYLE_ITALIC);
-
-    // http://developer.gnome.org/pangomm/unstable/classPango_1_1Layout.html
-    auto layout = create_pango_layout("Hi there!");
-
-    layout->set_font_description(font);
-
-    int text_width;
-    int text_height;
-
-    //get the text dimensions (it updates the variables -- by reference)
-    layout->get_pixel_size(text_width, text_height);
-
-    // Position the text in the middle
-    cr->move_to((rectangle_width-text_width)/2, (rectangle_height-text_height)/2);
-
-    layout->show_in_cairo_context(cr);
+    std::list<text>::iterator it;
+    for(it = textList.begin(); it != textList.end(); ++it) {        
+        auto text = (*it);
+        cr->move_to(text.x, text.y);
+        text.layout->show_in_cairo_context(cr);
+    }
+    return true;
 }

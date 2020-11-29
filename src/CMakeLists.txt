@@ -21,7 +21,7 @@ find_package(Threads REQUIRED)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM gtkmm-3.0)
-pkg_check_modules(CAIRO REQUIRED cairo)
+pkg_check_modules(CAIRO cairomm-1.0)
 
 add_definitions(${GTKMM_CFLAGS_OTHER})
 

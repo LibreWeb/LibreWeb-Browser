@@ -6,6 +6,8 @@ test
 
 ## Heading 2
 
+### Heading 3
+
 ***New*** paragraph.  
 New line.
 

@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Browser
-Comment=Decentralized WWWW
+Comment=Decentralized WWW
 Exec=/usr/bin/browser
 Terminal=false
 Type=Application

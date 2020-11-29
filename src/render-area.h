@@ -2,7 +2,14 @@
 #define RENDER_AREA_H
 
 #include <gtkmm/drawingarea.h>
+#include <pangomm/layout.h>
 #include <cmark-gfm.h>
+
+struct text {
+    int x;
+    int y;
+    Glib::RefPtr<Pango::Layout> layout;
+};
 
 class RenderArea : public Gtk::DrawingArea
 {
@@ -10,10 +17,12 @@ public:
     RenderArea();
     virtual ~RenderArea();
 
-    void renderDocument(cmark_node *root_node);
+    void processDocument(cmark_node *root_node);
     
 protected:
-    //Override default signal handler:
+    std::list<text> textList;
+
+    // Override default signal handler:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
 
 private:
@@ -29,10 +38,22 @@ private:
     int headingHeightOffset;
     int listXOffset;
     int bulletPointDynamicOffset;
+    bool isBold;
+    bool isItalic;
+    int fontSize;
+    std::string fontFamily;
 
-    void renderNode(cmark_node *node, cmark_event_type ev_type);
-    void draw_rectangle(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
-    void draw_text(const Cairo::RefPtr<Cairo::Context>& cr, int rectangle_width, int rectangle_height);
+    Pango::FontDescription defaultFont;
+    Pango::FontDescription boldFont;
+    Pango::FontDescription italicFont;
+    Pango::FontDescription boldItalicFont;
+    Pango::FontDescription heading1Font;
+    Pango::FontDescription heading2Font;
+    Pango::FontDescription heading3Font;
+    Pango::FontDescription heading4Font;
+
+    void createPangoContexts();
+    void processNode(cmark_node *node, cmark_event_type ev_type);
 };
 
 #endif

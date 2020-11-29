@@ -21,8 +21,7 @@ MainWindow::MainWindow()
     m_scrolledWindow.add(m_renderArea);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
     
-    m_renderArea.show();
-    m_scrolledWindow.show();
+    show_all_children();
 
     // Setup parser
     setupParser();
@@ -43,9 +42,8 @@ void MainWindow::setupParser()
 
     cmark_node *root_node = parser->parseFile(filePath);
     if (root_node != NULL) {
-        // For HTML: parser->renderHTML(root_node);
-        // Render AST to drawing area
-        m_renderArea.renderDocument(root_node);
+        // process AST, which can then be drawed on render/drawing area
+        m_renderArea.processDocument(root_node);
         cmark_node_free(root_node);
     }
 }
