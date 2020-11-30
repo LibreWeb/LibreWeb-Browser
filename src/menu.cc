@@ -10,7 +10,7 @@ Menu::Menu()
     exit_menuitem->signal_activate().connect(quit);
 
     // View submenu
-    auto source_code_menuitem = createMenuItem("View source");
+    auto source_code_menuitem = createMenuItem("View Source");
     source_code_menuitem->signal_activate().connect(source_code);
 
     // Help submenu
