@@ -14,7 +14,7 @@ namespace n_fs = ::std::filesystem;
 MainWindow::MainWindow()
 {
     set_title("Browser");
-    set_default_size(800, 600);
+    set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER_ALWAYS);
 
     add(m_scrolledWindow);
