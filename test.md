@@ -28,3 +28,7 @@ New line.
 4. four
 
 Extra text.
+
+----------
+
+Dit is een nieuwe test.

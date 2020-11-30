@@ -1,6 +1,7 @@
 #include "render-area.h"
 #include "node.h"
 
+#include <stdio.h>
 #include <algorithm>
 
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
@@ -8,8 +9,8 @@
 RenderArea::RenderArea()
 :   currentX(0),
     currentY(0),
-    sceneMarginX(3),
-    sceneMarginY(3),
+    sceneMarginX(25),
+    sceneMarginY(15),
     currentXList(sceneMarginX),
     headingLevel(0),
     listLevel(0),
@@ -18,6 +19,7 @@ RenderArea::RenderArea()
     paragraphMargin(5),
     headingMargin(10),
     listMargin(5),
+    horizontalLineMargin(2),
     listXOffset(20),
     isBold(false),
     isItalic(false),
@@ -28,7 +30,7 @@ RenderArea::RenderArea()
     fontFamily("Ubuntu")
 {
     // Resize the drawing area to get scroll bars
-    set_size_request(800, 1000);
+    set_size_request(300, 1000);
     createPangoContexts();
 }
 
@@ -188,7 +190,20 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_CUSTOM_BLOCK:
         break;
 
-    case CMARK_NODE_THEMATIC_BREAK:
+    case CMARK_NODE_THEMATIC_BREAK: {
+        currentY += horizontalLineMargin;
+        line_struct line;
+        line.start_x = 20;
+        line.start_y = currentY;
+        line.end_x = -1; // auto-size width
+        line.end_y = currentY;
+        line.margin_end_x = 20;
+        line.height = 0.2;
+        line.hex_color = "2e2e2e";
+        line.cap = Cairo::LineCap::LINE_CAP_ROUND;
+        lines.push_back(line);
+        currentY += horizontalLineMargin;
+        }
         break;
 
     case CMARK_NODE_PARAGRAPH:
@@ -357,11 +372,39 @@ bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     // Set to black for text
     cr->set_source_rgb(0.0, 0.0, 0.0);
 
-    std::list<text_struct>::iterator it;
-    for(it = textList.begin(); it != textList.end(); ++it) {        
-        auto text = (*it);
+    // Draw text
+    std::list<text_struct>::iterator textIt;
+    for(textIt = textList.begin(); textIt != textList.end(); ++textIt) {        
+        auto text = (*textIt);
         cr->move_to(text.x, text.y);
         text.layout->show_in_cairo_context(cr);
     }
+
+    // Draw lines
+    std::list<line_struct>::iterator lineIt;
+    for(lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {        
+        auto line = (*lineIt);
+        double r, g, b;
+        hexToRGB(line.hex_color, r, g, b);
+        int endX = line.end_x;
+        if (line.end_x == -1)
+            endX = width - line.margin_end_x;
+        cr->set_line_cap(line.cap);
+        cr->set_source_rgb(r, g, b);
+        cr->set_line_width(line.height);
+        cr->move_to(line.start_x, line.start_y);
+        cr->line_to(endX, line.end_y);
+        cr->stroke();
+    }
     return true;
+}
+
+// Convert hex string to RGB values
+void RenderArea::hexToRGB(const std::string& hex, double &r, double &g, double &b)
+{
+    unsigned int intR, intG, intB;
+    sscanf(hex.c_str(), "%02x%02x%02x", &intR, &intG, &intB);
+    r = intR / 255.0;
+    g = intG / 255.0;
+    b = intB / 255.0;
 }
