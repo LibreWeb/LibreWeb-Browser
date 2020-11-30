@@ -42,6 +42,9 @@ void MainWindow::setupParser()
 
     cmark_node *root_node = parser->parseFile(filePath);
     if (root_node != NULL) {
+        /*std::string html = parser->renderHTML(root_node);
+        printf("HTML %s\n\n", html.c_str());*/
+
         // process AST, which can then be drawed on render/drawing area
         m_renderArea.processDocument(root_node);
         cmark_node_free(root_node);

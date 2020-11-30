@@ -5,7 +5,7 @@
 #include <pangomm/layout.h>
 #include <cmark-gfm.h>
 
-struct text {
+struct text_struct {
     int x;
     int y;
     Glib::RefPtr<Pango::Layout> layout;
@@ -20,7 +20,7 @@ public:
     void processDocument(cmark_node *root_node);
     
 protected:
-    std::list<text> textList;
+    std::list<text_struct> textList;
 
     // Override default signal handler:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;
@@ -30,16 +30,21 @@ private:
     int currentY;
     int sceneMarginX;
     int sceneMarginY;
+    int currentXList;
     int headingLevel;
     int listLevel;
     int wordSpacing;
     int heighestHigh;
-    int paragraphHeightOffset;
-    int headingHeightOffset;
+    int paragraphMargin;
+    int headingMargin;
+    int listMargin;
     int listXOffset;
-    int bulletPointDynamicOffset;
     bool isBold;
     bool isItalic;
+    int bulletListLevel;
+    int orderedListLevel;
+    bool isOrderedList;
+    std::map<int,int> orderedListCounters;
     int fontSize;
     std::string fontFamily;
 
@@ -54,6 +59,7 @@ private:
 
     void createPangoContexts();
     void processNode(cmark_node *node, cmark_event_type ev_type);
+    std::string const intToRoman(int num);
 };
 
 #endif

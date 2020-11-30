@@ -38,13 +38,13 @@ cmark_node * Parser::parseFile(const std::string &filePath)
     return NULL;    
 }
 
-/*std::string const Parser::renderHTML(cmark_node *node)
+std::string const Parser::renderHTML(cmark_node *node)
 {
     char *tmp = cmark_render_html(node, options, NULL);
     std::string output = std::string(tmp);
     free(tmp);
     return output;
-}*/
+}
 
 /**
  * This is a function that will make enabling extensions easier

@@ -18,4 +18,13 @@ New line.
     * list 3.2
 * list 4
 
-Normal text.
+1. first
+2. second
+3. third
+    1. 1st
+    2. 2nd
+    3. grappig
+    4. he
+4. four
+
+Extra text.

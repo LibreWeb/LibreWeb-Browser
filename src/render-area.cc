@@ -1,6 +1,8 @@
 #include "render-area.h"
 #include "node.h"
 
+#include <algorithm>
+
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
 RenderArea::RenderArea()
@@ -8,22 +10,25 @@ RenderArea::RenderArea()
     currentY(0),
     sceneMarginX(3),
     sceneMarginY(3),
+    currentXList(sceneMarginX),
     headingLevel(0),
     listLevel(0),
     wordSpacing(4), // spacing may depend on the font
     heighestHigh(0),
-    paragraphHeightOffset(5),
-    headingHeightOffset(10),
-    listXOffset(15),
-    bulletPointDynamicOffset(0),
+    paragraphMargin(5),
+    headingMargin(10),
+    listMargin(5),
+    listXOffset(20),
     isBold(false),
     isItalic(false),
+    bulletListLevel(0),
+    orderedListLevel(0),
+    isOrderedList(false),
     fontSize(10),
     fontFamily("Ubuntu")
 {
     // Resize the drawing area to get scroll bars
     set_size_request(800, 1000);
-
     createPangoContexts();
 }
 
@@ -52,15 +57,12 @@ void RenderArea::createPangoContexts()
     heading1Font.set_family(fontFamily);
     heading1Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XXX_LARGE);
     heading1Font.set_weight(Pango::WEIGHT_BOLD);
-
     heading2Font.set_family(fontFamily);
     heading2Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XX_LARGE);
     heading2Font.set_weight(Pango::WEIGHT_BOLD);
-
     heading3Font.set_family(fontFamily);
     heading3Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_X_LARGE);
     heading3Font.set_weight(Pango::WEIGHT_BOLD);
-
     heading4Font.set_family(fontFamily);
     heading4Font.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_LARGE);
     heading4Font.set_weight(Pango::WEIGHT_BOLD);
@@ -92,33 +94,58 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
             currentX = sceneMarginX;
             currentY = sceneMarginY;
             headingLevel = 0;
+            bulletListLevel = 0;
             listLevel = 0;
             heighestHigh = 0;
-            bulletPointDynamicOffset = 0;
         }
         break;
 
     case CMARK_NODE_BLOCK_QUOTE:
         break;
 
-    case CMARK_NODE_LIST:
+    case CMARK_NODE_LIST: {
+        cmark_list_type listType = node->as.list.list_type;
+
         if (entering) {
+            if (listLevel == 0) {
+                currentY += listMargin; // First level Y margin
+            }
             listLevel++;
         } else {
+            if (listLevel == 1) {
+                currentY += listMargin; // First level Y margin
+            }
             listLevel--;
-            if (listLevel < 0)
-                listLevel = 0;
         }
-
         if (listLevel == 0) {
             // Reset X to be safe
             currentX = sceneMarginX;
+            currentXList = currentX;
+            // Reset bullet/ordered levels
+            bulletListLevel = 0;
+            orderedListLevel = 0;
+            isOrderedList = false;
         } else if (listLevel > 0) {
             if (entering) {
-                currentX += listXOffset;
+                currentXList += listXOffset;
+                if (listType == cmark_list_type::CMARK_BULLET_LIST) {
+                    bulletListLevel++;
+                } else if(listType == cmark_list_type::CMARK_ORDERED_LIST) {
+                    orderedListLevel++;
+                    // Create the counter (and reset to zero)
+                    orderedListCounters[orderedListLevel] = 0;
+                }
             } else {
-                currentX -= listXOffset;
+                currentXList -= listXOffset;
+                if (listType == cmark_list_type::CMARK_BULLET_LIST) {
+                    bulletListLevel--;
+                } else if(listType == cmark_list_type::CMARK_ORDERED_LIST) {
+                    orderedListLevel--;
+                }
             }
+
+            isOrderedList = (orderedListLevel > 0) && (bulletListLevel <= 0);
+        }
         }
         break;
 
@@ -127,14 +154,12 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         currentY += heighestHigh;
         // Reset heighest high (Y-axis)
         heighestHigh = 0;
+        // Set new node item to the correct X position
+        currentX = currentXList;
 
-        // Add bullet before text items
-        if (entering) {
-            //const QRectF rec = drawBullet();
-            //bulletPointDynamicOffset = rec.width() + 2.0; // + offset
-            currentX += bulletPointDynamicOffset;
-        } else {
-            currentX -= bulletPointDynamicOffset;
+        if (entering && isOrderedList) {
+            // Increasement ordered list counter
+            orderedListCounters[orderedListLevel]++;
         }
         break;
 
@@ -147,7 +172,7 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         // Move to left again
         currentX = sceneMarginX;
         // New heading
-        currentY += heighestHigh + headingHeightOffset;
+        currentY += heighestHigh + headingMargin;
         
         // Reset heighest high (Y-axis)
         heighestHigh = 0;
@@ -172,7 +197,7 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
             // Move to left again
             currentX = sceneMarginX;
             // New paragraph
-            currentY += heighestHigh + paragraphHeightOffset;
+            currentY += heighestHigh + paragraphMargin;
             
             // Reset heighest high (Y-axis)
             heighestHigh = 0;
@@ -189,7 +214,19 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         // https://gitlab.gnome.org/GNOME/pango/-/blob/master/pango/pango-markup.c#L515
 
         // For some reason Pango::Layout:create objects doesn't show up in cairo content
-        auto layout = create_pango_layout(cmark_node_get_literal(node));
+        std::string text = cmark_node_get_literal(node);
+        if (bulletListLevel > 0) {
+            text.insert(0, "\u2022 ");
+        } else if(orderedListLevel > 0) {
+            std::string number;
+            if (orderedListLevel % 2 == 0) {
+                number = intToRoman(orderedListCounters[orderedListLevel]) + " ";
+            } else {
+                number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
+            }
+            text.insert(0, number);
+        }
+        auto layout = create_pango_layout(text);
         if (headingLevel > 0) {
             switch (headingLevel)
             {
@@ -223,18 +260,20 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         layout->get_pixel_size(textWidth, textHeight);
 
         // Add text to list
-        text textStruct;
+        text_struct textStruct;
         textStruct.x = currentX;
         textStruct.y = currentY;
         textStruct.layout = layout;
         textList.push_back(textStruct);
 
-        if (textHeight > heighestHigh)
+        if (textHeight > heighestHigh) {
             heighestHigh = textHeight;
+        }
         // Skip paragraph if listing is enabled,
         // in all other cases increase x with text width
-        if (listLevel == 0)
-            currentX += textWidth;
+        currentX += textWidth;
+        /*if (listLevel == 0)
+            currentX += textWidth;*/
         }
         break;
 
@@ -288,6 +327,20 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
+std::string const RenderArea::intToRoman(int num)
+{
+    static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+    static const std::string numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+    std::string res;
+    for (int i = 0; i < 13; ++i) {
+        while (num >= values[i]) {
+            num -= values[i];
+            res += numerals[i];
+        }
+    }
+    return res;
+}
+
 // Overrided method of GTK DrawingArea
 bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
@@ -304,7 +357,7 @@ bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     // Set to black for text
     cr->set_source_rgb(0.0, 0.0, 0.0);
 
-    std::list<text>::iterator it;
+    std::list<text_struct>::iterator it;
     for(it = textList.begin(); it != textList.end(); ++it) {        
         auto text = (*it);
         cr->move_to(text.x, text.y);

@@ -68,6 +68,9 @@
         "qsizepolicy": "cpp",
         "qgraphicsscene": "cpp",
         "qstring": "cpp",
-        "qtglobal": "cpp"
+        "qtglobal": "cpp",
+        "cstring": "cpp",
+        "set": "cpp",
+        "valarray": "cpp"
     }
 }
