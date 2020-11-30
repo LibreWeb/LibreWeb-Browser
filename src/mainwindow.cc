@@ -3,6 +3,7 @@
 
 #include <chrono>
 #include <iostream>
+#include <gtkmm/menuitem.h>
 #ifdef LEGACY_CXX
 #include <experimental/filesystem>
 namespace n_fs = ::std::experimental::filesystem;
@@ -11,17 +12,22 @@ namespace n_fs = ::std::experimental::filesystem;
 namespace n_fs = ::std::filesystem;
 #endif
 
-MainWindow::MainWindow()
+MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
 {
     set_title("Browser");
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER_ALWAYS);
 
-    add(m_scrolledWindow);
+    // Connect signals
+    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
+
+    m_vbox.pack_start(m_menu, false, false, 0);
 
     m_scrolledWindow.add(m_renderArea);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    
+
+    m_vbox.pack_end(m_scrolledWindow, true, true, 0);
+    add(m_vbox);    
     show_all_children();
 
     // Setup parser

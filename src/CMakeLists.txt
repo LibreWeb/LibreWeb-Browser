@@ -34,6 +34,8 @@ set(SOURCES
   main.cc
   mainwindow.cc
   mainwindow.h
+  menu.cc
+  menu.h
   md-parser.cc
   md-parser.h
   render-area.cc

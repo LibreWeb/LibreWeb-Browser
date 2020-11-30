@@ -2,8 +2,11 @@
 #define MAINWINDOW_H
 
 #include <gtkmm/window.h>
+#include <gtkmm/box.h>
+#include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
 #include "render-area.h"
+#include "menu.h"
 
 class Parser;
 
@@ -19,6 +22,8 @@ protected:
     void on_button_clicked(Glib::ustring data);
 
     // Child widgets
+    Menu m_menu;
+    Gtk::Box m_vbox;
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
 private:
