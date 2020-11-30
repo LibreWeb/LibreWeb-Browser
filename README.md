@@ -2,9 +2,9 @@
 
 Decentralized Browser; a revolution of the WWW.
 
-What would you do, if you could **reinvent** The Internet in 21st century? With all the knowledge and new technologies available today.
+What would you do different; if you could **reinvent** The Internet in 21st century? With all the knowledge and new technologies available today.
 
-I was inspired by Douglas Engelbart, Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
+I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
 
 *Note:* Project is WIP!
 
