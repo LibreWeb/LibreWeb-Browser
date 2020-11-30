@@ -73,12 +73,14 @@ For the build you need at least:
 * GTK & Cairo & Pango (including C++ bindings):
     - Install: `libgtkmm-3.0-dev` under Debian based distros
 
-For Release packaging:
+For release packages you also need:
 
 * CPack
 
 ### 2D/Vector engines - Under Research
 
 We are currently in an exploration phase, which 2D vector graphics rendering library we should us.
+
+Currently using GTK + Cairo + Pango.
 
 See [research document](docs/research.md) for more information and conclusions based on facts.
