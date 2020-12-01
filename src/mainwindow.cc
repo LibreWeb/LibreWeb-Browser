@@ -16,7 +16,7 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
 {
     set_title("Browser");
     set_default_size(1000, 800);
-    set_position(Gtk::WIN_POS_CENTER_ALWAYS);
+    set_position(Gtk::WIN_POS_CENTER);
 
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */

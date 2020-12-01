@@ -6,19 +6,19 @@ Menu::Menu()
   m_help("_Help", true)
 {
     // File submenu
-    auto exit_menuitem = createMenuItem("Exit");
-    exit_menuitem->signal_activate().connect(quit);
+    auto quit_menuitem = createMenuItem("_Quit");
+    quit_menuitem->signal_activate().connect(quit);
 
     // View submenu
-    auto source_code_menuitem = createMenuItem("View Source");
+    auto source_code_menuitem = createMenuItem("View _Source");
     source_code_menuitem->signal_activate().connect(source_code);
 
     // Help submenu
-    auto about_menuitem = createMenuItem("About");
+    auto about_menuitem = createMenuItem("_About");
     about_menuitem->signal_activate().connect(show_about);
 
     // Add items to sub-menus
-    m_file_submenu.append(*exit_menuitem);
+    m_file_submenu.append(*quit_menuitem);
     m_view_submenu.append(*source_code_menuitem);
     m_help_submenu.append(*about_menuitem);
 
@@ -40,6 +40,6 @@ Menu::~Menu() {
  * \return GTKWidget menu item pointer
  */
 Gtk::MenuItem* Menu::createMenuItem(const Glib::ustring& label_text) {
-    Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(label_text));
+    Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(label_text, true));
     return item;
 }
