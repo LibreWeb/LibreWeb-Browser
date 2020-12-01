@@ -7,17 +7,26 @@
 
 ## P2P/Decentralized Protocol/Network
 
-See the list of P2P or decentralized protocols/network solutions below.
+See the list of P2P or decentralized protocols/network solutions below. Also known as Dapps.
+
+Keep in mind that 'Decentralized network' is often not just a single technology, but a collaboration of technologies combined. Like Bittorrent + blockchain + DHT + exchange protocol + protobuf, CAP Theorem, Hypothetical Amnesia Machine,  and more.. All solving a specific piece of the puzzle.
 
 Current status: It looks more and more that the best way might be a mutable Bittorrent solution written in C/C++ or Rust.
 
-*Remark:* I tend to avoid blockchain solutions here, especially since they are not very scalable. Especially if each person needs to download the whole blockchain (after all we do not want to rely on others). Blockchain is way too heavy.
+### Findings
+
+***Findings #1:** Avoid blockchain solutions here, especially since they are not very scalable. After all each person needs to download the whole blockchain (since we do not want to rely on others). Blockchain is way too heavy. 
+
+**Findings #2:** Instead of blockchain look at alternative solutions to store data in a P2P network.
+
+**Findings #3:** Solutions written in Javascript that runs inside webbrowsers itsn't the solution we need. Avoid those, ideally use an existing (part of a) solution that delivers a API to C/C++. People should really stop making reference designs in Javascript! It doesn't make sense.
 
 **External Links**
 
 * https://sites.google.com/view/sexy-p2p/
 * https://news.ycombinator.com/item?id=20162171
 * https://www.cse.wustl.edu/~jain/cse570-19/ftp/decentrl/index.html
+* https://github.com/gdamdam/awesome-decentralized-web
 * [libtorrent](http://www.libtorrent.org/): Feature complete C++ torrent library
 
 ### Dat / Hypercore & Hyperdrive
@@ -70,6 +79,21 @@ Also written in JavaScript? Really?
 
 https://github.com/johang/btfs
 
+### Gun
+
+[Gun](https://gun.eco/) runs inside a web browser, written in Javascript. The technology behind is is very useful, but not their implementation for us specifically.
+
+### LBRY SDK
+
+Implements the LBRY Network protocols. LBRY blockchain is used for storing searchable content (meta-data), right and access rules. SDK includes components:
+
+* Kademlia DHT (Distributed Hash Table)
+* Blob exchange protocol for transferring encrypted blobs of content and negotiating payments 
+* Protobuf schema for encoding and decoding metadata stored on the blockchain
+* Wallet implementation for the LBRY blockchain
+* Daemon with a JSON-RPC API to ease building end user applications in any language and for automating various tasks 
+
+Its written in Python. But as stated above, with a JSON-RPC API. However, much features like blockchain is not wanted.
 
 ## GUI libraries
 
