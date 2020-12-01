@@ -39,7 +39,7 @@ For now we will use markdown as the source of the site. No HTML and JavaScript a
 
 ### Development Environment
 
-I'm using VSCodium editor, with the following extensions installed: `C/C++`, `Cmake` and `Cmake Tools` .
+I'm using VSCodium editor, with the following extensions installed: `C/C++`, `Cmake`, `CMake Tools`, `PlantUML`, `Markdown All in One` and `GitLab Workflow`.
 
 ### Depedencies
 
