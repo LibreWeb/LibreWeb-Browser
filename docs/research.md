@@ -1,8 +1,9 @@
 # Research topics
 
-1. **Goal #1:** We need to be able to draw text on the screen as fast and efficient as possible by using some existing **GUI Library**. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`. Which should give us *full control* about the rendering and drawing sequences.
+1. **[Goal #1](#p2pdecentralized-protocolnetwork):** We need a **P2P/decentralized** solution for transferring (markdown) files across the network, **without** a client-server topology. No single-point-of-failure. And no easy way to censorship your site or other sites.
+2. **[Goal #2](#gui-libraries):** We need to be able to draw text on the screen as fast and efficient as possible by using some existing **GUI Library**. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`. Which should give us *full control* about the rendering and drawing sequences.
    - *Conclusion:** GTK + Cairso & Pango
-2. **Goal #2:** We need a **P2P/decentralized** solution for transferring (markdown) files across the network, **without** a client-server topology. No single-point-of-failure. And no easy way to censorship your site or other sites.
+
 
 ## P2P/Decentralized Protocol/Network
 
