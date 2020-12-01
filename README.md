@@ -8,6 +8,8 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 *Note:* Project is WIP!
 
+![Browser Screenshot](./docs/browser_screenshot.png)
+
 ## Ideas/Features
 
 The current plan:
