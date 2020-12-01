@@ -15,7 +15,7 @@ Current status: It looks more and more that the best way might be a mutable Bitt
 
 ### Findings
 
-***Findings #1:** Avoid blockchain solutions here, especially since they are not very scalable. After all each person needs to download the whole blockchain (since we do not want to rely on others). Blockchain is way too heavy. 
+**Findings #1:** Avoid blockchain solutions here, especially since they are not very scalable. After all each person needs to download the whole blockchain (since we do not want to rely on others). Blockchain is way too heavy. 
 
 **Findings #2:** Instead of blockchain look at alternative solutions to store data in a P2P network.
 
