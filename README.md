@@ -27,31 +27,6 @@ The current plan:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
-## Text on Screen Flowcharts
-
-**Prepare steps**
-
-```plantuml
-(*) --> "Load fonts glyphs (ttf)/default font"
---> "Create Font Atlas"
---> "Create Viewport"
--->[Ready for render] (*)
-```
-
-**Text rendering**
-
-```plantuml
-(*) --> "Get file online /\nRead from disk"
--->[Content in memory] "Parse document"
--->[AST output] "Convert AST to Bitmap struct"
--->[Ready for painter] "Paint text on Viewport"
--->[Text visable on Screen] (*)
-```
-
-*ttf* = TrueType Font
-
-*AST* = Abstract Syntax Tree
-
 ## Devs
 
 Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
@@ -64,7 +39,7 @@ For now we will use markdown as the source of the site. No HTML and JavaScript a
 
 I'm using VSCodium editor, with the following extensions installed: `C/C++`, `Cmake` and `Cmake Tools` .
 
-## Depedencies
+### Depedencies
 
 For the build you need at least:
 
@@ -76,6 +51,12 @@ For the build you need at least:
 For release packages you also need:
 
 * CPack
+
+### Diagrams
+
+There existing several design and/or research diagrams of Browser by using PlantUML. Sometimes words aren't enough to explain yourself.
+
+[Check-out the diagrams page](docs/diagrams.md).
 
 ### 2D/Vector engines - Under Research
 

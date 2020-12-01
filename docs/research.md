@@ -1,6 +1,22 @@
 # Research topics
 
-1. *First Goal:* We want to draw text on the screen as fast as possible. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`.
+1. *Goal #1:* We need to be able to draw text on the screen as fast and efficient as possible by using some existing **GUI Library**. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`. Which should give us *full control* about the rendering and drawing sequences.
+   - *Conclusion:** GTK + Cairso & Pango
+2. *Goal #2:* We need a decentralized solution to transferring markdown files across the network, **without** client <> server typology. And no single-point-of-failure. And no easy censorship.
+
+## P2P/Decentralized Protocol/Network
+
+See the list of P2P or Decentralized protocols/network solutions below.
+
+### Hypercore
+
+Hypercore is a distributed append-only log. See [Hypercore protocol website](https://hypercore-protocol.org/).
+
+Part of the [Dat Foundation](https://dat.foundation/).
+
+Why NodeJS and not C++?
+
+
 
 ## GUI libraries
 
@@ -43,7 +59,7 @@ We can try using a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 
 * [Drawing Text/line using QPainter](https://www.youtube.com/watch?v=tc3nlNEAdig) (video).
 * [Calligra](https://github.com/KDE/calligra) Word processor using Qt, maybe also creating their own text painting as well?
 
-**Conclusion:** No, QGraphics will NOT be used, way too slow.
+**Conclusion:** No, QGraphics will NOT be used, way too slow. Not performant enough.
 
 ### GTK
 
@@ -52,6 +68,8 @@ We can try using a [QGraphicsScene](https://doc.qt.io/qt-5/qgraphicsscene.html) 
 GTK is using the Cairo 2D graphics renderer using rasterization (CPU) bvy default. But Cairo also including backends for acceleration and for vector output formats. Can be used for both display and export to PDF/SVG. GTK is also much more lightweight in comparison with Qt.
 
 Problem is its only raster graphics using the CPU. Which isn't that bad, but I really miss hardware acceleration via OpenGL/Vulkan (cairo-gl will never be stable and is a dead-end). There is no vector generation. Cairo can however be used [together with SDL](https://www.cairographics.org/SDL/) they claim.
+
+**Conclusion:** Seems like a perfect fit! Ideal for content first apps/viewer.
 
 #### GTK +  OpenGL/Vulkan
 
@@ -81,7 +99,7 @@ Meaning the app and Skia has quite a tight build relationship. Even the Skia "He
 
 After 2 full days, I gave up to build of an independent hello world example linking skia as static library. It's really really hard to getting started, this is a red flag.
 
-**Conclusion:** Looks like a no.
+**Conclusion:** No, too complex, even hard to get started.
 
 ## Multimedia libraries / Vector graphics engine
 
@@ -125,7 +143,7 @@ OpenVG is part of the Khronos group, which is a plus. But it looks a bit too muc
 
 [NanoVG](https://github.com/memononen/nanovg) is a 2D vector drawing library on top of OpenGL for UI and visualization. Its very small, with a lean API.
 
-**Conclusion:** *No Conclusion yet* - Under investigation
+**Conclusion:** *No Conclusion yet*
 
 ### ImGui
 
@@ -140,4 +158,4 @@ Also the application suffered quite some screen tearing (even with VSYNC on).
 
 My expectation is that there are some huge synchronization issues with Imgui and OpenGL/Vulkan backends. Therefor is my advice is not to use Imgui for text rendering applications until futher notice. This is a shame.
 
-**Conclusion:** No, Will NOT be used, some very strange performance issues under Linux (X11).
+**Conclusion:** No, Will NOT be used, some very strange performance issues under Linux (X11). Not production ready as main GUI.
