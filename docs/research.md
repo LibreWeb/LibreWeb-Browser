@@ -1,16 +1,16 @@
 # Research topics
 
-1. *Goal #1:* We need to be able to draw text on the screen as fast and efficient as possible by using some existing **GUI Library**. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`. Which should give us *full control* about the rendering and drawing sequences.
+1. **Goal #1:** We need to be able to draw text on the screen as fast and efficient as possible by using some existing **GUI Library**. Skipping the HTML parser step, meaning: `Markdown` -> `screen` instead of: `Markdown` -> `HTML` / `CSS` -> `screen`. Which should give us *full control* about the rendering and drawing sequences.
    - *Conclusion:** GTK + Cairso & Pango
-2. *Goal #2:* We need a decentralized solution to transferring markdown files across the network, **without** client <> server typology. And no single-point-of-failure. And no easy censorship.
+2. **Goal #2:** We need a **P2P/decentralized** solution for transferring (markdown) files across the network, **without** a client-server topology. No single-point-of-failure. And no easy way to censorship your site or other sites.
 
 ## P2P/Decentralized Protocol/Network
 
-See the list of P2P or Decentralized protocols/network solutions below.
+See the list of P2P or decentralized protocols/network solutions below.
 
-It looks more and more that the best way might be a mutable Bittorrent solution written in C/C++ or Rust.
+Current status: It looks more and more that the best way might be a mutable Bittorrent solution written in C/C++ or Rust.
 
-*Remark:* I tend to avoid blockchain solutions here, especially since they are not very scalable. Especially if each person needs to download the whole blockchain (after all we do not want to rely on others).
+*Remark:* I tend to avoid blockchain solutions here, especially since they are not very scalable. Especially if each person needs to download the whole blockchain (after all we do not want to rely on others). Blockchain is way too heavy.
 
 **External Links**
 
