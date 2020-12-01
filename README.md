@@ -58,10 +58,16 @@ There existing several design and/or research diagrams of Browser by using Plant
 
 [Check-out the diagrams page](docs/diagrams.md).
 
-### 2D/Vector engines - Under Research
+### Drawing/Graphics rendering engine/GUI
 
-We are currently in an exploration phase, which 2D vector graphics rendering library we should us.
+We are currently in an exploration phase about which 2D (vector) graphics rendering library we should use.
 
-Currently using GTK + Cairo + Pango.
+*Currently:* GTK + Cairo + Pango, which works fine and is fast!
 
-See [research document](docs/research.md) for more information and conclusions based on facts.
+See [research document](docs/research.md) (also in markdown) for more information and conclusions based on facts.
+
+### Decentralized Web
+
+We are also currently in an exploration page about which kind of P2P or decentralized network solution is the best fit.
+
+See [research document](docs/research.md) (also in markdown) for more information and conclusions based on facts.

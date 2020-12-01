@@ -8,15 +8,61 @@
 
 See the list of P2P or Decentralized protocols/network solutions below.
 
-### Hypercore
+It looks more and more that the best way might be a mutable Bittorrent solution written in C/C++ or Rust.
 
-Hypercore is a distributed append-only log. See [Hypercore protocol website](https://hypercore-protocol.org/).
+*Remark:* I tend to avoid blockchain solutions here, especially since they are not very scalable. Especially if each person needs to download the whole blockchain (after all we do not want to rely on others).
+
+**External Links**
+
+* https://sites.google.com/view/sexy-p2p/
+* https://news.ycombinator.com/item?id=20162171
+* https://www.cse.wustl.edu/~jain/cse570-19/ftp/decentrl/index.html
+
+### Dat / Hypercore & Hyperdrive
+
+Hypercore is a distributed append-only log. See [Hypercore protocol website](https://hypercore-protocol.org/). And [Hyperdrive GitHub](https://github.com/hypercore-protocol/hyperdrive).
 
 Part of the [Dat Foundation](https://dat.foundation/).
 
-Why NodeJS and not C++?
+I do like the append-only feature just like git, and inline with Ted vision.
 
+Seriously, why *NodeJS* and not C or C++  or Rust as their reference implementation!?
 
+### GNNnet
+
+Is still a bit too early, and in 'heavy' development.
+
+### Freenet
+
+Freenet is a distributed, Internet-wide peer-to-peer overlay network de-signed to allow anonymized and censorship resistant publication and distribution ofinformation. 
+
+It's 20 years old, and still almost nobody is using it.
+
+Looks a bit too much aimed to corporate organizations somehow.
+
+### IPFS
+
+A peer-to-peer hypermedia protocol designed to make the web faster, safer, and more open.
+
+IPFS duplicates all content, require pinning of data.
+
+Why are they using the current DNS system?
+
+### Solid
+
+Created by Tim Berners-Lee, which is also the creator of the WWW. It really looks like an extension of the current web, but where the user is in more control about the data.
+
+Looks like its focussed on social sites, rather then fixing the whole WWW.
+
+[Node Solid Server](https://github.com/solid/node-solid-server) can be used to setup your own server and control your data.
+
+[View site](https://solidproject.org/). Visit [Protocol page](https://solid.github.io/specification/) (Draft).
+
+## Secure Scuttlebutt
+
+[Visit SSB website](https://scuttlebot.io/)
+
+Also written in JavaScript? Really?
 
 ## GUI libraries
 
