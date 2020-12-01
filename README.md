@@ -12,7 +12,7 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 ## Ideas/Features
 
-The current plan:
+The current success criteria:
 
 * Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
 * Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
