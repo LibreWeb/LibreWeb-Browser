@@ -39,20 +39,17 @@ For now we will use markdown as the source of the site. No HTML and JavaScript a
 
 ### Development Environment
 
-I'm using VSCodium editor, with the following extensions installed: `C/C++`, `Cmake`, `CMake Tools`, `PlantUML`, `Markdown All in One` and `GitLab Workflow`.
+I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CMake`, `CMake Tools`, `PlantUML`, `Markdown All in One` and `GitLab Workflow`.
 
-### Depedencies
+### Build Dependencies
 
 For the build you need at least:
 
-* GCC 9 or higher (GCC 8 should also work)
-* CMake
+* GCC 9 or higher (GCC 8 should also work, but not adviced. Package: `build-essential`)
+* CMake (Package: `cmake`)
+* Ninja build system (Package: `ninja-build`)
 * GTK & Cairo & Pango (including C++ bindings):
-    - Install: `libgtkmm-3.0-dev` under Debian based distros
-
-For release packages you also need:
-
-* CPack
+    - Package: `libgtkmm-3.0-dev` under Debian based distros
 
 ### Diagrams
 
