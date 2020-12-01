@@ -18,6 +18,7 @@ Current status: It looks more and more that the best way might be a mutable Bitt
 * https://sites.google.com/view/sexy-p2p/
 * https://news.ycombinator.com/item?id=20162171
 * https://www.cse.wustl.edu/~jain/cse570-19/ftp/decentrl/index.html
+* [libtorrent](http://www.libtorrent.org/): Feature complete C++ torrent library
 
 ### Dat / Hypercore & Hyperdrive
 
@@ -59,11 +60,16 @@ Looks like its focussed on social sites, rather then fixing the whole WWW.
 
 [View site](https://solidproject.org/). Visit [Protocol page](https://solid.github.io/specification/) (Draft).
 
-## Secure Scuttlebutt
+### Secure Scuttlebutt
 
 [Visit SSB website](https://scuttlebot.io/)
 
 Also written in JavaScript? Really?
+
+### BTFS
+
+https://github.com/johang/btfs
+
 
 ## GUI libraries
 
