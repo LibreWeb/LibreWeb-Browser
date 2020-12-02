@@ -1,8 +1,11 @@
 #include "render-area.h"
 #include "node.h"
 
+#include <gtkmm/widget.h>
 #include <stdio.h>
 #include <algorithm>
+#include <chrono>
+#include <iostream>
 
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
@@ -76,6 +79,11 @@ void RenderArea::processDocument(cmark_node *root_node)
     m_textList.clear();
     m_lines.clear();
 
+    /*typedef std::chrono::high_resolution_clock Time;
+    typedef std::chrono::milliseconds ms;
+    typedef std::chrono::duration<float> fsec;
+    auto t0 = Time::now();*/
+
     // Loop over AST nodes
     cmark_event_type ev_type;
     cmark_iter *iter = cmark_iter_new(root_node);
@@ -83,6 +91,12 @@ void RenderArea::processDocument(cmark_node *root_node)
         cmark_node *cur = cmark_iter_get_node(iter);
         processNode(cur, ev_type);
     }
+
+    /*auto t1 = Time::now();
+    fsec fs = t1 - t0;
+    ms d = std::chrono::duration_cast<ms>(fs);
+    std::cout << fs.count() << "s\n";
+    std::cout << d.count() << "ms\n";*/
 }
 
 /**
@@ -244,7 +258,9 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
             }
             text.insert(0, number);
         }
+
         auto layout = create_pango_layout(text);
+
         if (headingLevel > 0) {
             switch (headingLevel)
             {
@@ -287,11 +303,8 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         if (textHeight > heighestHigh) {
             heighestHigh = textHeight;
         }
-        // Skip paragraph if listing is enabled,
-        // in all other cases increase x with text width
+        // Increase X with text width
         currentX += textWidth;
-        /*if (listLevel == 0)
-            currentX += textWidth;*/
         }
         break;
 
