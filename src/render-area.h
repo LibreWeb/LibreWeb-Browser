@@ -31,8 +31,8 @@ public:
     void processDocument(cmark_node *root_node);
     
 protected:
-    std::list<text_struct> textList;
-    std::list<line_struct> lines;
+    std::list<text_struct> m_textList;
+    std::list<line_struct> m_lines;
 
     // Override default signal handler:
     bool on_draw(const Cairo::RefPtr<Cairo::Context>& cr) override;

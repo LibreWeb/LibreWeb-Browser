@@ -72,8 +72,11 @@ void RenderArea::createPangoContexts()
 
 void RenderArea::processDocument(cmark_node *root_node)
 {
-    textList.clear(); // reset
+    // Clean-up
+    m_textList.clear();
+    m_lines.clear();
 
+    // Loop over AST nodes
     cmark_event_type ev_type;
     cmark_iter *iter = cmark_iter_new(root_node);
     while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE) {
@@ -201,7 +204,7 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         line.height = 0.2;
         line.hex_color = "2e2e2e";
         line.cap = Cairo::LineCap::LINE_CAP_ROUND;
-        lines.push_back(line);
+        m_lines.push_back(line);
         currentY += horizontalLineMargin;
         }
         break;
@@ -279,7 +282,7 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         textStruct.x = currentX;
         textStruct.y = currentY;
         textStruct.layout = layout;
-        textList.push_back(textStruct);
+        m_textList.push_back(textStruct);
 
         if (textHeight > heighestHigh) {
             heighestHigh = textHeight;
@@ -374,7 +377,7 @@ bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // Draw text
     std::list<text_struct>::iterator textIt;
-    for(textIt = textList.begin(); textIt != textList.end(); ++textIt) {        
+    for(textIt = m_textList.begin(); textIt != m_textList.end(); ++textIt) {        
         auto text = (*textIt);
         cr->move_to(text.x, text.y);
         text.layout->show_in_cairo_context(cr);
@@ -382,7 +385,7 @@ bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 
     // Draw lines
     std::list<line_struct>::iterator lineIt;
-    for(lineIt = lines.begin(); lineIt != lines.end(); ++lineIt) {        
+    for(lineIt = m_lines.begin(); lineIt != m_lines.end(); ++lineIt) {        
         auto line = (*lineIt);
         double r, g, b;
         hexToRGB(line.hex_color, r, g, b);

@@ -53,11 +53,11 @@ Looks a bit too much aimed to corporate organizations somehow.
 
 ### IPFS
 
-A peer-to-peer hypermedia protocol designed to make the web faster, safer, and more open.
+[IPFS](https://github.com/ipfs/go-ipfs) is a peer-to-peer hypermedia protocol designed to make the web faster, safer, and more open. 
 
-IPFS duplicates all content, require pinning of data.
+Its really a good candidate to use! Although IPFS duplicates all content, and require pinning of data (but the last one can be abstracted away).
 
-Why are they using the current DNS system?
+Why are they using the current DNS system? IPNS isn't the full solution.
 
 ### Solid
 
