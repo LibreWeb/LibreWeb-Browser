@@ -14,6 +14,6 @@ Network::~Network() {
 void Network::FetchReadme() {
     // Demo ...
     std::stringstream contents;
-    client.FilesGet("/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG/readme", &contents);
+    client.FilesGet("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", &contents);
     std::cout << contents.str() << std::endl;
 }
