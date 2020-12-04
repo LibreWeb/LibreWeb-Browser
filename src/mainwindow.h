@@ -7,6 +7,7 @@
 #include <gtkmm/scrolledwindow.h>
 #include "render-area.h"
 #include "menu.h"
+#include "network.h"
 
 class Parser;
 
@@ -28,6 +29,7 @@ protected:
     RenderArea m_renderArea;
 private:
     Parser *parser;
+    Network network;
 
      void setupParser();
 };

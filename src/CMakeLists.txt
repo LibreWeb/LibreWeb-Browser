@@ -39,6 +39,8 @@ set(SOURCES
   menu.h
   md-parser.cc
   md-parser.h
+  network.cc
+  network.h
   render-area.cc
   render-area.h
 )
@@ -63,13 +65,11 @@ get_property(CMAKE_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
 get_property(CMAKE_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
 target_include_directories(${PROJECT_TARGET} PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${CMAKE_EXTENSIONS_BINARY_DIR}
     ${GTKMM_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
-    lib/commonmarker/src
-    lib/ipfs-http-client/include
+    ${PROJECT_SOURCE_DIR}/lib/ipfs-http-client/include
   )
 
 target_link_directories(${PROJECT_TARGET} PRIVATE

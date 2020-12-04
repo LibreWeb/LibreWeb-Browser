@@ -28,6 +28,10 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
     add(m_vbox);    
     show_all_children();
 
+    // Just an IPFS test! Fetch a resource from the IPFS network
+    // Assuming you already running a IPFS deamon
+    network.FetchReadme();
+
     // Setup parser
     setupParser();
 }

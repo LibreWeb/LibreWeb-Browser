@@ -1,3 +1,6 @@
+#ifndef MENU_H
+#define MENU_H
+
 #include <signal.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/menu.h>
@@ -32,3 +35,4 @@ protected:
 private:
   Gtk::MenuItem* createMenuItem(const Glib::ustring& label_text);
 };
+#endif
