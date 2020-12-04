@@ -65,10 +65,6 @@
         "typeinfo": "cpp",
         "variant": "cpp",
         "bit": "cpp",
-        "qsizepolicy": "cpp",
-        "qgraphicsscene": "cpp",
-        "qstring": "cpp",
-        "qtglobal": "cpp",
         "cstring": "cpp",
         "set": "cpp",
         "valarray": "cpp"
