@@ -75,6 +75,6 @@ target_link_directories(${PROJECT_TARGET} PRIVATE
   ${CAIRO_LIBRARY_DIRS}
 )
 
-target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
+target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)

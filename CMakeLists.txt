@@ -22,6 +22,7 @@ endif()
 
 add_subdirectory (lib/commonmarker/src)
 add_subdirectory (lib/commonmarker/extensions)
+add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (src)
 
 # Add desktop/images files
