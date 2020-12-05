@@ -1,5 +1,4 @@
-cmake_minimum_required (VERSION 3.5)
-
+cmake_minimum_required (VERSION 3.11.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -20,8 +19,12 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   include(packaging)
 endif()
 
+# Disable CTest testcases in cpp-ipfs-http-client
+set (BUILD_TESTING OFF CACHE BOOL "Disable CTest" FORCE)
+
 add_subdirectory (lib/commonmarker/src)
 add_subdirectory (lib/commonmarker/extensions)
+add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (src)
 
 # Add desktop/images files

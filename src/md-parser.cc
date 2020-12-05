@@ -14,30 +14,44 @@ Parser::Parser(): options(CMARK_OPT_DEFAULT) {}
  */
 cmark_node * Parser::parseFile(const std::string &filePath)
 {
-    // Modified version of cmark_parse_document in blocks.c
-    cmark_parser *parser = cmark_parser_new(options);
-
-    // Add extensions
-    addMarkdownExtension(parser, "strikethrough");
-    addMarkdownExtension(parser, "table");
-  
-    cmark_parser_free(parser);
-
     // Parse to AST with cmark
     FILE *file;
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
     {
-        cmark_node *root_node;
+        cmark_node *doc;
 
         // TODO: Copy/paste cmark_parse_file() content to here, allowing me to add extensions to the parser.
-        root_node = cmark_parse_file(file, options);
+        doc = cmark_parse_file(file, options);
         fclose(file);
 
-        return root_node;
+        return doc;
     }
     return NULL;    
 }
 
+/**
+ * Parse markdown file by stringstream
+ * @return AST structure (of type cmark_node)
+ */
+cmark_node * Parser::parseStream(const std::stringstream &stream)
+{
+    //cmark_node *doc;
+    // Parse to AST with cmark
+    // mark_parser *parser = cmark_parser_new(options);
+
+    // Add extensions
+    //addMarkdownExtension(parser, "strikethrough");
+    //addMarkdownExtension(parser, "table");
+
+    const std::string tmp = stream.str();
+    const char *data = tmp.c_str();    
+    // TODO: Copy cmark_parse_document() to be able to add extensions to the parser
+    return cmark_parse_document(data, strlen(data), options);
+}
+
+/**
+ * Built-in cmark parser to HTML
+ */
 std::string const Parser::renderHTML(cmark_node *node)
 {
     char *tmp = cmark_render_html(node, options, NULL);

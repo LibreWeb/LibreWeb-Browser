@@ -17,6 +17,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 set(PROJECT_TARGET browser)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
+
 find_package(Threads REQUIRED)
 
 find_package(PkgConfig REQUIRED)
@@ -32,12 +33,16 @@ endif()
 
 set(SOURCES 
   main.cc
+  file.cc
+  file.h
   mainwindow.cc
   mainwindow.h
   menu.cc
   menu.h
   md-parser.cc
   md-parser.h
+  network.cc
+  network.h
   render-area.cc
   render-area.h
 )
@@ -56,18 +61,17 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     endif()
 endif()
 
-# Get include list the cmark binary directory for config.h, .._version.h & .._export.h
-# Get include list the cmark extensions binary directory for ..._export.h
+# Get include list the cmark binary directory for the generated config.h, .._version.h & .._export.h files
+# Get include list the cmark extensions binary directory for the generated ..._export.h file
 get_property(CMAKE_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
 get_property(CMAKE_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
 target_include_directories(${PROJECT_TARGET} PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
     ${CMAKE_BINARY_DIR}
     ${CMAKE_EXTENSIONS_BINARY_DIR}
     ${GTKMM_INCLUDE_DIRS}
     ${CAIRO_INCLUDE_DIRS}
-    lib/commonmarker/src
+    ${PROJECT_SOURCE_DIR}/lib/ipfs-http-client/include
   )
 
 target_link_directories(${PROJECT_TARGET} PRIVATE
@@ -75,6 +79,6 @@ target_link_directories(${PROJECT_TARGET} PRIVATE
   ${CAIRO_LIBRARY_DIRS}
 )
 
-target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
+target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)

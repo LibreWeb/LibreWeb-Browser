@@ -1,4 +1,4 @@
-image: gitlab.melroy.org/dwww/dependency_proxy/containers/danger89/gtk3-docker-cmake-ninja:2.0
+image: gitlab.melroy.org/dwww/dependency_proxy/containers/danger89/gtk3-docker-cmake-ninja:2.1
 
 static_code_analysis:
   script: ./check.sh

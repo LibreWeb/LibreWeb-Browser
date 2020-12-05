@@ -7,14 +7,12 @@
 #include <gtkmm/scrolledwindow.h>
 #include "render-area.h"
 #include "menu.h"
-
-class Parser;
+#include "file.h"
 
 class MainWindow : public Gtk::Window
 {
 public:
     MainWindow();
-    virtual ~MainWindow();
 
 protected:
     // Signal handlers:
@@ -27,9 +25,9 @@ protected:
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
 private:
-    Parser *parser;
+    File file;
 
-     void setupParser();
+    void demo();
 };
 
 #endif
