@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include "md-parser.h"
 
 #include <gtkmm/menuitem.h>
 #ifdef LEGACY_CXX
@@ -28,28 +27,23 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
     add(m_vbox);    
     show_all_children();
 
+    // Get demo file
+    getFile();
+}
+
+void MainWindow::getFile()
+{
     // Just an IPFS test! Fetch a resource from the IPFS network
     // Assuming you already running a IPFS deamon
-    network.FetchReadme();
-
-    // Setup parser
-    setupParser();
-}
-
-MainWindow::~MainWindow()
-{
-    delete parser;
-}
-
-void MainWindow::setupParser()
-{
-    parser = new Parser();
+    std::stringstream contents;
+    network.fetchFile("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", &contents);
+    parser.parseStream(contents);
 
     std::string exePath = n_fs::current_path().string();
     std::string filePath = exePath.append("/../../test.md");
     printf("Path: %s\n", filePath.c_str());
 
-    cmark_node *root_node = parser->parseFile(filePath);
+    cmark_node *root_node = parser.parseFile(filePath);
     if (root_node != NULL) {
         /*std::string html = parser->renderHTML(root_node);
         printf("HTML %s\n\n", html.c_str());*/

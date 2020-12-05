@@ -1,6 +1,5 @@
 #include "network.h"
 
-#include <iostream>
 #include <sstream>
 
 Network::Network()
@@ -11,9 +10,7 @@ Network::Network()
 Network::~Network() {
 }
 
-void Network::FetchReadme() {
-    // Demo ...
-    std::stringstream contents;
-    client.FilesGet("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", &contents);
-    std::cout << contents.str() << std::endl;
+void Network::fetchFile(const std::string& path, std::iostream* response) {
+    // Demo file
+    client.FilesGet(path, response);
 }

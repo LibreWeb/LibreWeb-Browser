@@ -2,6 +2,8 @@
 #define NETWORK_H
 
 #include <ipfs/client.h>
+#include <iostream>
+#include <string>
 
 /**
  * \class Network
@@ -13,7 +15,7 @@ public:
   Network();
   virtual ~Network();
 
-  void FetchReadme();
+  void fetchFile(const std::string& path, std::iostream* response);
 private:
     ipfs::Client client;
 };

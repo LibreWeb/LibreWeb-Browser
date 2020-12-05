@@ -1,6 +1,7 @@
 #include "md-parser.h"
 
 #include <string>
+#include <iostream>
 #include <cmark-gfm-core-extensions.h>
 
 #include <node.h>
@@ -14,15 +15,6 @@ Parser::Parser(): options(CMARK_OPT_DEFAULT) {}
  */
 cmark_node * Parser::parseFile(const std::string &filePath)
 {
-    // Modified version of cmark_parse_document in blocks.c
-    cmark_parser *parser = cmark_parser_new(options);
-
-    // Add extensions
-    addMarkdownExtension(parser, "strikethrough");
-    addMarkdownExtension(parser, "table");
-  
-    cmark_parser_free(parser);
-
     // Parse to AST with cmark
     FILE *file;
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
@@ -36,6 +28,40 @@ cmark_node * Parser::parseFile(const std::string &filePath)
         return root_node;
     }
     return NULL;    
+}
+
+cmark_node * Parser::parseStream(const std::stringstream &stream)
+{
+    // Parse to AST with cmark
+    cmark_parser *parser = cmark_parser_new(options);
+
+    // Add extensions
+    //addMarkdownExtension(parser, "strikethrough");
+    //addMarkdownExtension(parser, "table");
+
+    //const char buffer[4096];
+    size_t bytes;
+    cmark_node *document;
+
+
+    // Print to console
+    std::cout << stream.str() << std::endl;
+    
+
+    // stream.read() ..? 
+    /*
+    while ((bytes = fread(buffer, 1, sizeof(buffer), f)) > 0) {
+        bool eof = bytes < sizeof(buffer);
+        
+        cmark_parser_feed(parser, buffer, bytes);
+        if (eof) {
+            break;
+        }
+    }*/
+    document = cmark_parser_finish(parser);
+    cmark_parser_free(parser);
+
+    return document;
 }
 
 std::string const Parser::renderHTML(cmark_node *node)
