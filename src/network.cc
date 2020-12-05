@@ -4,10 +4,21 @@
 
 // Connect to IPFS daemon
 Network::Network()
-: client("localhost", 5001)
+: client(NULL)
 {
+    try {
+        client = new ipfs::Client("localhost", 5001);
+    } catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
+        // Something else
+        client = NULL;
+    } catch (...) {
+        std::cerr << "Something else!?" << std::endl;
+        client = NULL;
+    }
 }
 
 void Network::fetchFile(const std::string& path, std::iostream* response) {
-    client.FilesGet(path, response);
+    if (client != NULL)
+        client->FilesGet(path, response);
 }

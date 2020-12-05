@@ -13,9 +13,9 @@ class Network
 {
 public:
   Network();
-
+    
   void fetchFile(const std::string& path, std::iostream* response);
 private:
-    ipfs::Client client;
+    ipfs::Client *client;
 };
 #endif

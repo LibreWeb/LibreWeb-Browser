@@ -19,11 +19,9 @@ cmark_node * Parser::parseFile(const std::string &filePath)
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
     {
         cmark_node *doc;
-
         // TODO: Copy/paste cmark_parse_file() content to here, allowing me to add extensions to the parser.
         doc = cmark_parse_file(file, options);
         fclose(file);
-
         return doc;
     }
     return NULL;    
