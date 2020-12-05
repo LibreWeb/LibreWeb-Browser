@@ -13,7 +13,6 @@ class Network
 {
 public:
   Network();
-  virtual ~Network();
 
   void fetchFile(const std::string& path, std::iostream* response);
 private:

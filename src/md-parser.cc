@@ -1,7 +1,6 @@
 #include "md-parser.h"
 
 #include <string>
-#include <iostream>
 #include <cmark-gfm-core-extensions.h>
 
 #include <node.h>
@@ -19,51 +18,40 @@ cmark_node * Parser::parseFile(const std::string &filePath)
     FILE *file;
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
     {
-        cmark_node *root_node;
+        cmark_node *doc;
 
         // TODO: Copy/paste cmark_parse_file() content to here, allowing me to add extensions to the parser.
-        root_node = cmark_parse_file(file, options);
+        doc = cmark_parse_file(file, options);
         fclose(file);
 
-        return root_node;
+        return doc;
     }
     return NULL;    
 }
 
+/**
+ * Parse markdown file by stringstream
+ * @return AST structure (of type cmark_node)
+ */
 cmark_node * Parser::parseStream(const std::stringstream &stream)
 {
+    //cmark_node *doc;
     // Parse to AST with cmark
-    cmark_parser *parser = cmark_parser_new(options);
+    // mark_parser *parser = cmark_parser_new(options);
 
     // Add extensions
     //addMarkdownExtension(parser, "strikethrough");
     //addMarkdownExtension(parser, "table");
 
-    //const char buffer[4096];
-    size_t bytes;
-    cmark_node *document;
-
-
-    // Print to console
-    std::cout << stream.str() << std::endl;
-    
-
-    // stream.read() ..? 
-    /*
-    while ((bytes = fread(buffer, 1, sizeof(buffer), f)) > 0) {
-        bool eof = bytes < sizeof(buffer);
-        
-        cmark_parser_feed(parser, buffer, bytes);
-        if (eof) {
-            break;
-        }
-    }*/
-    document = cmark_parser_finish(parser);
-    cmark_parser_free(parser);
-
-    return document;
+    const std::string tmp = stream.str();
+    const char *data = tmp.c_str();    
+    // TODO: Copy cmark_parse_document() to be able to add extensions to the parser
+    return cmark_parse_document(data, strlen(data), options);
 }
 
+/**
+ * Built-in cmark parser to HTML
+ */
 std::string const Parser::renderHTML(cmark_node *node)
 {
     char *tmp = cmark_render_html(node, options, NULL);

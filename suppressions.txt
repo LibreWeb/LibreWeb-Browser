@@ -1,3 +1,4 @@
 missingIncludeSystem
 missingInclude:lib/*
 unusedFunction
+unusedPrivateFunction

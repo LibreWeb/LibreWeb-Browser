@@ -7,8 +7,7 @@
 #include <gtkmm/scrolledwindow.h>
 #include "render-area.h"
 #include "menu.h"
-#include "md-parser.h"
-#include "network.h"
+#include "file.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -26,10 +25,9 @@ protected:
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
 private:
-    Parser parser;
-    Network network;
+    File file;
 
-    void getFile();
+    void demo();
 };
 
 #endif

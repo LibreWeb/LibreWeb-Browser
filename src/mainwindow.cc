@@ -27,28 +27,25 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
     add(m_vbox);    
     show_all_children();
 
-    // Get demo file
-    getFile();
+    demo();
 }
 
-void MainWindow::getFile()
+void MainWindow::demo()
 {
-    // Just an IPFS test! Fetch a resource from the IPFS network
-    // Assuming you already running a IPFS deamon
-    std::stringstream contents;
-    network.fetchFile("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", &contents);
-    parser.parseStream(contents);
-
+/*
+    // From disk
     std::string exePath = n_fs::current_path().string();
     std::string filePath = exePath.append("/../../test.md");
-    printf("Path: %s\n", filePath.c_str());
-
-    cmark_node *root_node = parser.parseFile(filePath);
-    if (root_node != NULL) {
-        /*std::string html = parser->renderHTML(root_node);
-        printf("HTML %s\n\n", html.c_str());*/
-        // process AST, which can then be drawed on render/drawing area
-        m_renderArea.processDocument(root_node);
-        cmark_node_free(root_node);
+    cmark_node *readDoc = file.read(filePath);
+    if (readDoc != NULL) {
+        m_renderArea.processDocument(readDoc);
+        file.free(readDoc);
+    }
+*/
+    // From IPFS
+    cmark_node *fetchDoc = file.fetch("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    if (fetchDoc != NULL) {
+        m_renderArea.processDocument(fetchDoc);
+        file.free(fetchDoc);
     }
 }

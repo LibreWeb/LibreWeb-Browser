@@ -33,6 +33,8 @@ endif()
 
 set(SOURCES 
   main.cc
+  file.cc
+  file.h
   mainwindow.cc
   mainwindow.h
   menu.cc
