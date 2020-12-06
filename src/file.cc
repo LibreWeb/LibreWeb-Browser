@@ -16,7 +16,6 @@ cmark_node * File::fetch(const std::string& path)
     std::stringstream contents;
     network.fetchFile(path, &contents);
     return parser.parseStream(contents);
-    return NULL;
 }
 
 void File::free(cmark_node *node)
