@@ -20,10 +20,10 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 find_package(CURL REQUIRED)
 include_directories(${CURL_INCLUDE_DIRS})
 
+include_directories("include")
+
 # Targets
 set(IPFS_API_LIBNAME ipfs-http-client)
-
-include_directories("include")
 
 # To build and install a shared library: "cmake -DBUILD_SHARED_LIBS:BOOL=ON ..."
 add_library(${IPFS_API_LIBNAME}
