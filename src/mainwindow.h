@@ -25,7 +25,7 @@ protected:
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
 private:
-    File file;
+    File m_file;
 
     void demo();
 };

@@ -29,6 +29,7 @@ public:
     virtual ~RenderArea();
 
     void processDocument(cmark_node *root_node);
+    void showMessage(const std::string &message, const std::string &detailed_info = "");
     
 protected:
     std::list<text_struct> m_textList;
@@ -71,7 +72,9 @@ private:
     Pango::FontDescription heading4Font;
 
     void createPangoContexts();
+    void clear();
     void processNode(cmark_node *node, cmark_event_type ev_type);
+    void redraw();
     std::string const intToRoman(int num);
     void hexToRGB(const std::string& hex, double &r, double &g, double &b);
 };

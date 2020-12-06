@@ -10,6 +10,8 @@ Menu::Menu()
     quit_menuitem->signal_activate().connect(quit);
 
     // View submenu
+    auto reload_menuitem = createMenuItem("_Reload Page");
+    reload_menuitem->signal_activate().connect(reload);
     auto source_code_menuitem = createMenuItem("View _Source");
     source_code_menuitem->signal_activate().connect(source_code);
 
@@ -19,7 +21,8 @@ Menu::Menu()
 
     // Add items to sub-menus
     m_file_submenu.append(*quit_menuitem);
-    m_view_submenu.append(*source_code_menuitem);
+    m_view_submenu.append(*reload_menuitem);
+    m_view_submenu.append(*source_code_menuitem);    
     m_help_submenu.append(*about_menuitem);
 
     // Add sub-menus to menus

@@ -17,6 +17,7 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
 
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
+    m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::demo)); /*!< reload the page again */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -36,16 +37,20 @@ void MainWindow::demo()
     // From disk
     std::string exePath = n_fs::current_path().string();
     std::string filePath = exePath.append("/../../test.md");
-    cmark_node *readDoc = file.read(filePath);
+    cmark_node *readDoc = m_file.read(filePath);
     if (readDoc != NULL) {
         m_renderArea.processDocument(readDoc);
-        file.free(readDoc);
+        m_file.free(readDoc);
     }
 */
     // From IPFS
-    cmark_node *fetchDoc = file.fetch("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
-    if (fetchDoc != NULL) {
+    try {
+        cmark_node *fetchDoc = m_file.fetch("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
         m_renderArea.processDocument(fetchDoc);
-        file.free(fetchDoc);
+        m_file.free(fetchDoc);
+    } catch (const std::runtime_error &error) {
+        std::cerr << "IPFS Deamon is most likely down: " << error.what() << std::endl;
+        // Not found (or any other issue)
+        m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
 }

@@ -73,11 +73,21 @@ void RenderArea::createPangoContexts()
     heading4Font.set_weight(Pango::WEIGHT_BOLD);
 }
 
-void RenderArea::processDocument(cmark_node *root_node)
+/**
+ * Clean-up render area fields
+ */
+void RenderArea::clear()
 {
-    // Clean-up
     m_textList.clear();
     m_lines.clear();
+}
+
+/**
+ * Process AST document and eventually render to screen (drawing area)
+ */
+void RenderArea::processDocument(cmark_node *root_node)
+{
+    this->clear();
 
     /*typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::milliseconds ms;
@@ -97,6 +107,37 @@ void RenderArea::processDocument(cmark_node *root_node)
     ms d = std::chrono::duration_cast<ms>(fs);
     std::cout << fs.count() << "s\n";
     std::cout << d.count() << "ms\n";*/
+
+    this->redraw();
+}
+
+/**
+ * Show a message on screen
+ * \param message Message to be displayed
+ */
+void RenderArea::showMessage(const std::string &message, const std::string &detailed_info)
+{
+    this->clear();
+
+    auto layout = create_pango_layout(message);
+    layout->set_font_description(heading1Font);
+    text_struct textStruct;
+    textStruct.x = 40;
+    textStruct.y = 20;
+    textStruct.layout = layout;
+    m_textList.push_back(textStruct);
+
+    if (!detailed_info.empty()) {
+        auto detail_layout = create_pango_layout(detailed_info);
+        detail_layout->set_font_description(defaultFont);
+        text_struct textStructDetail;
+        textStructDetail.x = 40;
+        textStructDetail.y = 60;
+        textStructDetail.layout = detail_layout;
+        m_textList.push_back(textStructDetail);
+    }
+    
+    this->redraw();
 }
 
 /**
@@ -358,21 +399,17 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
-std::string const RenderArea::intToRoman(int num)
+/**
+ * Force redraw
+ */
+void RenderArea::redraw()
 {
-    static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
-    static const std::string numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
-    std::string res;
-    for (int i = 0; i < 13; ++i) {
-        while (num >= values[i]) {
-            num -= values[i];
-            res += numerals[i];
-        }
-    }
-    return res;
+    queue_draw_area(0, 0, get_allocation().get_width(), get_allocation().get_height());
 }
 
-// Overrided method of GTK DrawingArea
+/**
+ * Overrided method of GTK DrawingArea
+ */
 bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
 {
     Gtk::Allocation allocation = get_allocation();
@@ -415,7 +452,26 @@ bool RenderArea::on_draw(const Cairo::RefPtr<Cairo::Context>& cr)
     return true;
 }
 
-// Convert hex string to RGB values
+/**
+ * Convert number to roman number
+ */
+std::string const RenderArea::intToRoman(int num)
+{
+    static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1 };
+    static const std::string numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I" };
+    std::string res;
+    for (int i = 0; i < 13; ++i) {
+        while (num >= values[i]) {
+            num -= values[i];
+            res += numerals[i];
+        }
+    }
+    return res;
+}
+
+/**
+ * Convert hex string to seperate RGB values
+ */
 void RenderArea::hexToRGB(const std::string& hex, double &r, double &g, double &b)
 {
     unsigned int intR, intG, intB;

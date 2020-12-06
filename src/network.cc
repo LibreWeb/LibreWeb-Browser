@@ -4,12 +4,14 @@
 #include <iostream>
 
 // Connect to IPFS daemon
-Network::Network(): client("localhost", 5001) {}
+Network::Network(): m_client("localhost", 5001) {}
 
+/**
+ * Fetch a file from IPFS network
+ * \param path IPFS hash / IPFS path
+ * \param response IOStream of file contents
+ * \throw Could throw run_time error if something goes wrong
+ */
 void Network::fetchFile(const std::string& path, std::iostream* response) {
-    try {
-        client.FilesGet(path, response);
-    } catch (const std::runtime_error &error) {
-        std::cerr << "IPFS Deamon is most likely down: " << error.what() << std::endl;
-    }
+    m_client.FilesGet(path, response);
 }

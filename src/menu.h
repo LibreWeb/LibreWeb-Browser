@@ -14,6 +14,7 @@
 class Menu: public Gtk::MenuBar
 {
 public:
+  sigc::signal<void> reload;
   sigc::signal<void> source_code;
   sigc::signal<void> quit;
   sigc::signal<void> show_about;
