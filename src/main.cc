@@ -13,7 +13,6 @@ int main(int argc, char *argv[])
     else if (child_pid > 0 )
     {
         // Parent process (child_pid is PID of child)
-
         auto app = Gtk::Application::create(argc, argv, "org.melroy.browser");
 
         MainWindow window;
@@ -26,5 +25,4 @@ int main(int argc, char *argv[])
     {
         printf("ERROR: fork failed.\n");
     }
-
 }
