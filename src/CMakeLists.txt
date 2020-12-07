@@ -31,20 +31,27 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   #include(packaging)
 endif()
 
+set(HEADERS
+    main.cc
+    file.h
+    ipfs.h
+    mainwindow.h
+    menu.h
+    md-parser.h
+    network.h
+    render-area.h
+)
+
 set(SOURCES 
   main.cc
   file.cc
-  file.h
+  ipfs.cc
   mainwindow.cc
-  mainwindow.h
   menu.cc
-  menu.h
   md-parser.cc
-  md-parser.h
   network.cc
-  network.h
   render-area.cc
-  render-area.h
+  ${HEADERS}
 )
 
 add_executable(${PROJECT_TARGET} ${SOURCES})
