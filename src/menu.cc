@@ -17,7 +17,7 @@ Menu::Menu()
 
     // Help submenu
     auto about_menuitem = createMenuItem("_About");
-    about_menuitem->signal_activate().connect(show_about);
+    about_menuitem->signal_activate().connect(about);
 
     // Add items to sub-menus
     m_file_submenu.append(*quit_menuitem);

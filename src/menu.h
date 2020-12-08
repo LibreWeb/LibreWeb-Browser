@@ -17,7 +17,7 @@ public:
   sigc::signal<void> reload;
   sigc::signal<void> source_code;
   sigc::signal<void> quit;
-  sigc::signal<void> show_about;
+  sigc::signal<void> about;
 
   Menu();
   virtual ~Menu();

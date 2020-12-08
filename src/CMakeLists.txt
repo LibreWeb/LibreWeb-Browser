@@ -32,7 +32,7 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
 endif()
 
 set(HEADERS
-    main.cc
+    about.h
     file.h
     ipfs.h
     mainwindow.h
@@ -44,6 +44,7 @@ set(HEADERS
 
 set(SOURCES 
   main.cc
+  about.cc
   file.cc
   ipfs.cc
   mainwindow.cc

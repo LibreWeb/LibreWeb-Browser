@@ -18,6 +18,8 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::demo)); /*!< reload the page again */
+    m_menu.about.connect(sigc::mem_fun(this, &MainWindow::show_about));
+    m_about.signal_response().connect(sigc::mem_fun(this, &MainWindow::hide_about));
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -27,6 +29,7 @@ MainWindow::MainWindow() : m_vbox(Gtk::ORIENTATION_VERTICAL, 0)
     m_vbox.pack_end(m_scrolledWindow, true, true, 0);
     add(m_vbox);    
     show_all_children();
+
 
     demo();
 }
@@ -53,4 +56,14 @@ void MainWindow::demo()
         // Not found (or any other issue)
         m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
+}
+
+void MainWindow::show_about()
+{
+    m_about.run();
+}
+
+void MainWindow::hide_about(int response)
+{
+    m_about.hide();
 }
