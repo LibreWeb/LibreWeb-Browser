@@ -17,6 +17,6 @@ public:
     void show_about();
     void hide_about(int response);
 protected:
-    Gtk::Image icon; /*!< The logo of the app */
+    Gtk::Image logo; /*!< The logo of the app */
 };
 #endif
