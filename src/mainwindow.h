@@ -5,6 +5,8 @@
 #include <gtkmm/box.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
+#include <gtkmm/button.h>
+#include <gtkmm/entry.h>
 #include "render-area.h"
 #include "menu.h"
 #include "file.h"
@@ -25,6 +27,16 @@ protected:
     // Child widgets
     Menu m_menu;
     Gtk::Box m_vbox;
+    Gtk::Box m_hbox_bar;
+    Gtk::Button m_backButton;
+    Gtk::Button m_forwardButton;
+    Gtk::Button m_refreshButton;
+    Gtk::Button m_homeButton;
+    Gtk::Entry m_inputField;
+    Gtk::Image backIcon;
+    Gtk::Image forwardIcon;
+    Gtk::Image refreshIcon;
+    Gtk::Image homeIcon;
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
     About m_about;
