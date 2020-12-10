@@ -2,3 +2,6 @@
 	path = lib/commonmarker/cmark-gfm
 	url = https://github.com/github/cmark-gfm
 
+[submodule "lib/ipfs-http-client"]
+	path = lib/ipfs-http-client
+	url = git@github.com:danger89/cpp-ipfs-http-client.git
