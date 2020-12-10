@@ -44,9 +44,10 @@ protected:
     About m_about;
 private:
     File m_file;
-    std::string currentRequestPath;
+    std::string requestPath;
+    std::string finalRequestPath;
 
-    void doRequest(const std::string &path);
+    void doRequest(const std::string &path = "");
     void refresh();
     void fetchFromIPFS();
     void openFromDisk();

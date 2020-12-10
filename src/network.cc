@@ -13,5 +13,6 @@ Network::Network(): m_client("localhost", 5001) {}
  * \throw Could throw run_time error if something goes wrong
  */
 void Network::fetchFile(const std::string& path, std::iostream* response) {
+    // TODO: What about time-outs, if a request takes too long? eg. file doesn't exists
     m_client.FilesGet(path, response);
 }

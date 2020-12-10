@@ -14,7 +14,8 @@ namespace n_fs = ::std::filesystem;
 MainWindow::MainWindow() 
 : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
   m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
-  currentRequestPath()
+  requestPath(""),
+  finalRequestPath("")
 {
     set_title("DBrowser");
     set_default_size(1000, 800);
@@ -77,7 +78,9 @@ MainWindow::MainWindow()
 
 void MainWindow::go_home()
 {
-    this->currentRequestPath = "";
+    this->requestPath = "";
+    this->finalRequestPath = "";
+    this->m_inputField.set_text("");
     m_renderArea.showStartPage();
 }
 
@@ -89,16 +92,30 @@ void MainWindow::input_activate()
 
 void MainWindow::doRequest(const std::string &path)
 {
-    this->currentRequestPath = path;
-    // TODO: Strip protocol from currentRequestPath
-
-    if (path.rfind("ipfs://", 0) == 0) {
-        fetchFromIPFS();
-    } else if (path.rfind("file://", 0) == 0) {
-        openFromDisk();
+    if (!path.empty()) {
+        requestPath = path;
+    }
+    if (requestPath.empty()) {
+        std::cerr << "Empty request path." << std::endl;
     } else {
-        // IPFS as fallback
-        fetchFromIPFS();
+        // Check if CID
+        if (requestPath.rfind("ipfs://", 0) == 0) {
+            finalRequestPath = requestPath;
+            finalRequestPath.erase(0, 7);
+            fetchFromIPFS();
+        } else if((requestPath.length() == 46) && (requestPath.rfind("Qm", 0) == 0)) {
+            // CIDv0
+            finalRequestPath = requestPath;
+            fetchFromIPFS();
+        } else if (requestPath.rfind("file://", 0) == 0) {
+            finalRequestPath = requestPath;
+            finalRequestPath.erase(0, 7);
+            openFromDisk();
+        } else {
+            // IPFS as fallback / CIDv1
+            finalRequestPath = requestPath;
+            fetchFromIPFS();
+        }
     }
 }
 
@@ -107,8 +124,7 @@ void MainWindow::doRequest(const std::string &path)
  */
 void MainWindow::refresh()
 {
-    if (!this->currentRequestPath.empty())
-        doRequest(this->currentRequestPath);
+    doRequest();
 }
 
 /**
@@ -116,8 +132,10 @@ void MainWindow::refresh()
  */
 void MainWindow::fetchFromIPFS()
 {
+    // TODO: In a seperate thread/process?
+    //  Since otherwise this may block the UI.
     try {
-        cmark_node *fetchDoc = m_file.fetch(currentRequestPath);
+        cmark_node *fetchDoc = m_file.fetch(finalRequestPath);
         m_renderArea.processDocument(fetchDoc);
         m_file.free(fetchDoc);
     } catch (const std::runtime_error &error) {
@@ -135,7 +153,7 @@ void MainWindow::openFromDisk()
     // std::string exePath = n_fs::current_path().string();
     // std::string filePath = exePath.append("/../../test.md");
     try {
-        cmark_node *readDoc = m_file.read(currentRequestPath);
+        cmark_node *readDoc = m_file.read(finalRequestPath);
         m_renderArea.processDocument(readDoc);
         m_file.free(readDoc);
     } catch (const std::runtime_error &error) {
