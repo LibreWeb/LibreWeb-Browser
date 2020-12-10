@@ -16,7 +16,7 @@ MainWindow::MainWindow()
   m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
   currentRequestPath()
 {
-    set_title("Browser");
+    set_title("DBrowser");
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
 

@@ -5,7 +5,7 @@ About::About() {
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
     logo.set("../../misc/browser_logo_small.png");
 
-    set_name("Browser");
+    set_name("DBrowser");
     set_version("0.1.0");
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
