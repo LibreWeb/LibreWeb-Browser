@@ -18,7 +18,8 @@ RenderArea::RenderArea()
     headingLevel(0),
     listLevel(0),
     wordSpacing(4), // spacing may depend on the font
-    heighestHigh(0),
+    highestWidth(0),
+    highestHeight(0),
     paragraphMargin(5),
     headingMargin(10),
     listMargin(5),
@@ -30,10 +31,12 @@ RenderArea::RenderArea()
     orderedListLevel(0),
     isOrderedList(false),
     fontSize(10),
-    fontFamily("Ubuntu")
+    fontFamily("Ubuntu"),
+    pageWidth(0),
+    pageHeight(0)
 {
-    // Resize the drawing area to get scroll bars
-    set_size_request(300, 1000);
+    // Default size
+    set_size_request(200, 400);
     createPangoContexts();
 }
 
@@ -108,6 +111,8 @@ void RenderArea::processDocument(cmark_node *root_node)
     std::cout << fs.count() << "s\n";
     std::cout << d.count() << "ms\n";*/
 
+    // Change drawing area
+    set_size_request(pageWidth, pageHeight);
     this->redraw();
 }
 
@@ -132,11 +137,41 @@ void RenderArea::showMessage(const std::string &message, const std::string &deta
         detail_layout->set_font_description(defaultFont);
         text_struct textStructDetail;
         textStructDetail.x = 40;
-        textStructDetail.y = 60;
+        textStructDetail.y = 70;
         textStructDetail.layout = detail_layout;
         m_textList.push_back(textStructDetail);
     }
+
+    set_size_request(800, 800);
+
+    this->redraw();
+}
+
+/**
+ * Show start page
+ */
+void RenderArea::showStartPage()
+{
+    this->clear();
+
+    auto layout = create_pango_layout("Welcome to the Decentralized Web (DWeb)");
+    layout->set_font_description(heading1Font);
+    text_struct textStruct;
+    textStruct.x = 40;
+    textStruct.y = 20;
+    textStruct.layout = layout;
+    m_textList.push_back(textStruct);
     
+    auto detail_layout = create_pango_layout("For the test example, go to: ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    detail_layout->set_font_description(defaultFont);
+    text_struct textStructDetail;
+    textStructDetail.x = 40;
+    textStructDetail.y = 70;
+    textStructDetail.layout = detail_layout;
+    m_textList.push_back(textStructDetail);
+
+    set_size_request(700, 800);
+
     this->redraw();
 }
 
@@ -150,13 +185,20 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
     switch (node->type) {
     case CMARK_NODE_DOCUMENT:
         if (entering) {
-            // Reset
+            // Reset on start
             currentX = sceneMarginX;
             currentY = sceneMarginY;
             headingLevel = 0;
             bulletListLevel = 0;
             listLevel = 0;
-            heighestHigh = 0;
+            highestHeight = 0;
+            highestWidth = 0;
+            pageWidth = 0;
+            pageHeight = 0;
+        } else {
+            // Document end, set page width & height
+            pageWidth = highestWidth;
+            pageHeight = currentY + sceneMarginY;
         }
         break;
 
@@ -211,9 +253,9 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_ITEM:
         // Line break for list items
-        currentY += heighestHigh;
+        currentY += highestHeight;
         // Reset heighest high (Y-axis)
-        heighestHigh = 0;
+        highestHeight = 0;
         // Set new node item to the correct X position
         currentX = currentXList;
 
@@ -232,10 +274,10 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         // Move to left again
         currentX = sceneMarginX;
         // New heading
-        currentY += heighestHigh + headingMargin;
+        currentY += highestHeight + headingMargin;
         
         // Reset heighest high (Y-axis)
-        heighestHigh = 0;
+        highestHeight = 0;
 
         break;
 
@@ -270,10 +312,10 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
             // Move to left again
             currentX = sceneMarginX;
             // New paragraph
-            currentY += heighestHigh + paragraphMargin;
+            currentY += highestHeight + paragraphMargin;
             
             // Reset heighest high (Y-axis)
-            heighestHigh = 0;
+            highestHeight = 0;
         }
         break;
 
@@ -341,11 +383,15 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         textStruct.layout = layout;
         m_textList.push_back(textStruct);
 
-        if (textHeight > heighestHigh) {
-            heighestHigh = textHeight;
-        }
         // Increase X with text width
         currentX += textWidth;
+
+        if (textHeight > highestHeight) {
+            highestHeight = textHeight;
+        }
+        if (currentX > highestWidth) {
+            highestWidth = currentX;
+        }
         }
         break;
 
@@ -353,10 +399,10 @@ void RenderArea::processNode(cmark_node *node, cmark_event_type ev_type)
         // Move to left again
         currentX = sceneMarginX;
         // Line break (no soft break)
-        currentY += heighestHigh;
+        currentY += highestHeight;
         
         // Reset heighest high (Y-axis)
-        heighestHigh = 0;
+        highestHeight = 0;
         break;
 
     case CMARK_NODE_SOFTBREAK:

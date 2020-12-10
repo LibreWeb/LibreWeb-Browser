@@ -20,6 +20,8 @@ public:
 protected:
     // Signal handlers:
     // Our new improved on_button_clicked(). (see below)
+    void go_home();
+    void input_activate();
     void on_button_clicked(Glib::ustring data);
     void show_about();
     void hide_about(int response);
@@ -42,8 +44,12 @@ protected:
     About m_about;
 private:
     File m_file;
+    std::string currentRequestPath;
 
-    void demo();
+    void doRequest(const std::string &path);
+    void refresh();
+    void fetchFromIPFS();
+    void openFromDisk();
 };
 
 #endif

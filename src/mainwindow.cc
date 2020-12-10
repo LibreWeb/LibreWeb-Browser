@@ -13,7 +13,8 @@ namespace n_fs = ::std::filesystem;
 
 MainWindow::MainWindow() 
 : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
-  m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0)
+  m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
+  currentRequestPath()
 {
     set_title("Browser");
     set_default_size(1000, 800);
@@ -21,10 +22,12 @@ MainWindow::MainWindow()
 
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
-    m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::demo)); /*!< Menu item for reloading the page */
+    m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh)); /*!< Menu item for reloading the page */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about)); /*!< Display about dialog */
     m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about)); /*!< Close about dialog */
-    m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::demo)); /*!< Button for reloading the page */
+    m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh)); /*!< Button for reloading the page */
+    m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home)); /*!< Button for home page */
+    m_inputField.signal_activate().connect(sigc::mem_fun(this, &MainWindow::input_activate)); /*!< User pressed enter in the input */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -68,24 +71,53 @@ MainWindow::MainWindow()
     // Grap focus to input field by default
     m_inputField.grab_focus();
 
-    demo();
+    // Show start page by default
+    go_home();
 }
 
-void MainWindow::demo()
+void MainWindow::go_home()
 {
-/*
-    // From disk
-    std::string exePath = n_fs::current_path().string();
-    std::string filePath = exePath.append("/../../test.md");
-    cmark_node *readDoc = m_file.read(filePath);
-    if (readDoc != NULL) {
-        m_renderArea.processDocument(readDoc);
-        m_file.free(readDoc);
+    this->currentRequestPath = "";
+    m_renderArea.showStartPage();
+}
+
+void MainWindow::input_activate()
+{
+    // doRequest("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    doRequest(m_inputField.get_text());
+}
+
+void MainWindow::doRequest(const std::string &path)
+{
+    this->currentRequestPath = path;
+    // TODO: Strip protocol from currentRequestPath
+
+    if (path.rfind("ipfs://", 0) == 0) {
+        fetchFromIPFS();
+    } else if (path.rfind("file://", 0) == 0) {
+        openFromDisk();
+    } else {
+        // IPFS as fallback
+        fetchFromIPFS();
     }
-*/
-    // From IPFS
+}
+
+/**
+ * Refresh page
+ */
+void MainWindow::refresh()
+{
+    if (!this->currentRequestPath.empty())
+        doRequest(this->currentRequestPath);
+}
+
+/**
+ * Display markdown file from IPFS network
+ */
+void MainWindow::fetchFromIPFS()
+{
     try {
-        cmark_node *fetchDoc = m_file.fetch("QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+        cmark_node *fetchDoc = m_file.fetch(currentRequestPath);
         m_renderArea.processDocument(fetchDoc);
         m_file.free(fetchDoc);
     } catch (const std::runtime_error &error) {
@@ -95,4 +127,18 @@ void MainWindow::demo()
     }
 }
 
-
+/**
+ * Display markdown file from disk
+ */
+void MainWindow::openFromDisk()
+{
+    // std::string exePath = n_fs::current_path().string();
+    // std::string filePath = exePath.append("/../../test.md");
+    try {
+        cmark_node *readDoc = m_file.read(currentRequestPath);
+        m_renderArea.processDocument(readDoc);
+        m_file.free(readDoc);
+    } catch (const std::runtime_error &error) {
+        m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
+    }
+}

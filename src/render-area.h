@@ -30,7 +30,8 @@ public:
 
     void processDocument(cmark_node *root_node);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
-    
+    void showStartPage();
+
 protected:
     std::list<text_struct> m_textList;
     std::list<line_struct> m_lines;
@@ -47,7 +48,8 @@ private:
     int headingLevel;
     int listLevel;
     int wordSpacing;
-    int heighestHigh;
+    int highestWidth;
+    int highestHeight;
     int paragraphMargin;
     int headingMargin;
     int listMargin;
@@ -61,6 +63,8 @@ private:
     std::map<int,int> orderedListCounters;
     int fontSize;
     std::string fontFamily;
+    int pageWidth;
+    int pageHeight;
 
     Pango::FontDescription defaultFont;
     Pango::FontDescription boldFont;

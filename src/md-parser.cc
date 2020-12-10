@@ -1,10 +1,11 @@
 #include "md-parser.h"
 
 #include <string>
+#include <stdexcept>
 #include <cmark-gfm-core-extensions.h>
-
 #include <node.h>
 #include <syntax_extension.h>
+#include <filesystem>
 
 Parser::Parser(): options(CMARK_OPT_DEFAULT) {}
 
@@ -16,6 +17,10 @@ cmark_node * Parser::parseFile(const std::string &filePath)
 {
     // Parse to AST with cmark
     FILE *file;
+    if (!std::filesystem::exists(filePath.c_str())) {
+        throw std::runtime_error("File not found.");
+    }
+
     if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
     {
         cmark_node *doc;
@@ -23,8 +28,9 @@ cmark_node * Parser::parseFile(const std::string &filePath)
         doc = cmark_parse_file(file, options);
         fclose(file);
         return doc;
+    } else {
+        throw std::runtime_error("File open failed.");
     }
-    return NULL;    
 }
 
 /**
