@@ -146,6 +146,8 @@ GTK is using the Cairo 2D graphics renderer using rasterization (CPU) bvy defaul
 
 Problem is its only raster graphics using the CPU. Which isn't that bad, but I really miss hardware acceleration via OpenGL/Vulkan (cairo-gl will never be stable and is a dead-end). There is no vector generation. Cairo can however be used [together with SDL](https://www.cairographics.org/SDL/) they claim.
 
+Maybe we want to use [GooCanvas](https://wiki.gnome.org/action/show/Projects/GooCanvas), instead of the basic `DrawingArea` or we need to implement our own click handling. See [Stackoverflow question](https://stackoverflow.com/questions/26134840/selecting-drawn-lines-when-clicked-on-in-a-gtk-drawingarea). Although it does require C++ bindings and the project is not maintained anymor last but not least GooCanvasText interface seems very basic as well.
+
 **Conclusion:** Seems like a perfect fit! Ideal for content first apps/viewer.
 
 #### GTK +  OpenGL/Vulkan
