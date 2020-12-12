@@ -65,6 +65,17 @@ std::string const Parser::renderHTML(cmark_node *node)
 }
 
 /**
+ * Get just the plain text
+ */
+std::string const Parser::getSource(cmark_node *node)
+{
+    char *tmp = cmark_render_commonmark(node, options, 0);
+    std::string output = std::string(tmp);
+    free(tmp);
+    return output;
+}
+
+/**
  * This is a function that will make enabling extensions easier
  */
 void Parser::addMarkdownExtension(cmark_parser *parser, const char *extName) {

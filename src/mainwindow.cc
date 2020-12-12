@@ -15,7 +15,8 @@ MainWindow::MainWindow()
 : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
   m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
   requestPath(""),
-  finalRequestPath("")
+  finalRequestPath(""),
+  currentSourceCode("")
 {
     set_title("DBrowser");
     set_default_size(1000, 800);
@@ -24,13 +25,18 @@ MainWindow::MainWindow()
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh)); /*!< Menu item for reloading the page */
+    m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog)); /*!< Source code dialog */
+    m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about)); /*!< Display about dialog */
-    m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about)); /*!< Close about dialog */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh)); /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home)); /*!< Button for home page */
     m_inputField.signal_activate().connect(sigc::mem_fun(this, &MainWindow::input_activate)); /*!< User pressed enter in the input */
 
     m_vbox.pack_start(m_menu, false, false, 0);
+
+
+    m_sourceCodeDialog.setText("Hallo!?");
+    m_sourceCodeDialog.setText("123");
 
     // Horizontal bar
     auto styleBack = m_backButton.get_style_context();
@@ -80,6 +86,7 @@ void MainWindow::go_home()
 {
     this->requestPath = "";
     this->finalRequestPath = "";
+    this->currentSourceCode = "";
     this->m_inputField.set_text("");
     m_renderArea.showStartPage();
 }
@@ -92,6 +99,7 @@ void MainWindow::input_activate()
 
 void MainWindow::doRequest(const std::string &path)
 {
+    currentSourceCode = "";
     if (!path.empty()) {
         requestPath = path;
     }
@@ -137,6 +145,7 @@ void MainWindow::fetchFromIPFS()
     try {
         cmark_node *fetchDoc = m_file.fetch(finalRequestPath);
         m_renderArea.processDocument(fetchDoc);
+        currentSourceCode = m_file.getSource(fetchDoc);
         m_file.free(fetchDoc);
     } catch (const std::runtime_error &error) {
         std::cerr << "IPFS Deamon is most likely down: " << error.what() << std::endl;
@@ -155,8 +164,15 @@ void MainWindow::openFromDisk()
     try {
         cmark_node *readDoc = m_file.read(finalRequestPath);
         m_renderArea.processDocument(readDoc);
+        currentSourceCode = m_file.getSource(readDoc);
         m_file.free(readDoc);
     } catch (const std::runtime_error &error) {
         m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
+}
+
+void MainWindow::show_source_code_dialog()
+{
+  m_sourceCodeDialog.setText(currentSourceCode);
+  m_sourceCodeDialog.run();
 }

@@ -15,6 +15,7 @@ public:
     cmark_node * parseFile(const std::string &filePath);
     cmark_node * parseStream(const std::stringstream &stream);
     std::string const renderHTML(cmark_node *node);
+    std::string const getSource(cmark_node *node);
 
 private:
     int options;

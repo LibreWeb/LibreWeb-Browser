@@ -17,7 +17,8 @@ public:
 
     cmark_node * read(const std::string& path); /*!< Read file from disk */
     cmark_node * fetch(const std::string& path); /*!< Fetch file from IPFS network */
-    void free(cmark_node *node);
+    std::string const getSource(cmark_node *node);  /*!< Get source code from AST */
+    void free(cmark_node *node); /*!< Free pointer */
 private:
     Parser parser;
     Network network;

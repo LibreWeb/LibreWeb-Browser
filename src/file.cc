@@ -29,6 +29,11 @@ cmark_node * File::fetch(const std::string& path)
     return parser.parseStream(contents);
 }
 
+std::string const File::getSource(cmark_node *node)
+{
+  return parser.getSource(node);
+}
+
 /**
  * Free AST cmark_node memory, to avoid memory leaks
  */

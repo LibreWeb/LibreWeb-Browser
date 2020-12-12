@@ -11,6 +11,7 @@
 #include "menu.h"
 #include "file.h"
 #include "about.h"
+#include "source-code-dialog.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -25,6 +26,7 @@ protected:
     void on_button_clicked(Glib::ustring data);
     void show_about();
     void hide_about(int response);
+    void show_source_code_dialog();
 
     // Child widgets
     Menu m_menu;
@@ -41,11 +43,13 @@ protected:
     Gtk::Image homeIcon;
     Gtk::ScrolledWindow m_scrolledWindow;
     RenderArea m_renderArea;
+    SourceCodeDialog m_sourceCodeDialog;
     About m_about;
 private:
     File m_file;
     std::string requestPath;
     std::string finalRequestPath;
+    std::string currentSourceCode;
 
     void doRequest(const std::string &path = "");
     void refresh();

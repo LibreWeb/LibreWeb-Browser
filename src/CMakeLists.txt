@@ -40,6 +40,7 @@ set(HEADERS
     md-parser.h
     network.h
     render-area.h
+    source-code-dialog.h
 )
 
 set(SOURCES 
@@ -52,6 +53,7 @@ set(SOURCES
   md-parser.cc
   network.cc
   render-area.cc
+  source-code-dialog.cc
   ${HEADERS}
 )
 
