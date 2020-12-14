@@ -3,7 +3,8 @@
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
 #include <cmark-gfm.h>
-#include <thread>
+#include <pthread.h>
+
 #include "md-parser.h"
 
 #ifdef LEGACY_CXX
@@ -17,6 +18,7 @@ namespace n_fs = ::std::filesystem;
 MainWindow::MainWindow() 
 : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
   m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
+  m_requestThread(nullptr),
   requestPath(""),
   finalRequestPath(""),
   currentContent("")
@@ -90,11 +92,35 @@ void MainWindow::go_home()
   m_renderArea.showStartPage();
 }
 
+/**
+ * Trigger when user input text in address bar
+ */
 void MainWindow::input_activate()
 {
   // QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq
-  std::thread t(&MainWindow::doRequest, this, m_inputField.get_text());
-  t.detach();
+
+  // TODO: Implement thread safety: https://github.com/vasild/cpp-ipfs-http-client/issues/7
+  // Stop running thread (if applicable)
+  if (m_requestThread) {
+    if(m_requestThread->joinable()) {
+      pthread_cancel(m_requestThread->native_handle());
+      m_requestThread->join();
+      delete m_requestThread;
+      m_requestThread = nullptr;
+    }
+  }
+
+  if (m_requestThread  == nullptr)
+    m_requestThread = new std::thread(&MainWindow::doRequest, this, m_inputField.get_text());
+}
+
+/**
+ * Refresh page
+ */
+void MainWindow::refresh()
+{
+  if (m_requestThread == nullptr)
+    m_requestThread = new std::thread(&MainWindow::doRequest, this, "");
 }
 
 /**
@@ -129,15 +155,6 @@ void MainWindow::doRequest(const std::string &path)
       fetchFromIPFS();
     }
   }
-}
-
-/**
- * Refresh page
- */
-void MainWindow::refresh()
-{
-  std::thread t(&MainWindow::doRequest, this, "");
-  t.detach(); 
 }
 
 /**
