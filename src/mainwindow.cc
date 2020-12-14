@@ -92,7 +92,6 @@ void MainWindow::input_activate()
 {
   // QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq
 
-  // TODO: Implement thread safety: https://github.com/vasild/cpp-ipfs-http-client/issues/7
   // Stop running thread (if applicable)
   if (m_requestThread) {
     if(m_requestThread->joinable()) {
