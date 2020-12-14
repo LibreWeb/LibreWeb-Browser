@@ -51,7 +51,7 @@ private:
   std::string finalRequestPath;
   std::string currentContent;
 
-  void doRequest(const std::string &path = "");
+  void doRequest(const std::string &path);
   void refresh();
   void fetchFromIPFS();
   void openFromDisk();

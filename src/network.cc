@@ -3,8 +3,8 @@
 #include <sstream>
 #include <iostream>
 
-// Connect to IPFS daemon (with 3 seconds time-out during requests)
-Network::Network(): m_client("localhost", 5001, "3s") {}
+// Connect to IPFS daemon (with 6 seconds time-out for requests)
+Network::Network(): m_client("localhost", 5001, "6s") {}
 
 /**
  * Fetch a file from IPFS network
