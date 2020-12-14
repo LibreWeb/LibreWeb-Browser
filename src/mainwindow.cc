@@ -138,15 +138,15 @@ void MainWindow::refresh()
  */
 void MainWindow::fetchFromIPFS()
 {
-    // TODO: In a seperate thread/process?
-    //  Since otherwise this may block the UI.
+    // TODO: Execute the code in a seperate thread/process?
+    //  Since otherwise this may block the UI if it takes too long!
     try {
         currentContent = m_file.fetch(finalRequestPath);
         cmark_node* doc = Parser::parseContent(currentContent);
         m_renderArea.processDocument(doc);
         cmark_node_free(doc);
     } catch (const std::runtime_error &error) {
-        std::cerr << "Error: IPFS Deamon is most likely down: " << error.what() << std::endl;
+        std::cerr << "Error: IPFS request failed, with message: " << error.what() << std::endl;
         // Not found (or any other issue)
         m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
