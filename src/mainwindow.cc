@@ -4,16 +4,9 @@
 #include <gtkmm/image.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
+#include <iostream>
 
 #include "md-parser.h"
-
-#ifdef LEGACY_CXX
-#include <experimental/filesystem>
-namespace n_fs = ::std::experimental::filesystem;
-#else
-#include <filesystem>
-namespace n_fs = ::std::filesystem;
-#endif
 
 MainWindow::MainWindow() 
 : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
@@ -183,14 +176,13 @@ void MainWindow::fetchFromIPFS()
  */
 void MainWindow::openFromDisk()
 {
-  // std::string exePath = n_fs::current_path().string();
-  // std::string filePath = exePath.append("/../../test.md");
   try {
     currentContent = m_file.read(finalRequestPath);
     cmark_node *doc = Parser::parseContent(currentContent);
     m_renderArea.processDocument(doc);
     cmark_node_free(doc);
   } catch (const std::runtime_error &error) {
+    std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
     m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
   }
 }
