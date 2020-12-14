@@ -2,6 +2,8 @@
 
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
+#include <cmark-gfm.h>
+#include "md-parser.h"
 
 #ifdef LEGACY_CXX
 #include <experimental/filesystem>
@@ -16,7 +18,7 @@ MainWindow::MainWindow()
   m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
   requestPath(""),
   finalRequestPath(""),
-  currentSourceCode("")
+  currentContent("")
 {
     set_title("DBrowser");
     set_default_size(1000, 800);
@@ -33,10 +35,6 @@ MainWindow::MainWindow()
     m_inputField.signal_activate().connect(sigc::mem_fun(this, &MainWindow::input_activate)); /*!< User pressed enter in the input */
 
     m_vbox.pack_start(m_menu, false, false, 0);
-
-
-    m_sourceCodeDialog.setText("Hallo!?");
-    m_sourceCodeDialog.setText("123");
 
     // Horizontal bar
     auto styleBack = m_backButton.get_style_context();
@@ -86,7 +84,7 @@ void MainWindow::go_home()
 {
     this->requestPath = "";
     this->finalRequestPath = "";
-    this->currentSourceCode = "";
+    this->currentContent = "";
     this->m_inputField.set_text("");
     m_renderArea.showStartPage();
 }
@@ -99,12 +97,12 @@ void MainWindow::input_activate()
 
 void MainWindow::doRequest(const std::string &path)
 {
-    currentSourceCode = "";
+    currentContent = "";
     if (!path.empty()) {
         requestPath = path;
     }
     if (requestPath.empty()) {
-        std::cerr << "Empty request path." << std::endl;
+        std::cerr << "Info: Empty request path." << std::endl;
     } else {
         // Check if CID
         if (requestPath.rfind("ipfs://", 0) == 0) {
@@ -143,12 +141,12 @@ void MainWindow::fetchFromIPFS()
     // TODO: In a seperate thread/process?
     //  Since otherwise this may block the UI.
     try {
-        cmark_node *fetchDoc = m_file.fetch(finalRequestPath);
-        m_renderArea.processDocument(fetchDoc);
-        currentSourceCode = m_file.getSource(fetchDoc);
-        m_file.free(fetchDoc);
+        currentContent = m_file.fetch(finalRequestPath);
+        cmark_node* doc = Parser::parseContent(currentContent);
+        m_renderArea.processDocument(doc);
+        cmark_node_free(doc);
     } catch (const std::runtime_error &error) {
-        std::cerr << "IPFS Deamon is most likely down: " << error.what() << std::endl;
+        std::cerr << "Error: IPFS Deamon is most likely down: " << error.what() << std::endl;
         // Not found (or any other issue)
         m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
@@ -162,10 +160,10 @@ void MainWindow::openFromDisk()
     // std::string exePath = n_fs::current_path().string();
     // std::string filePath = exePath.append("/../../test.md");
     try {
-        cmark_node *readDoc = m_file.read(finalRequestPath);
-        m_renderArea.processDocument(readDoc);
-        currentSourceCode = m_file.getSource(readDoc);
-        m_file.free(readDoc);
+        currentContent = m_file.read(finalRequestPath);
+        cmark_node *doc = Parser::parseContent(currentContent);
+        m_renderArea.processDocument(doc);
+        cmark_node_free(doc);
     } catch (const std::runtime_error &error) {
         m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
     }
@@ -173,6 +171,6 @@ void MainWindow::openFromDisk()
 
 void MainWindow::show_source_code_dialog()
 {
-  m_sourceCodeDialog.setText(currentSourceCode);
+  m_sourceCodeDialog.setText(currentContent);
   m_sourceCodeDialog.run();
 }

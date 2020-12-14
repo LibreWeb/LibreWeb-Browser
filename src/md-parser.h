@@ -11,14 +11,18 @@
 class Parser
 {
 public:
-    Parser();
-    cmark_node * parseFile(const std::string &filePath);
-    cmark_node * parseStream(const std::stringstream &stream);
-    std::string const renderHTML(cmark_node *node);
-    std::string const getSource(cmark_node *node);
+  // Singleton
+  static Parser& getInstance();
+
+  static cmark_node * parseContent(const std::string &content);
+  static std::string const renderHTML(cmark_node *node);
 
 private:
-    int options;
-    void addMarkdownExtension(cmark_parser *parser, const char *extName);
+  Parser();
+  ~Parser();
+  Parser(const Parser&)= delete;
+  Parser& operator=(const Parser&)= delete;
+
+  static void addMarkdownExtension(cmark_parser *parser, const char *extName);
 };
 #endif

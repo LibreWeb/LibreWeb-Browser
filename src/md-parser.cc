@@ -7,50 +7,39 @@
 #include <syntax_extension.h>
 #include <filesystem>
 
-Parser::Parser(): options(CMARK_OPT_DEFAULT) {}
+static const int OPTIONS = CMARK_OPT_DEFAULT;
+
+/// Meyers Singleton
+Parser::Parser()= default;
+/// Destructor
+Parser::~Parser()= default;
 
 /**
- * Parse markdown by file path
- * @return AST structure (of type cmark_node)
+ * \brief Get singleton instance
+ * \return Helper reference (singleton)
  */
-cmark_node * Parser::parseFile(const std::string &filePath)
-{
-    // Parse to AST with cmark
-    FILE *file;
-    if (!std::filesystem::exists(filePath.c_str())) {
-        throw std::runtime_error("File not found.");
-    }
-
-    if( ( file = fopen(filePath.c_str(), "r" ) ) != NULL ) 
-    {
-        cmark_node *doc;
-        // TODO: Copy/paste cmark_parse_file() content to here, allowing me to add extensions to the parser.
-        doc = cmark_parse_file(file, options);
-        fclose(file);
-        return doc;
-    } else {
-        throw std::runtime_error("File open failed.");
-    }
+Parser& Parser::getInstance() {
+  static Parser instance;
+  return instance;
 }
 
 /**
- * Parse markdown file by stringstream
+ * Parse markdown file from string content
  * @return AST structure (of type cmark_node)
  */
-cmark_node * Parser::parseStream(const std::stringstream &stream)
+cmark_node * Parser::parseContent(const std::string &content)
 {
     //cmark_node *doc;
     // Parse to AST with cmark
-    // mark_parser *parser = cmark_parser_new(options);
+    // mark_parser *parser = cmark_parser_new(OPTIONS);
 
     // Add extensions
     //addMarkdownExtension(parser, "strikethrough");
     //addMarkdownExtension(parser, "table");
 
-    const std::string tmp = stream.str();
-    const char *data = tmp.c_str();    
+    const char *data = content.c_str();    
     // TODO: Copy cmark_parse_document() to be able to add extensions to the parser
-    return cmark_parse_document(data, strlen(data), options);
+    return cmark_parse_document(data, strlen(data), OPTIONS);
 }
 
 /**
@@ -58,18 +47,7 @@ cmark_node * Parser::parseStream(const std::stringstream &stream)
  */
 std::string const Parser::renderHTML(cmark_node *node)
 {
-    char *tmp = cmark_render_html(node, options, NULL);
-    std::string output = std::string(tmp);
-    free(tmp);
-    return output;
-}
-
-/**
- * Get just the plain text
- */
-std::string const Parser::getSource(cmark_node *node)
-{
-    char *tmp = cmark_render_commonmark(node, options, 0);
+    char *tmp = cmark_render_html(node, OPTIONS, NULL);
     std::string output = std::string(tmp);
     free(tmp);
     return output;

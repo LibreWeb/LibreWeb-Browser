@@ -1,7 +1,8 @@
 #include "file.h"
 
-#include <cmark-gfm.h>
 #include <stdexcept>
+#include <fstream>
+#include <sstream> 
 #include <iostream>
 
 File::File() {}
@@ -11,9 +12,14 @@ File::File() {}
  * \param path File path
  * \return AST model of markdown file (cmark_node)
  */
-cmark_node * File::read(const std::string& path)
+std::string const File::read(const std::string& path)
 {
-    return parser.parseFile(path);
+  std::ifstream inFile;
+  inFile.open(path, std::ifstream::in);
+
+  std::stringstream strStream;
+  strStream << inFile.rdbuf();
+  return strStream.str();
 }
 
 /**
@@ -22,22 +28,9 @@ cmark_node * File::read(const std::string& path)
  * \throw runtime error when something goes wrong
  * \return AST model of markdown file (cmark_node)
  */
-cmark_node * File::fetch(const std::string& path)
+std::string const File::fetch(const std::string& path)
 {
     std::stringstream contents;
     network.fetchFile(path, &contents);
-    return parser.parseStream(contents);
-}
-
-std::string const File::getSource(cmark_node *node)
-{
-  return parser.getSource(node);
-}
-
-/**
- * Free AST cmark_node memory, to avoid memory leaks
- */
-void File::free(cmark_node *node)
-{
-    cmark_node_free(node);
+    return contents.str();
 }
