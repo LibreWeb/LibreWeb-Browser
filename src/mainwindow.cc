@@ -26,6 +26,7 @@ MainWindow::MainWindow()
   m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog)); /*!< Source code dialog */
   m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about)); /*!< Display about dialog */
+  m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about)); /*!< Close about dialog */
   m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh)); /*!< Button for reloading the page */
   m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home)); /*!< Button for home page */
   m_inputField.signal_activate().connect(sigc::mem_fun(this, &MainWindow::input_activate)); /*!< User pressed enter in the input */
