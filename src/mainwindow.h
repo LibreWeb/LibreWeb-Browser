@@ -8,11 +8,11 @@
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
 #include <thread>
-#include "render-area.h"
 #include "menu.h"
 #include "file.h"
 #include "about.h"
 #include "source-code-dialog.h"
+#include "draw.h"
 
 class MainWindow : public Gtk::Window
 {
@@ -44,7 +44,7 @@ protected:
   Gtk::Image refreshIcon;
   Gtk::Image homeIcon;
   Gtk::ScrolledWindow m_scrolledWindow;
-  RenderArea m_renderArea;
+  Draw m_draw;
   SourceCodeDialog m_sourceCodeDialog;
   About m_about;
 private:

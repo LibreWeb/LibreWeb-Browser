@@ -62,8 +62,8 @@ MainWindow::MainWindow()
   m_hbox_bar.pack_start(m_inputField, true, true , 8);
   m_vbox.pack_start(m_hbox_bar, false, false, 6);
 
-  // Main browser rendering area
-  m_scrolledWindow.add(m_renderArea);
+  // Browser text drawing area
+  m_scrolledWindow.add(m_draw); // m_renderArea
   m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
   m_vbox.pack_end(m_scrolledWindow, true, true, 0);
@@ -83,7 +83,7 @@ void MainWindow::go_home()
   this->finalRequestPath = "";
   this->currentContent = "";
   this->m_inputField.set_text("");
-  m_renderArea.showStartPage();
+  //m_renderArea.showStartPage();
 }
 
 /**
@@ -161,12 +161,18 @@ void MainWindow::fetchFromIPFS()
   try {
     currentContent = m_file.fetch(finalRequestPath);
     cmark_node* doc = Parser::parseContent(currentContent);
-    m_renderArea.processDocument(doc);
+
+    /*Glib::RefPtr<Gtk::TextBuffer> buffer = m_draw.get_buffer();
+    Gtk::TextBuffer::iterator end_iter = buffer->end();
+    buffer->insert(end_iter, "Hello world");*/
+    m_draw.showMessage("OK");
+
+    //m_renderArea.processDocument(doc);
     cmark_node_free(doc);
   } catch (const std::runtime_error &error) {
     std::cerr << "Error: IPFS request failed, with message: " << error.what() << std::endl;
     // Show not found (or any other issue)
-    m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
+    m_draw.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
   }
 }
 
@@ -179,11 +185,14 @@ void MainWindow::openFromDisk()
   try {
     currentContent = m_file.read(finalRequestPath);
     cmark_node *doc = Parser::parseContent(currentContent);
-    m_renderArea.processDocument(doc);
+    // TODO..
+    /*Glib::RefPtr<Gtk::TextBuffer> buffer = m_draw.get_buffer();
+    Gtk::TextBuffer::iterator end_iter = buffer->end();
+    buffer->insert(end_iter, "Welcome");*/
     cmark_node_free(doc);
   } catch (const std::runtime_error &error) {
     std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
-    m_renderArea.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
+    m_draw.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
   }
 }
 

@@ -8,6 +8,7 @@ int main(int argc, char *argv[])
   if (child_pid == 0)
   {
     // Run by child process
+    printf("INFO: Starting IPFS daemon.\n");
     return IPFS::startIPFSDaemon();
   }
   else if (child_pid > 0 )
