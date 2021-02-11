@@ -1,9 +1,5 @@
 #include "draw.h"
 #include <gdk/gdkthreads.h>
-#include <mutex>
-#include <memory>
-
-// https://github.com/GNOME/gtkmm/blob/master/demos/gtk-demo/example_textview.cc
 
 Draw::Draw()
 {
