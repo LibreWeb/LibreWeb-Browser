@@ -3,10 +3,7 @@
 
 #include <gtkmm/textview.h>
 
-struct DispatchData {
-    GtkTextBuffer *buffer;
-    std::string text;
-};
+struct DispatchData;
 
 class Draw : public Gtk::TextView
 {

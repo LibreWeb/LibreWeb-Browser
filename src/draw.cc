@@ -1,6 +1,11 @@
 #include "draw.h"
 #include <gdk/gdkthreads.h>
 
+struct DispatchData {
+    GtkTextBuffer *buffer;
+    std::string text;
+};
+
 Draw::Draw()
 {
   set_editable(false);
