@@ -19,29 +19,18 @@ List of sequence/UML diagrams for design and/or research reasons. Could may be u
 
 ## Text on Screen Flowcharts
 
-Folowing diagrams are only applicable when you need to draw text on the screen without supporting library.
+Following diagram display the high-level flow/activity of drawing text on a screen.
 
-However, most GUI libraries does support you in drawing text on a screen.
+Most GUI libraries do have a text layout/rendering engine built-in.
 
-**Prepare steps**
-
-```plantuml
-(*) --> "Load fonts glyphs (ttf)/default font"
---> "Create Font Atlas"
---> "Create Viewport"
--->[Ready for render] (*)
-```
-
-**Text rendering**
+### Drawing Activity Diagram*
 
 ```plantuml
 (*) --> "Get file online /\nRead from disk"
 -->[Content in memory] "Parse document"
--->[AST model output] "Convert AST to Bitmap struct"
--->[Ready for painter] "Paint text on Viewport"
+-->[AST model output] "Convert AST to Text/Pango Markup"
+-->[Ready for draw] "Add text to TextView buffer"
 -->[Text visable on Screen] (*)
 ```
-
-*ttf* = TrueType Font
 
 *AST* = Abstract Syntax Tree
