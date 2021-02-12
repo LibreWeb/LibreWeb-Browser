@@ -11,16 +11,15 @@ class SourceCodeDialog : public Gtk::Dialog
 public:
     SourceCodeDialog();
     virtual ~SourceCodeDialog();
-
-    void setText(const std::string& text);
-
+    void setText(const std::string &text);
     void hide_dialog(int response);
+
 protected:
     // Child widgets
     Gtk::ScrolledWindow m_scrolledWindow;
     Gtk::TextView m_sourceCode;
-private:
 
+private:
 };
 
 #endif

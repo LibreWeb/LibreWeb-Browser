@@ -6,7 +6,7 @@ What would you do different; if you could **reinvent** The Internet in 21st cent
 
 I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
 
-*Note:* Project is WIP!
+*Note:* Project is still WIP!
 
 ![Browser Screenshot](./docs/browser_screenshot.png)
 
@@ -33,13 +33,13 @@ The current success criteria:
 
 Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
 
-Browser is using GTK as UI library including Pango & Cairo for text drawing and manipulation.
+Browser is using GTK 3 as UI library including Pango & Cairo for text drawing and manipulation.
 
 For now we will use markdown as the source of the site. No HTML and JavaScript anymore, content is king after all.
 
 ### Development Environment
 
-I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CMake`, `CMake Tools`, `PlantUML`, `Markdown All in One` and `GitLab Workflow`.
+I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CMake`, `CMake Tools`, `PlantUML`, `Markdown All in One`, `vscode-icons` and `GitLab Workflow`.
 
 ### Build Dependencies
 
@@ -61,7 +61,7 @@ There existing several design and/or research diagrams of Browser by using Plant
 
 We are currently in an exploration phase about which 2D (vector) graphics rendering library we should use.
 
-*Currently:* GTK + Cairo + Pango, which works fine and is fast!
+**Findings:** Using GTK 3 + Cairo + Pango, which works fine and is very fast!
 
 See [research document](docs/research.md) (also in markdown) for more information and conclusions based on facts.
 

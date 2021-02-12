@@ -38,7 +38,7 @@ set(HEADERS
     mainwindow.h
     menu.h
     md-parser.h
-    render-area.h
+    draw.h
     source-code-dialog.h
 )
 
@@ -50,7 +50,7 @@ set(SOURCES
   mainwindow.cc
   menu.cc
   md-parser.cc
-  render-area.cc
+  draw.cc
   source-code-dialog.cc
   ${HEADERS}
 )

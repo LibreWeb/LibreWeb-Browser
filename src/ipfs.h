@@ -10,6 +10,6 @@
 class IPFS
 {
 public:
-  static int startIPFSDaemon();
+    static int startIPFSDaemon();
 };
 #endif
