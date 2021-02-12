@@ -10,8 +10,8 @@ struct DispatchData
 };
 
 Draw::Draw()
-    : fontSize(10),
-      fontFamily("Ubuntu"),
+    : fontSize(10 * PANGO_SCALE),
+      fontFamily("Ubuntu Monospace"),
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -38,22 +38,22 @@ Draw::Draw()
     set_cursor_visible(false);
     set_app_paintable(true);
 
-    defaultFont.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
-    bold.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    defaultFont.set_size(fontSize);
+    bold.set_size(fontSize);
     bold.set_weight(Pango::WEIGHT_BOLD);
-    italic.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    italic.set_size(fontSize);
     italic.set_style(Pango::Style::STYLE_ITALIC);
-    boldItalic.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_MEDIUM);
+    boldItalic.set_size(fontSize);
     boldItalic.set_weight(Pango::WEIGHT_BOLD);
     boldItalic.set_style(Pango::Style::STYLE_ITALIC);
 
-    heading1.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XXX_LARGE);
+    heading1.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
     heading1.set_weight(Pango::WEIGHT_BOLD);
-    heading2.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_XX_LARGE);
+    heading2.set_size(fontSize * PANGO_SCALE_XX_LARGE);
     heading2.set_weight(Pango::WEIGHT_BOLD);
-    heading3.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_X_LARGE);
+    heading3.set_size(fontSize * PANGO_SCALE_X_LARGE);
     heading3.set_weight(Pango::WEIGHT_BOLD);
-    heading4.set_size(fontSize * PANGO_SCALE * PANGO_SCALE_LARGE);
+    heading4.set_size(fontSize * PANGO_SCALE_LARGE);
     heading4.set_weight(Pango::WEIGHT_BOLD);
 }
 
@@ -118,7 +118,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_LIST:
     {
         cmark_list_type listType = node->as.list.list_type;
-
         if (entering)
         {
             listLevel++;
@@ -169,6 +168,9 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_ITEM:
+        // Line break for each item
+        if (entering)
+            addText("\n");
         if (entering && isOrderedList)
         {
             // Increasement ordered list counter
@@ -215,6 +217,10 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_PARAGRAPH:
+        if (listLevel == 0) {
+            // Add new line, but not when listing is enabled
+            addText("\n");
+        }
         break;
 
     case CMARK_NODE_TEXT:
@@ -227,7 +233,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // We can use simular parse functions and using their own 'OpenTag' struct containing a list of Pango attributes:
         // https://gitlab.gnome.org/GNOME/pango/-/blob/master/pango/pango-markup.c#L515
 
-        // For some reason Pango::Layout:create objects doesn't show up in cairo content
         std::string text = cmark_node_get_literal(node);
         if (bulletListLevel > 0)
         {
@@ -264,6 +269,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 addHeading4(text);
                 break;
             default:
+                addHeading4(text); // fallback
                 break;
             }
         }
@@ -287,11 +293,13 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_LINEBREAK:
-        // TODO: Hard line break (\n ?)
+        // Hard brake
+        addText("\n");
         break;
 
     case CMARK_NODE_SOFTBREAK:
-        // ignore
+        // only insert space
+        addText(" ");
         break;
 
     case CMARK_NODE_CODE:
@@ -335,37 +343,37 @@ void Draw::addText(const std::string &text)
 
 void Draw::addHeading1(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
 }
 
 void Draw::addHeading2(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
 }
 
 void Draw::addHeading3(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
 }
 
 void Draw::addHeading4(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
 }
 
 void Draw::addBold(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
 }
 
 void Draw::addItalic(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
 }
 
 void Draw::addBoldItalic(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>\n\n");
+    addMarkupText("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
 }
 
 void Draw::addMarkupText(const std::string &text)
