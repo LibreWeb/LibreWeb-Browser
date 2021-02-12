@@ -27,7 +27,7 @@ Most GUI libraries do have a text layout/rendering engine built-in.
 
 ```plantuml
 (*) --> "Get file online /\nRead from disk"
--->[Content in memory] "Parse document"
+-->[Document in memory] "Parse document"
 -->[AST model output] "Convert AST to Text/Pango Markup"
 -->[Ready for draw] "Add text to TextView buffer"
 -->[Text visable on Screen] (*)
