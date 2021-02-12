@@ -23,7 +23,7 @@ Following diagram display the high-level flow/activity of drawing text on a scre
 
 Most GUI libraries do have a text layout/rendering engine built-in.
 
-### Drawing Activity Diagram*
+### Drawing Activity Diagram
 
 ```plantuml
 (*) --> "Get file online /\nRead from disk"
