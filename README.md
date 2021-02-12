@@ -1,4 +1,4 @@
-# DBrowser
+# DWeb Browser
 
 Decentralized Browser; a revolution of the WWW.
 
