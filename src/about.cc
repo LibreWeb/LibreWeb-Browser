@@ -1,6 +1,7 @@
 #include "about.h"
 
-About::About() {
+About::About()
+{
     std::vector<Glib::ustring> devs;
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
     logo.set("../../misc/browser_logo_small.png");
@@ -9,7 +10,7 @@ About::About() {
     set_version("0.1.0");
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
-	set_website("https://melroy.org/");
+    set_website("https://melroy.org/");
     set_copyright("Copyright © 2020-2021 Melroy van den Berg");
     set_authors(devs);
     set_artists(devs);

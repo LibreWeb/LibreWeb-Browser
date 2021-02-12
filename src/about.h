@@ -13,7 +13,6 @@ class About: public Gtk::AboutDialog
 public:
     About();
     virtual ~About();
-
     void show_about();
     void hide_about(int response);
 protected:

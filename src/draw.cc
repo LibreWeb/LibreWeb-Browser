@@ -9,23 +9,24 @@ struct DispatchData
     std::string text;
 };
 
-Draw::Draw() : fontSize(10),
-               fontFamily("Ubuntu"),
-               headingLevel(0),
-               listLevel(0),
-               isBold(false),
-               isItalic(false),
-               bulletListLevel(0),
-               orderedListLevel(0),
-               isOrderedList(false),
-               defaultFont(fontFamily),
-               bold(fontFamily),
-               italic(fontFamily),
-               boldItalic(fontFamily),
-               heading1(fontFamily),
-               heading2(fontFamily),
-               heading3(fontFamily),
-               heading4(fontFamily)
+Draw::Draw()
+    : fontSize(10),
+      fontFamily("Ubuntu"),
+      headingLevel(0),
+      listLevel(0),
+      isBold(false),
+      isItalic(false),
+      bulletListLevel(0),
+      orderedListLevel(0),
+      isOrderedList(false),
+      defaultFont(fontFamily),
+      bold(fontFamily),
+      italic(fontFamily),
+      boldItalic(fontFamily),
+      heading1(fontFamily),
+      heading2(fontFamily),
+      heading3(fontFamily),
+      heading4(fontFamily)
 {
     set_editable(false);
     set_indent(15);
