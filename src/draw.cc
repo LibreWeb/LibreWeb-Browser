@@ -55,6 +55,10 @@ Draw::Draw()
     heading3.set_weight(Pango::WEIGHT_BOLD);
     heading4.set_size(fontSize * PANGO_SCALE_LARGE);
     heading4.set_weight(Pango::WEIGHT_BOLD);
+    heading5.set_size(fontSize * PANGO_SCALE_MEDIUM);
+    heading5.set_weight(Pango::WEIGHT_BOLD);
+    heading6.set_size(fontSize * PANGO_SCALE_MEDIUM);
+    heading6.set_weight(Pango::WEIGHT_BOLD);
 }
 
 void Draw::showMessage(const std::string &message, const std::string &detailed_info)
@@ -124,6 +128,11 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         }
         else
         {
+            // Last list level new line
+            if (listLevel == 1)
+            {
+                addText("\n");
+            }
             listLevel--;
         }
         if (listLevel == 0)
@@ -137,7 +146,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             if (entering)
             {
-                // TODO: Indent for each list level
+                // Add tab
+                addText("   ");
                 if (listType == cmark_list_type::CMARK_BULLET_LIST)
                 {
                     bulletListLevel++;
@@ -200,24 +210,13 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_THEMATIC_BREAK:
     {
-        /*
-        TODO: Can we draw a line in textview?
-        line.margin_end_x = 20;
-        line.height = 0.2;
-        line.hex_color = "2e2e2e";
-        line.cap = Cairo::LineCap::LINE_CAP_ROUND;
-        cr->set_line_cap(line.cap);
-        cr->set_source_rgb(r, g, b);
-        cr->set_line_width(line.height);
-        cr->move_to(line.start_x, line.start_y);
-        cr->line_to(endX, line.end_y);
-        cr->stroke();
-        */
+        addText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015");
     }
     break;
 
     case CMARK_NODE_PARAGRAPH:
-        if (listLevel == 0) {
+        if (listLevel == 0)
+        {
             // Add new line, but not when listing is enabled
             addText("\n");
         }
@@ -236,7 +235,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         std::string text = cmark_node_get_literal(node);
         if (bulletListLevel > 0)
         {
-            text.insert(0, "\u2022 ");
+            text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
         }
         else if (orderedListLevel > 0)
         {
@@ -249,7 +248,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             {
                 number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
             }
-            text.insert(0, number);
+            text.insert(0, std::string(orderedListLevel, '\u0009') + number);
         }
 
         if (headingLevel > 0)
@@ -268,8 +267,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             case 4:
                 addHeading4(text);
                 break;
+            case 5:
+                addHeading5(text);
+                break;
+            case 6:
+                addHeading6(text);
+                break;
             default:
-                addHeading4(text); // fallback
+                addHeading5(text); // fallback
                 break;
             }
         }
@@ -361,6 +366,16 @@ void Draw::addHeading4(const std::string &text)
     addMarkupText("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
 }
 
+void Draw::addHeading5(const std::string &text)
+{
+    addMarkupText("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::addHeading6(const std::string &text)
+{
+    addMarkupText("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
+}
+
 void Draw::addBold(const std::string &text)
 {
     addMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
@@ -391,6 +406,9 @@ void Draw::clear()
     gdk_threads_add_idle((GSourceFunc)clearIdle, buffer);
 }
 
+/**
+ * Add text on Idle Call function
+ */
 gboolean Draw::addTextIdle(struct DispatchData *data)
 {
     GtkTextIter end_iter;
@@ -400,6 +418,9 @@ gboolean Draw::addTextIdle(struct DispatchData *data)
     return FALSE;
 }
 
+/**
+ * Clear Text on Idle Call function
+ */
 gboolean Draw::clearIdle(GtkTextBuffer *textBuffer)
 {
     GtkTextIter start_iter, end_iter;
@@ -426,16 +447,4 @@ std::string const Draw::intToRoman(int num)
         }
     }
     return res;
-}
-
-/**
- * Convert hex string to seperate RGB values
- */
-void Draw::hexToRGB(const std::string &hex, double &r, double &g, double &b)
-{
-    unsigned int intR, intG, intB;
-    sscanf(hex.c_str(), "%02x%02x%02x", &intR, &intG, &intB);
-    r = intR / 255.0;
-    g = intG / 255.0;
-    b = intB / 255.0;
 }

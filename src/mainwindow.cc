@@ -16,7 +16,7 @@ MainWindow::MainWindow()
       finalRequestPath(""),
       currentContent("")
 {
-    set_title("DBrowser");
+    set_title("DWeb Browser");
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
 

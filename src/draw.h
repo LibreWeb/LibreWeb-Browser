@@ -23,6 +23,8 @@ private:
     void addHeading2(const std::string &text);
     void addHeading3(const std::string &text);
     void addHeading4(const std::string &text);
+    void addHeading5(const std::string &text);
+    void addHeading6(const std::string &text);
     void addItalic(const std::string &text);
     void addBold(const std::string &text);
     void addBoldItalic(const std::string &text);
@@ -32,7 +34,6 @@ private:
     static gboolean addTextIdle(struct DispatchData *data);
     static gboolean clearIdle(GtkTextBuffer *textBuffer);
     std::string const intToRoman(int num);
-    void hexToRGB(const std::string& hex, double &r, double &g, double &b);
 
     int fontSize;
     std::string fontFamily;
@@ -53,6 +54,8 @@ private:
     Pango::FontDescription heading2;
     Pango::FontDescription heading3;
     Pango::FontDescription heading4;
+    Pango::FontDescription heading5;
+    Pango::FontDescription heading6;
 };
 
 #endif

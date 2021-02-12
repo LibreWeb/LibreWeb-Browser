@@ -6,7 +6,7 @@ About::About()
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
     logo.set("../../misc/browser_logo_small.png");
 
-    set_name("DBrowser");
+    set_program_name("DWeb Browser");
     set_version("0.1.0");
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
@@ -15,6 +15,7 @@ About::About()
     set_authors(devs);
     set_artists(devs);
     set_license_type(Gtk::License::LICENSE_MIT_X11);
+    set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
 
     show_all_children();
 }
