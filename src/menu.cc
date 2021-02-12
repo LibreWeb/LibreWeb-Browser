@@ -1,9 +1,9 @@
 #include "menu.h"
 
 Menu::Menu()
-: m_file("_File", true),
-  m_view("_View", true),
-  m_help("_Help", true)
+    : m_file("_File", true),
+      m_view("_View", true),
+      m_help("_Help", true)
 {
     // File submenu
     auto quit_menuitem = createMenuItem("_Quit");
@@ -22,7 +22,7 @@ Menu::Menu()
     // Add items to sub-menus
     m_file_submenu.append(*quit_menuitem);
     m_view_submenu.append(*reload_menuitem);
-    m_view_submenu.append(*source_code_menuitem);    
+    m_view_submenu.append(*source_code_menuitem);
     m_help_submenu.append(*about_menuitem);
 
     // Add sub-menus to menus
@@ -35,14 +35,16 @@ Menu::Menu()
     append(m_help);
 }
 
-Menu::~Menu() {
+Menu::~Menu()
+{
 }
 
 /**
  * \brief Helper method for creating a menu with an image
  * \return GTKWidget menu item pointer
  */
-Gtk::MenuItem* Menu::createMenuItem(const Glib::ustring& label_text) {
-    Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(label_text, true));
+Gtk::MenuItem *Menu::createMenuItem(const Glib::ustring &label_text)
+{
+    Gtk::MenuItem *item = Gtk::manage(new Gtk::MenuItem(label_text, true));
     return item;
 }
