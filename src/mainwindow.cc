@@ -76,7 +76,7 @@ MainWindow::MainWindow()
 
     // Show start page by default
     // Load test.md file on start-up
-    doRequest("file:///media/melroy/Data/Projects/browser/test.md");
+    doRequest("file:///media/melroy/Data/Projects/browser/test.md", true);
     //go_home();
 }
 
