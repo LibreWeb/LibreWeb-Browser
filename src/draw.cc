@@ -1,6 +1,7 @@
 #include "draw.h"
-#include <gdk/gdkthreads.h>
 #include "node.h"
+#include <gdk/gdkthreads.h>
+#include <iostream>
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
 struct DispatchData
@@ -10,7 +11,8 @@ struct DispatchData
 };
 
 Draw::Draw()
-    : fontSize(10 * PANGO_SCALE),
+    : buffer(Glib::unwrap(this->get_buffer())),
+      fontSize(10 * PANGO_SCALE),
       fontFamily("Ubuntu Monospace"),
       headingLevel(0),
       listLevel(0),
@@ -146,8 +148,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             if (entering)
             {
-                // Add tab
-                addText("   ");
                 if (listType == cmark_list_type::CMARK_BULLET_LIST)
                 {
                     bulletListLevel++;
@@ -235,6 +235,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         std::string text = cmark_node_get_literal(node);
         if (bulletListLevel > 0)
         {
+            // Add tabs & bullet
             text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
         }
         else if (orderedListLevel > 0)
@@ -248,6 +249,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             {
                 number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
             }
+            // Add tabs & number
             text.insert(0, std::string(orderedListLevel, '\u0009') + number);
         }
 
@@ -393,7 +395,6 @@ void Draw::addBoldItalic(const std::string &text)
 
 void Draw::addMarkupText(const std::string &text)
 {
-    auto buffer = Glib::unwrap(this->get_buffer());
     DispatchData *data = g_new0(struct DispatchData, 1);
     data->buffer = buffer;
     data->text = text;
@@ -402,7 +403,6 @@ void Draw::addMarkupText(const std::string &text)
 
 void Draw::clear()
 {
-    auto buffer = Glib::unwrap(this->get_buffer());
     gdk_threads_add_idle((GSourceFunc)clearIdle, buffer);
 }
 

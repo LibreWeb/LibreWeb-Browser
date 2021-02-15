@@ -35,6 +35,7 @@ private:
     static gboolean clearIdle(GtkTextBuffer *textBuffer);
     std::string const intToRoman(int num);
 
+    GtkTextBuffer *buffer;
     int fontSize;
     std::string fontFamily;
     int headingLevel;

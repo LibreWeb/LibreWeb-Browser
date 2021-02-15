@@ -74,7 +74,9 @@ MainWindow::MainWindow()
     m_inputField.grab_focus();
 
     // Show start page by default
-    go_home();
+    // Load test.md file on start-up
+    doRequest("file:///media/melroy/Data/Projects/browser/test.md");
+    //go_home();
 }
 
 void MainWindow::go_home()
