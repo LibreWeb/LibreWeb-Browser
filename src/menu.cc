@@ -8,11 +8,12 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     // Create accelerator group
     // File submenu
     auto quit_menuitem = createMenuItem("_Quit");
-    quit_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK,  Gtk::AccelFlags::ACCEL_VISIBLE);
+    quit_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     quit_menuitem->signal_activate().connect(quit);
 
     // View submenu
     auto reload_menuitem = createMenuItem("_Reload Page");
+    reload_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_R, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     reload_menuitem->signal_activate().connect(reload);
     auto source_code_menuitem = createMenuItem("View _Source");
     source_code_menuitem->signal_activate().connect(source_code);
