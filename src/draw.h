@@ -5,17 +5,24 @@
 #include <pangomm/layout.h>
 #include <cmark-gfm.h>
 
+class MainWindow;
 struct DispatchData;
 
 class Draw : public Gtk::TextView
 {
 public:
-    Draw();
+    Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
     void processDocument(cmark_node *root_node);
 
+protected:
+    // Signals
+    void event_after(GdkEvent *ev);
+
 private:
+    void followLink(Gtk::TextBuffer::iterator &iter);
+
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
     void insertText(const std::string &text);
@@ -37,6 +44,7 @@ private:
     static gboolean clearIdle(GtkTextBuffer *textBuffer);
     static std::string const intToRoman(int num);
 
+    MainWindow &mainWindow;
     GtkTextBuffer *buffer;
     int fontSize;
     std::string fontFamily;

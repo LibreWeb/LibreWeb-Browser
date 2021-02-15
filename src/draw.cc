@@ -1,5 +1,6 @@
 #include "draw.h"
 #include "node.h"
+#include "mainwindow.h"
 #include <gdk/gdkthreads.h>
 #include <iostream>
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
@@ -11,8 +12,9 @@ struct DispatchData
     std::string url;
 };
 
-Draw::Draw()
-    : buffer(Glib::unwrap(this->get_buffer())),
+Draw::Draw(MainWindow &mainWindow)
+    : mainWindow(mainWindow),
+      buffer(Glib::unwrap(this->get_buffer())),
       fontSize(10 * PANGO_SCALE),
       fontFamily("Ubuntu Monospace"),
       headingLevel(0),
@@ -63,6 +65,62 @@ Draw::Draw()
     heading5.set_weight(Pango::WEIGHT_BOLD);
     heading6.set_size(fontSize * PANGO_SCALE_MEDIUM);
     heading6.set_weight(Pango::WEIGHT_BOLD);
+
+    // Click event
+    signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
+}
+
+/**
+ * Links can be activated by clicking or touching the screen.
+ */
+void Draw::event_after(GdkEvent *ev)
+{
+    gdouble ex, ey;
+    Gtk::TextBuffer::iterator iter;
+    int x, y;
+
+    if (ev->type == GDK_BUTTON_RELEASE)
+    {
+        GdkEventButton *event;
+        event = (GdkEventButton *)ev;
+        if (event->button != GDK_BUTTON_PRIMARY)
+            return;
+        ex = event->x;
+        ey = event->y;
+    }
+    else if (ev->type == GDK_TOUCH_END)
+    {
+        GdkEventTouch *event;
+        event = (GdkEventTouch *)ev;
+        ex = event->x;
+        ey = event->y;
+    }
+    else
+        return;
+
+    // Get the textview coordinates and retrieve an iterator
+    window_to_buffer_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, ex, ey, x, y);
+    get_iter_at_location(iter, x, y);
+    // Find the links
+    followLink(iter);
+}
+
+/**
+ * Search for links
+ */
+void Draw::followLink(Gtk::TextBuffer::iterator &iter)
+{
+    auto tags = iter.get_tags();
+    for (auto const &tag : tags)
+    {
+        char *url = static_cast<char *>(tag->get_data("url"));
+        if (url != 0 && (strlen(url) > 0))
+        {
+            // Get the URL
+            mainWindow.doRequest(url, true);
+            break;
+        }
+    }
 }
 
 void Draw::showMessage(const std::string &message, const std::string &detailed_info)
@@ -81,7 +139,8 @@ void Draw::showStartPage()
     this->clear();
 
     insertHeading1("Welcome to the Decentralized Web (DWeb)");
-    insertText("For the test example, go to: ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    insertText("See also the: ");
+    insertLink("Example page on IPFS", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
 }
 
 /**
@@ -298,7 +357,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // URL
         else if (isLink)
         {
-            std::cout << "Text: " << text << "With link: " << linkURL << std::endl;
             insertLink(text, linkURL);
             linkURL = "";
         }

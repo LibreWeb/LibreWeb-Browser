@@ -12,6 +12,7 @@ MainWindow::MainWindow()
     : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_requestThread(nullptr),
+      m_draw(*this),
       requestPath(""),
       finalRequestPath(""),
       currentContent("")
@@ -29,7 +30,7 @@ MainWindow::MainWindow()
     m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
-    m_inputField.signal_activate().connect(sigc::mem_fun(this, &MainWindow::input_activate));                        /*!< User pressed enter in the input */
+    m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -59,7 +60,7 @@ MainWindow::MainWindow()
     m_hbox_bar.pack_start(m_forwardButton, false, false, 0);
     m_hbox_bar.pack_start(m_refreshButton, false, false, 0);
     m_hbox_bar.pack_start(m_homeButton, false, false, 0);
-    m_hbox_bar.pack_start(m_inputField, true, true, 8);
+    m_hbox_bar.pack_start(m_addressBar, true, true, 8);
     m_vbox.pack_start(m_hbox_bar, false, false, 6);
 
     // Browser text drawing area
@@ -71,7 +72,7 @@ MainWindow::MainWindow()
     show_all_children();
 
     // Grap focus to input field by default
-    m_inputField.grab_focus();
+    m_addressBar.grab_focus();
 
     // Show start page by default
     // Load test.md file on start-up
@@ -79,23 +80,11 @@ MainWindow::MainWindow()
     //go_home();
 }
 
-void MainWindow::go_home()
-{
-    this->requestPath = "";
-    this->finalRequestPath = "";
-    this->currentContent = "";
-    this->m_inputField.set_text("");
-    m_draw.showStartPage();
-}
-
 /**
- * Trigger when user input text in address bar
+ * Fetch document from disk or IPFS, using threading
  */
-void MainWindow::input_activate()
+void MainWindow::doRequest(const std::string &path, bool setAddressBar)
 {
-    // QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq
-
-    // Stop running thread (if applicable)
     if (m_requestThread)
     {
         if (m_requestThread->joinable())
@@ -107,8 +96,28 @@ void MainWindow::input_activate()
         }
     }
 
-    if (m_requestThread == nullptr)
-        m_requestThread = new std::thread(&MainWindow::doRequest, this, m_inputField.get_text());
+    if (m_requestThread == nullptr) {
+        if (setAddressBar)
+            m_addressBar.set_text(path);
+        m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
+    }
+}
+
+void MainWindow::go_home()
+{
+    this->requestPath = "";
+    this->finalRequestPath = "";
+    this->currentContent = "";
+    this->m_addressBar.set_text("");
+    m_draw.showStartPage();
+}
+
+/**
+ * Trigger when user input text in address bar
+ */
+void MainWindow::address_bar_activate()
+{
+    doRequest(m_addressBar.get_text());
 }
 
 /**
@@ -116,15 +125,14 @@ void MainWindow::input_activate()
  */
 void MainWindow::refresh()
 {
-    if (m_requestThread == nullptr)
-        m_requestThread = new std::thread(&MainWindow::doRequest, this, "");
+    doRequest();
 }
 
 /**
  * Get the file from disk or IPFS network, from the provided path,
  * parse the content, and display the document
  */
-void MainWindow::doRequest(const std::string &path)
+void MainWindow::processRequest(const std::string &path)
 {
     currentContent = "";
     if (!path.empty())
@@ -166,7 +174,7 @@ void MainWindow::doRequest(const std::string &path)
 }
 
 /**
- * Helper method for doRequest(),
+ * Helper method for processRequest(),
  * Display markdown file from IPFS network.
  */
 void MainWindow::fetchFromIPFS()
@@ -189,7 +197,7 @@ void MainWindow::fetchFromIPFS()
 }
 
 /**
- * Helper method for doRequest(),
+ * Helper method for processRequest(),
  * Display markdown file from disk.
  */
 void MainWindow::openFromDisk()

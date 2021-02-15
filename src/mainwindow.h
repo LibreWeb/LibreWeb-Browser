@@ -18,12 +18,13 @@ class MainWindow : public Gtk::Window
 {
 public:
     MainWindow();
+    void doRequest(const std::string &path= std::string(), bool setAddressBar = false);
 
 protected:
     // Signal handlers:
     // Our new improved on_button_clicked(). (see below)
     void go_home();
-    void input_activate();
+    void address_bar_activate();
     void refresh();
     void on_button_clicked(Glib::ustring data);
     void show_about();
@@ -38,7 +39,7 @@ protected:
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
-    Gtk::Entry m_inputField;
+    Gtk::Entry m_addressBar;
     Gtk::Image backIcon;
     Gtk::Image forwardIcon;
     Gtk::Image refreshIcon;
@@ -55,7 +56,7 @@ private:
     std::string finalRequestPath;
     std::string currentContent;
 
-    void doRequest(const std::string &path);
+    void processRequest(const std::string &path);
     void fetchFromIPFS();
     void openFromDisk();
 };
