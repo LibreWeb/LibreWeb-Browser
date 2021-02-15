@@ -8,6 +8,7 @@ struct DispatchData
 {
     GtkTextBuffer *buffer;
     std::string text;
+    std::string url;
 };
 
 Draw::Draw()
@@ -21,6 +22,7 @@ Draw::Draw()
       bulletListLevel(0),
       orderedListLevel(0),
       isOrderedList(false),
+      isLink(false),
       defaultFont(fontFamily),
       bold(fontFamily),
       italic(fontFamily),
@@ -67,8 +69,8 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
 {
     this->clear();
 
-    addHeading1(message);
-    addText(detailed_info);
+    insertHeading1(message);
+    insertText(detailed_info);
 }
 
 /**
@@ -78,8 +80,8 @@ void Draw::showStartPage()
 {
     this->clear();
 
-    addHeading1("Welcome to the Decentralized Web (DWeb)");
-    addText("For the test example, go to: ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    insertHeading1("Welcome to the Decentralized Web (DWeb)");
+    insertText("For the test example, go to: ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
 }
 
 /**
@@ -133,7 +135,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             // Last list level new line
             if (listLevel == 1)
             {
-                addText("\n");
+                insertText("\n");
             }
             listLevel--;
         }
@@ -180,7 +182,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_ITEM:
         // Line break for each item
         if (entering)
-            addText("\n");
+            insertText("\n");
         if (entering && isOrderedList)
         {
             // Increasement ordered list counter
@@ -210,15 +212,15 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_THEMATIC_BREAK:
     {
-        addText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015");
+        insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015");
     }
     break;
 
     case CMARK_NODE_PARAGRAPH:
         if (listLevel == 0)
         {
-            // Add new line, but not when listing is enabled
-            addText("\n");
+            // insert new line, but not when listing is enabled
+            insertText("\n");
         }
         break;
 
@@ -233,9 +235,9 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // https://gitlab.gnome.org/GNOME/pango/-/blob/master/pango/pango-markup.c#L515
 
         std::string text = cmark_node_get_literal(node);
+        // Insert tabs & bullet/number
         if (bulletListLevel > 0)
         {
-            // Add tabs & bullet
             text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
         }
         else if (orderedListLevel > 0)
@@ -243,70 +245,79 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             std::string number;
             if (orderedListLevel % 2 == 0)
             {
-                number = intToRoman(orderedListCounters[orderedListLevel]) + " ";
+                number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
             }
             else
             {
                 number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
             }
-            // Add tabs & number
             text.insert(0, std::string(orderedListLevel, '\u0009') + number);
         }
 
+        // Unsert headings
         if (headingLevel > 0)
         {
             switch (headingLevel)
             {
             case 1:
-                addHeading1(text);
+                insertHeading1(text);
                 break;
             case 2:
-                addHeading2(text);
+                insertHeading2(text);
                 break;
             case 3:
-                addHeading3(text);
+                insertHeading3(text);
                 break;
             case 4:
-                addHeading4(text);
+                insertHeading4(text);
                 break;
             case 5:
-                addHeading5(text);
+                insertHeading5(text);
                 break;
             case 6:
-                addHeading6(text);
+                insertHeading6(text);
                 break;
             default:
-                addHeading5(text); // fallback
+                insertHeading5(text); // fallback
                 break;
             }
         }
+        // Bold/italic text
         else if (isBold && isItalic)
         {
-            addBoldItalic(text);
+            insertBoldItalic(text);
         }
         else if (isBold)
         {
-            addBold(text);
+            insertBold(text);
         }
         else if (isItalic)
         {
-            addItalic(text);
+            insertItalic(text);
+        }
+        // URL
+        else if (isLink)
+        {
+            std::cout << "Text: " << text << "With link: " << linkURL << std::endl;
+            insertLink(text, linkURL);
+            linkURL = "";
         }
         else
         {
-            addText(text);
+            // Normal text only
+            insertText(text);
         }
     }
     break;
 
     case CMARK_NODE_LINEBREAK:
         // Hard brake
-        addText("\n");
+        insertText("\n");
         break;
 
     case CMARK_NODE_SOFTBREAK:
         // only insert space
-        addText(" ");
+        insertText(" ");
         break;
 
     case CMARK_NODE_CODE:
@@ -327,6 +338,11 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_LINK:
+        isLink = entering;
+        if (entering)
+        {
+            linkURL = cmark_node_get_url(node);
+        }
         break;
 
     case CMARK_NODE_IMAGE:
@@ -343,62 +359,71 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
-void Draw::addText(const std::string &text)
+void Draw::insertText(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
+    insertMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::addHeading1(const std::string &text)
+void Draw::insertHeading1(const std::string &text)
 {
-    addMarkupText("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addHeading2(const std::string &text)
+void Draw::insertHeading2(const std::string &text)
 {
-    addMarkupText("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addHeading3(const std::string &text)
+void Draw::insertHeading3(const std::string &text)
 {
-    addMarkupText("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addHeading4(const std::string &text)
+void Draw::insertHeading4(const std::string &text)
 {
-    addMarkupText("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addHeading5(const std::string &text)
+void Draw::insertHeading5(const std::string &text)
 {
-    addMarkupText("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addHeading6(const std::string &text)
+void Draw::insertHeading6(const std::string &text)
 {
-    addMarkupText("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
+    insertMarkupText("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
 }
 
-void Draw::addBold(const std::string &text)
+void Draw::insertBold(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
+    insertMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::addItalic(const std::string &text)
+void Draw::insertItalic(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
+    insertMarkupText("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::addBoldItalic(const std::string &text)
+void Draw::insertBoldItalic(const std::string &text)
 {
-    addMarkupText("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
+    insertMarkupText("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::addMarkupText(const std::string &text)
+void Draw::insertMarkupText(const std::string &text)
 {
     DispatchData *data = g_new0(struct DispatchData, 1);
     data->buffer = buffer;
     data->text = text;
-    gdk_threads_add_idle((GSourceFunc)addTextIdle, data);
+    gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
+}
+
+void Draw::insertLink(const std::string &text, const std::string &url)
+{
+    DispatchData *data = g_new0(struct DispatchData, 1);
+    data->buffer = buffer;
+    data->text = text;
+    data->url = url;
+    gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
 }
 
 void Draw::clear()
@@ -407,13 +432,31 @@ void Draw::clear()
 }
 
 /**
- * Add text on Idle Call function
+ * Insert text on Idle Call function
  */
-gboolean Draw::addTextIdle(struct DispatchData *data)
+gboolean Draw::insertTextIdle(struct DispatchData *data)
 {
     GtkTextIter end_iter;
     gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
     gtk_text_buffer_insert_markup(data->buffer, &end_iter, data->text.c_str(), -1);
+    g_free(data);
+    return FALSE;
+}
+
+/**
+ * Insert link url on Idle Call function
+ */
+gboolean Draw::insertLinkIdle(struct DispatchData *data)
+{
+    GtkTextIter end_iter;
+    GtkTextTag *tag;
+    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
+    tag = gtk_text_buffer_create_tag(data->buffer, NULL,
+                                     "foreground", "blue",
+                                     "underline", PANGO_UNDERLINE_SINGLE,
+                                     NULL);
+    g_object_set_data(G_OBJECT(tag), "url", g_strdup(data->url.c_str()));
+    gtk_text_buffer_insert_with_tags(data->buffer, &end_iter, data->text.c_str(), -1, tag, NULL);
     g_free(data);
     return FALSE;
 }
@@ -431,7 +474,7 @@ gboolean Draw::clearIdle(GtkTextBuffer *textBuffer)
 }
 
 /**
- * Convert number to roman number
+ * Convert number to roman numerals
  */
 std::string const Draw::intToRoman(int num)
 {

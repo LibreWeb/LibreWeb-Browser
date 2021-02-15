@@ -17,23 +17,25 @@ public:
 
 private:
     void processNode(cmark_node *node, cmark_event_type ev_type);
-    // Helper functions for adding text
-    void addText(const std::string &text);
-    void addHeading1(const std::string &text);
-    void addHeading2(const std::string &text);
-    void addHeading3(const std::string &text);
-    void addHeading4(const std::string &text);
-    void addHeading5(const std::string &text);
-    void addHeading6(const std::string &text);
-    void addItalic(const std::string &text);
-    void addBold(const std::string &text);
-    void addBoldItalic(const std::string &text);
+    // Helper functions for inserting text
+    void insertText(const std::string &text);
+    void insertHeading1(const std::string &text);
+    void insertHeading2(const std::string &text);
+    void insertHeading3(const std::string &text);
+    void insertHeading4(const std::string &text);
+    void insertHeading5(const std::string &text);
+    void insertHeading6(const std::string &text);
+    void insertItalic(const std::string &text);
+    void insertBold(const std::string &text);
+    void insertBoldItalic(const std::string &text);
 
-    void addMarkupText(const std::string &text);
+    void insertMarkupText(const std::string &text);
+    void insertLink(const std::string &text, const std::string &url);
     void clear();
-    static gboolean addTextIdle(struct DispatchData *data);
+    static gboolean insertTextIdle(struct DispatchData *data);
+    static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean clearIdle(GtkTextBuffer *textBuffer);
-    std::string const intToRoman(int num);
+    static std::string const intToRoman(int num);
 
     GtkTextBuffer *buffer;
     int fontSize;
@@ -45,6 +47,8 @@ private:
     int bulletListLevel;
     int orderedListLevel;
     bool isOrderedList;
+    bool isLink;
+    std::string linkURL;
     std::map<int,int> orderedListCounters;
 
     Pango::FontDescription defaultFont;
