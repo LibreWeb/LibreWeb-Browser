@@ -10,8 +10,7 @@
 #include "menu.h"
 
 MainWindow::MainWindow()
-    : 
-      accelGroup(Gtk::AccelGroup::create()),
+    : accelGroup(Gtk::AccelGroup::create()),
       m_menu(accelGroup),
       m_draw(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
@@ -19,7 +18,8 @@ MainWindow::MainWindow()
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
-      currentContent("")
+      currentContent(""),
+      currentHistoryIndex(0)
 {
     set_title("DWeb Browser");
     set_default_size(1000, 800);
@@ -28,11 +28,15 @@ MainWindow::MainWindow()
 
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
+    m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
+    m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
     m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                           /*!< Source code dialog */
     m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
     m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
+    m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                                   /*!< Button for previous page */
+    m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
     m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
@@ -61,6 +65,10 @@ MainWindow::MainWindow()
     homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_homeButton.add(homeIcon);
 
+    // Disable back/forward button on start-up
+    m_backButton.set_sensitive(false);
+    m_forwardButton.set_sensitive(false);
+
     m_hbox_bar.pack_start(m_backButton, false, false, 0);
     m_hbox_bar.pack_start(m_forwardButton, false, false, 0);
     m_hbox_bar.pack_start(m_refreshButton, false, false, 0);
@@ -88,7 +96,7 @@ MainWindow::MainWindow()
 /**
  * Fetch document from disk or IPFS, using threading
  */
-void MainWindow::doRequest(const std::string &path, bool setAddressBar)
+void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest)
 {
     if (m_requestThread)
     {
@@ -101,15 +109,34 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar)
         }
     }
 
-    if (m_requestThread == nullptr) {
-        // history.insert()
+    if (m_requestThread == nullptr)
+    {
+        m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
         if (setAddressBar)
             m_addressBar.set_text(path);
-        m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
+        // Do not insert history back/forward calls into the history (again)
+        if (!isHistoryRequest)
+        {
+            if (history.size() == 0)
+            {
+                history.push_back(path);
+                currentHistoryIndex = history.size() - 1;
+            }
+            else if (history.size() > 0 && !path.empty() && (history.back().compare(path) != 0))
+            {
+                history.push_back(path);
+                currentHistoryIndex = history.size() - 1;
+            }
+        }
+        // Enable back/forward buttons when possible
+        m_backButton.set_sensitive(currentHistoryIndex > 0);
+        m_menu.setBackMenuSensitive(currentHistoryIndex > 0);
+        m_forwardButton.set_sensitive(currentHistoryIndex < history.size() - 1);
+        m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
     }
 }
 
-Glib::RefPtr<Gtk::AccelGroup>& MainWindow::getAccelGroup()
+Glib::RefPtr<Gtk::AccelGroup> &MainWindow::getAccelGroup()
 {
     return accelGroup;
 }
@@ -131,9 +158,24 @@ void MainWindow::address_bar_activate()
     doRequest(m_addressBar.get_text());
 }
 
-/**
- * Refresh page
- */
+void MainWindow::back()
+{
+    if (currentHistoryIndex > 0)
+    {
+        currentHistoryIndex--;
+        doRequest(history.at(currentHistoryIndex), true, true);
+    }
+}
+
+void MainWindow::forward()
+{
+    if (currentHistoryIndex < history.size() - 1)
+    {
+        currentHistoryIndex++;
+        doRequest(history.at(currentHistoryIndex), true, true);
+    }
+}
+
 void MainWindow::refresh()
 {
     doRequest();

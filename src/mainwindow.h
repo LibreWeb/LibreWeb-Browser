@@ -18,7 +18,7 @@ class MainWindow : public Gtk::Window
 {
 public:
     MainWindow();
-    void doRequest(const std::string &path= std::string(), bool setAddressBar = false);
+    void doRequest(const std::string &path= std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
     Glib::RefPtr<Gtk::AccelGroup>& getAccelGroup(); 
 
 protected:
@@ -26,6 +26,8 @@ protected:
     // Our new improved on_button_clicked(). (see below)
     void go_home();
     void address_bar_activate();
+    void back();
+    void forward();
     void refresh();
     void on_button_clicked(Glib::ustring data);
     void show_about();
@@ -57,6 +59,7 @@ private:
     std::string requestPath;
     std::string finalRequestPath;
     std::string currentContent;
+    std::size_t currentHistoryIndex;
     std::vector<std::string> history;
 
     void processRequest(const std::string &path);

@@ -7,31 +7,42 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
 {
     // Create accelerator group
     // File submenu
-    auto quit_menuitem = createMenuItem("_Quit");
-    quit_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
-    quit_menuitem->signal_activate().connect(quit);
+    auto quitMenuItem = createMenuItem("_Quit");
+    quitMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    quitMenuItem->signal_activate().connect(quit);
 
     // View submenu
-    auto reload_menuitem = createMenuItem("_Reload Page");
-    reload_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_R, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
-    reload_menuitem->signal_activate().connect(reload);
-    auto source_code_menuitem = createMenuItem("View _Source");
-    source_code_menuitem->signal_activate().connect(source_code);
+    backMenuItem = createMenuItem("_Previous Page");
+    backMenuItem->set_sensitive(false);
+    backMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_Left, Gdk::ModifierType::MOD1_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    backMenuItem->signal_activate().connect(back);
+    forwardMenuItem = createMenuItem("_Next page");
+    forwardMenuItem->set_sensitive(false);
+    forwardMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_Right, Gdk::ModifierType::MOD1_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    forwardMenuItem->signal_activate().connect(forward);
+    auto reloadMenuItem = createMenuItem("_Reload Page");
+    reloadMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_R, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    reloadMenuItem->signal_activate().connect(reload);
+    auto sourceCodeMenuItem = createMenuItem("View _Source");
+    sourceCodeMenuItem->signal_activate().connect(source_code);
 
     // Help submenu
-    auto about_menuitem = createMenuItem("_About");
-    about_menuitem->signal_activate().connect(about);
+    auto aboutMenuItem = createMenuItem("_About");
+    aboutMenuItem->signal_activate().connect(about);
 
     // Add items to sub-menus
-    m_file_submenu.append(*quit_menuitem);
-    m_view_submenu.append(*reload_menuitem);
-    m_view_submenu.append(*source_code_menuitem);
-    m_help_submenu.append(*about_menuitem);
+    m_fileSubmenu.append(*quitMenuItem);
+    m_viewSubmenu.append(*backMenuItem);
+    m_viewSubmenu.append(*forwardMenuItem);
+    m_viewSubmenu.append(*reloadMenuItem);
+    m_viewSubmenu.append(m_separator1);
+    m_viewSubmenu.append(*sourceCodeMenuItem);
+    m_helpSubmenu.append(*aboutMenuItem);
 
     // Add sub-menus to menus
-    m_file.set_submenu(m_file_submenu);
-    m_view.set_submenu(m_view_submenu);
-    m_help.set_submenu(m_help_submenu);
+    m_file.set_submenu(m_fileSubmenu);
+    m_view.set_submenu(m_viewSubmenu);
+    m_help.set_submenu(m_helpSubmenu);
     // Add menus to menu bar
     append(m_file);
     append(m_view);
@@ -40,6 +51,16 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
 
 Menu::~Menu()
 {
+}
+
+void Menu::setBackMenuSensitive(bool sensitive)
+{
+    backMenuItem->set_sensitive(sensitive);
+}
+
+void Menu::setForwardMenuSensitive(bool sensitive)
+{
+    forwardMenuItem->set_sensitive(sensitive);
 }
 
 /**
