@@ -18,6 +18,8 @@ protected:
     // Child widgets
     Gtk::ScrolledWindow m_scrolledWindow;
     Gtk::TextView m_sourceCode;
+    Gtk::Button m_closeButton;
+    Glib::RefPtr<Gtk::AccelGroup> accelGroup;
 
 private:
 };

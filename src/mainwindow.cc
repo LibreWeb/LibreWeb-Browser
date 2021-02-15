@@ -102,10 +102,16 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar)
     }
 
     if (m_requestThread == nullptr) {
+        // history.insert()
         if (setAddressBar)
             m_addressBar.set_text(path);
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
     }
+}
+
+Glib::RefPtr<Gtk::AccelGroup>& MainWindow::getAccelGroup()
+{
+    return accelGroup;
 }
 
 void MainWindow::go_home()

@@ -19,6 +19,7 @@ class MainWindow : public Gtk::Window
 public:
     MainWindow();
     void doRequest(const std::string &path= std::string(), bool setAddressBar = false);
+    Glib::RefPtr<Gtk::AccelGroup>& getAccelGroup(); 
 
 protected:
     // Signal handlers:
@@ -56,6 +57,7 @@ private:
     std::string requestPath;
     std::string finalRequestPath;
     std::string currentContent;
+    std::vector<std::string> history;
 
     void processRequest(const std::string &path);
     void fetchFromIPFS();
