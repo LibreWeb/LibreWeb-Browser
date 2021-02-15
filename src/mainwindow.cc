@@ -7,12 +7,16 @@
 #include <iostream>
 
 #include "md-parser.h"
+#include "menu.h"
 
 MainWindow::MainWindow()
-    : m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
+    : 
+      accelGroup(Gtk::AccelGroup::create()),
+      m_menu(accelGroup),
+      m_draw(*this),
+      m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_requestThread(nullptr),
-      m_draw(*this),
       requestPath(""),
       finalRequestPath(""),
       currentContent("")
@@ -20,6 +24,7 @@ MainWindow::MainWindow()
     set_title("DWeb Browser");
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
+    add_accel_group(accelGroup);
 
     // Connect signals
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */

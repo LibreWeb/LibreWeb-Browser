@@ -31,8 +31,12 @@ protected:
     void hide_about(int response);
     void show_source_code_dialog();
 
+    Glib::RefPtr<Gtk::AccelGroup> accelGroup;
     // Child widgets
     Menu m_menu;
+    Draw m_draw;
+    SourceCodeDialog m_sourceCodeDialog;
+    About m_about;
     Gtk::Box m_vbox;
     Gtk::Box m_hbox_bar;
     Gtk::Button m_backButton;
@@ -45,9 +49,6 @@ protected:
     Gtk::Image refreshIcon;
     Gtk::Image homeIcon;
     Gtk::ScrolledWindow m_scrolledWindow;
-    Draw m_draw;
-    SourceCodeDialog m_sourceCodeDialog;
-    About m_about;
 
 private:
     File m_file;

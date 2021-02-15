@@ -19,7 +19,7 @@ public:
     sigc::signal<void> quit;
     sigc::signal<void> about;
 
-    Menu();
+    explicit Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup);
     virtual ~Menu();
     Gtk::Menu *GetMachineMenu();
 
@@ -35,5 +35,6 @@ protected:
 
 private:
     Gtk::MenuItem *createMenuItem(const Glib::ustring &label_text);
+
 };
 #endif

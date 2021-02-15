@@ -1,12 +1,14 @@
 #include "menu.h"
 
-Menu::Menu()
+Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     : m_file("_File", true),
       m_view("_View", true),
       m_help("_Help", true)
 {
+    // Create accelerator group
     // File submenu
     auto quit_menuitem = createMenuItem("_Quit");
+    quit_menuitem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK,  Gtk::AccelFlags::ACCEL_VISIBLE);
     quit_menuitem->signal_activate().connect(quit);
 
     // View submenu
