@@ -11,7 +11,7 @@ struct DispatchData;
 class Draw : public Gtk::TextView
 {
 public:
-    Draw(MainWindow &mainWindow);
+    explicit Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
     void processDocument(cmark_node *root_node);
