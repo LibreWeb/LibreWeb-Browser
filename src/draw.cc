@@ -2,6 +2,7 @@
 #include "node.h"
 #include "mainwindow.h"
 #include <gdk/gdkthreads.h>
+#include <gdk/gdkselection.h>
 #include <iostream>
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
@@ -157,6 +158,49 @@ void Draw::processDocument(cmark_node *root_node)
     {
         cmark_node *cur = cmark_iter_get_node(iter);
         processNode(cur, ev_type);
+    }
+}
+
+void Draw::selectAll()
+{
+    auto buffer = get_buffer();
+    buffer->select_range(buffer->begin(), buffer->end());
+}
+
+void Draw::cut()
+{
+    bool isEditable = get_editable();
+    if (isEditable)
+    {
+        auto buffer = get_buffer();
+        auto clipboard = get_clipboard("CLIPBOARD");
+        buffer->cut_clipboard(clipboard);
+    }
+    else
+    {
+        auto buffer = get_buffer();
+        auto clipboard = get_clipboard("CLIPBOARD");
+        buffer->copy_clipboard(clipboard);
+    }
+}
+
+void Draw::copy()
+{
+    auto buffer = get_buffer();
+    auto clipboard = get_clipboard("CLIPBOARD");
+    buffer->copy_clipboard(clipboard);
+}
+
+void Draw::paste()
+{
+    bool isEditable = get_editable();
+    if (isEditable)
+    {
+        auto buffer = get_buffer();
+        auto pasteIter = buffer->get_iter_at_offset(0);
+        auto clipboard = get_clipboard("CLIPBOARD");
+        buffer->select_range(pasteIter, pasteIter);
+        buffer->paste_clipboard(clipboard);
     }
 }
 

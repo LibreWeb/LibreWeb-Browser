@@ -15,6 +15,10 @@ public:
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
     void processDocument(cmark_node *root_node);
+    void selectAll();
+    void cut();
+    void copy();
+    void paste();
 
 protected:
     // Signals

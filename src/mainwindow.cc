@@ -27,7 +27,13 @@ MainWindow::MainWindow()
     add_accel_group(accelGroup);
 
     // Connect signals
-    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
+    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
+    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));
+    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));
+    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));
+    //m_menu.del.connect(sigc::mem_fun(m_draw, &Draw::del));
+    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll));
+    //m_menu.find.connect(sigc::mem_fun(this, &MainWindow::find));
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
@@ -112,33 +118,38 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
     if (m_requestThread == nullptr)
     {
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
-        if (setAddressBar)
-            m_addressBar.set_text(path);
-        // Do not insert history back/forward calls into the history (again)
-        if (!isHistoryRequest)
-        {
-            if (history.size() == 0)
-            {
-                history.push_back(path);
-                currentHistoryIndex = history.size() - 1;
-            }
-            else if (history.size() > 0 && !path.empty() && (history.back().compare(path) != 0))
-            {
-                history.push_back(path);
-                currentHistoryIndex = history.size() - 1;
-            }
-        }
-        // Enable back/forward buttons when possible
-        m_backButton.set_sensitive(currentHistoryIndex > 0);
-        m_menu.setBackMenuSensitive(currentHistoryIndex > 0);
-        m_forwardButton.set_sensitive(currentHistoryIndex < history.size() - 1);
-        m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
+        postDoRequest(path, setAddressBar, isHistoryRequest);
     }
 }
 
-Glib::RefPtr<Gtk::AccelGroup> &MainWindow::getAccelGroup()
+/**
+ * Post processing request actions
+ */
+void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest)
 {
-    return accelGroup;
+    if (setAddressBar)
+        m_addressBar.set_text(path);
+
+    // Do not insert history back/forward calls into the history (again)
+    if (!isHistoryRequest)
+    {
+        if (history.size() == 0)
+        {
+            history.push_back(path);
+            currentHistoryIndex = history.size() - 1;
+        }
+        else if (history.size() > 0 && !path.empty() && (history.back().compare(path) != 0))
+        {
+            history.push_back(path);
+            currentHistoryIndex = history.size() - 1;
+        }
+    }
+
+    // Enable back/forward buttons when possible
+    m_backButton.set_sensitive(currentHistoryIndex > 0);
+    m_menu.setBackMenuSensitive(currentHistoryIndex > 0);
+    m_forwardButton.set_sensitive(currentHistoryIndex < history.size() - 1);
+    m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
 }
 
 void MainWindow::go_home()

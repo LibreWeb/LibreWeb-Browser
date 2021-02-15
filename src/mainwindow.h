@@ -19,7 +19,6 @@ class MainWindow : public Gtk::Window
 public:
     MainWindow();
     void doRequest(const std::string &path= std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
-    Glib::RefPtr<Gtk::AccelGroup>& getAccelGroup(); 
 
 protected:
     // Signal handlers:
@@ -62,6 +61,7 @@ private:
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
 
+    void postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest);
     void processRequest(const std::string &path);
     void fetchFromIPFS();
     void openFromDisk();
