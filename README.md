@@ -16,10 +16,10 @@ The current success criteria:
 
 * Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
 * Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
-* **Decentralized** (no single failure or censorship), like: P2P, DHT and IPFS;
+* **Decentralized** (no single-point of failure or censorship), like: P2P, DHT and IPFS;
 * *No* client-server approach (the client is also the server and visa versa) - think **mesh network**.
 * **Encrypted** transfers;
-* Data is stored **redundantly** within the network (no single failure);
+* Data is stored **redundantly** within the network (no single-point of failure);
 * **Versioning**/revisions of content and documenents (automatically solves broken 'links', that can't happy anymore);
 * Publisher user should be able to add additional information about the document/page, eg. title or path (similar in how Jekyll is using the `YML` format for meta data)
 * Human-readable source-code (eg. `Markdown`, could be extended as well);

@@ -67,8 +67,9 @@ Draw::Draw(MainWindow &mainWindow)
     heading6.set_size(fontSize * PANGO_SCALE_MEDIUM);
     heading6.set_weight(Pango::WEIGHT_BOLD);
 
-    // Click event
+    // Connect Signals
     signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
+    signal_populate_popup().connect(sigc::mem_fun(this, &Draw::populate_popup));
 }
 
 /**
@@ -104,6 +105,47 @@ void Draw::event_after(GdkEvent *ev)
     get_iter_at_location(iter, x, y);
     // Find the links
     followLink(iter);
+}
+
+/**
+ * Adapt right-click menu in textview
+ */
+void Draw::populate_popup(Gtk::Menu *menu)
+{
+    auto items = menu->get_children();
+    for (auto *item : items)
+    {
+        Gtk::MenuItem *menuItem = static_cast<Gtk::MenuItem *>(item);
+        std::string name = menuItem->get_label();
+        if (name.compare("Cu_t") == 0)
+        {
+            menuItem->set_label("Cu_t (Ctrl+X)");
+        }
+        else if (name.compare("_Copy") == 0)
+        {
+            menuItem->set_label("_Copy (Ctrl+C)");
+        }
+        else if (name.compare("_Paste") == 0)
+        {
+            menuItem->set_label("_Paste (Ctrl+V)");
+        }
+        else if (name.compare("_Delete") == 0)
+        {
+            menuItem->set_label("_Delete (Del)");
+        }
+        else if (name.compare("Select _All") == 0)
+        {
+            menuItem->set_label("Select _All (Ctrl+A)");
+        }
+        else if (name.compare("Insert _Emoji") == 0)
+        {
+            item->hide();
+        }
+    }
+    Gtk::MenuItem *sourceCodeMenuItem = Gtk::manage(new Gtk::MenuItem("View Source", true));
+    sourceCodeMenuItem->signal_activate().connect(source_code);
+    sourceCodeMenuItem->show();
+    menu->append(*sourceCodeMenuItem);
 }
 
 /**
@@ -554,7 +596,7 @@ gboolean Draw::insertLinkIdle(struct DispatchData *data)
     GtkTextTag *tag;
     gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
     tag = gtk_text_buffer_create_tag(data->buffer, NULL,
-                                     "foreground", "blue",
+                                     "foreground", "#1a0dab",
                                      "underline", PANGO_UNDERLINE_SINGLE,
                                      NULL);
     g_object_set_data(G_OBJECT(tag), "url", g_strdup(data->url.c_str()));

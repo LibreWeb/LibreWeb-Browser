@@ -24,6 +24,7 @@ public:
     sigc::signal<void> back;
     sigc::signal<void> forward;
     sigc::signal<void> reload;
+    sigc::signal<void> home;
     sigc::signal<void> source_code;
     sigc::signal<void> about;
 

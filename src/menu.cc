@@ -44,6 +44,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto reloadMenuItem = createMenuItem("_Reload Page");
     reloadMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_R, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     reloadMenuItem->signal_activate().connect(reload);
+    auto homePageMenuItem = createMenuItem("_Homepage");
+    homePageMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_Home, Gdk::ModifierType::MOD1_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    homePageMenuItem->signal_activate().connect(home);
     auto sourceCodeMenuItem = createMenuItem("View _Source");
     sourceCodeMenuItem->signal_activate().connect(source_code);
 
@@ -64,6 +67,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     m_viewSubmenu.append(*backMenuItem);
     m_viewSubmenu.append(*forwardMenuItem);
     m_viewSubmenu.append(*reloadMenuItem);
+    m_viewSubmenu.append(*homePageMenuItem);    
     m_viewSubmenu.append(m_separator3);
     m_viewSubmenu.append(*sourceCodeMenuItem);
     m_helpSubmenu.append(*aboutMenuItem);

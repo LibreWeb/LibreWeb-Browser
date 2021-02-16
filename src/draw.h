@@ -2,6 +2,7 @@
 #define DRAW_H
 
 #include <gtkmm/textview.h>
+#include <gtkmm/menu.h>
 #include <pangomm/layout.h>
 #include <cmark-gfm.h>
 
@@ -11,6 +12,8 @@ struct DispatchData;
 class Draw : public Gtk::TextView
 {
 public:
+    sigc::signal<void> source_code;
+
     explicit Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
@@ -23,6 +26,7 @@ public:
 protected:
     // Signals
     void event_after(GdkEvent *ev);
+    void populate_popup(Gtk::Menu *menu);
 
 private:
     void followLink(Gtk::TextBuffer::iterator &iter);
