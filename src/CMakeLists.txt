@@ -26,6 +26,19 @@ pkg_check_modules(CAIRO cairomm-1.0)
 
 add_definitions(${GTKMM_CFLAGS_OTHER})
 
+# Add JSON Parser via CMake Fetch Content feature
+include(FetchContent)
+
+FetchContent_Declare(json
+  GIT_REPOSITORY https://github.com/ArthurSonzogni/nlohmann_json_cmake_fetchcontent
+  GIT_TAG v3.9.1)
+
+FetchContent_GetProperties(json)
+if(NOT json_POPULATED)
+  FetchContent_Populate(json)
+  add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   # Include CPack packaging settings
   #include(packaging)
@@ -87,6 +100,6 @@ target_link_directories(${PROJECT_TARGET} PRIVATE
   ${CAIRO_LIBRARY_DIRS}
 )
 
-target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES})
+target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES} nlohmann_json::nlohmann_json)
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)

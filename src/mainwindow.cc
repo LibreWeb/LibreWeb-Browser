@@ -5,6 +5,7 @@
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 #include "md-parser.h"
 #include "menu.h"
@@ -27,12 +28,12 @@ MainWindow::MainWindow()
     add_accel_group(accelGroup);
 
     // Connect signals
-    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
-    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));                                                           /*!< Menu item for cut text */
-    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));                                                         /*!< Menu item for copy text */
-    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));                                                       /*!< Menu item for paste text */
+    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide)); /*!< hide main window and therefor closes the app */
+    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));       /*!< Menu item for cut text */
+    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));     /*!< Menu item for copy text */
+    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));   /*!< Menu item for paste text */
     //m_menu.del.connect(sigc::mem_fun(m_draw, &Draw::del));
-    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll));                                              /*!< Menu item for selecting all text */
+    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll)); /*!< Menu item for selecting all text */
     //m_menu.find.connect(sigc::mem_fun(this, &MainWindow::find));
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
@@ -42,13 +43,13 @@ MainWindow::MainWindow()
     m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
     m_draw.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));
-    m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
-    m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                                   /*!< Button for previous page */
-    m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
-    m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
-    m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
-    m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
-    
+    m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                  /*!< Close about dialog */
+    m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
+    m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
+    m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));            /*!< Button for reloading the page */
+    m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
+    m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
+
     m_vbox.pack_start(m_menu, false, false, 0);
 
     // Horizontal bar
@@ -256,9 +257,24 @@ void MainWindow::fetchFromIPFS()
     }
     catch (const std::runtime_error &error)
     {
-        std::cerr << "Error: IPFS request failed, with message: " << error.what() << std::endl;
-        // Show not found (or any other issue)
-        m_draw.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
+        std::string errorMessage = std::string(error.what());
+        std::cerr << "Error: IPFS request failed, with message: " << errorMessage << std::endl;
+        if (errorMessage.starts_with("HTTP request failed with status code"))
+        {
+            // Remove text until ':\n'
+            errorMessage.erase(0, errorMessage.find(':') + 2);
+            auto content = nlohmann::json::parse(errorMessage);
+            std::string message = content.value("Message", "");
+            m_draw.showMessage("Page not found!", message);
+        }
+        else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
+        {
+            m_draw.showMessage("Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
+        }
+        else
+        {
+            m_draw.showMessage("Something went wrong", "Error message: " + std::string(error.what()));
+        }
     }
 }
 
@@ -278,7 +294,7 @@ void MainWindow::openFromDisk()
     catch (const std::runtime_error &error)
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
-        m_draw.showMessage("Page not found!", "Detailed error message: " + std::string(error.what()));
+        m_draw.showMessage("Page not found!", "Error message: " + std::string(error.what()));
     }
 }
 
