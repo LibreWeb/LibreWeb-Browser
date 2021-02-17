@@ -7,6 +7,8 @@
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
 #include <gtkmm/entry.h>
+#include <gtkmm/searchbar.h>
+#include <gtkmm/searchentry.h>
 #include <thread>
 #include "menu.h"
 #include "file.h"
@@ -28,6 +30,8 @@ protected:
     // Signal handlers
     void go_home();
     void address_bar_activate();
+    void do_search();
+    void show_search();
     void back();
     void forward();
     void refresh();
@@ -43,8 +47,11 @@ protected:
     Draw m_draw;
     SourceCodeDialog m_sourceCodeDialog;
     About m_about;
+    Gtk::SearchBar m_search;
+    Gtk::SearchEntry m_searchEntry;
     Gtk::Box m_vbox;
-    Gtk::Box m_hbox_bar;
+    Gtk::Box m_hboxBar;
+    Gtk::Box m_hboxBottom;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;

@@ -15,7 +15,8 @@ MainWindow::MainWindow()
       m_menu(accelGroup),
       m_draw(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
-      m_hbox_bar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxBar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
@@ -28,13 +29,13 @@ MainWindow::MainWindow()
     add_accel_group(accelGroup);
 
     // Connect signals
-    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));        /*!< hide main window and therefor closes the app */
-    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));              /*!< Menu item for cut text */
-    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));            /*!< Menu item for copy text */
-    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));          /*!< Menu item for paste text */
-    m_menu.del.connect(sigc::mem_fun(m_draw, &Draw::del));              /*!< Menu item for deleting selected text */
-    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll)); /*!< Menu item for selecting all text */
-    //m_menu.find.connect(sigc::mem_fun(this, &MainWindow::find));
+    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
+    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));                                                           /*!< Menu item for cut text */
+    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));                                                         /*!< Menu item for copy text */
+    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));                                                       /*!< Menu item for paste text */
+    m_menu.del.connect(sigc::mem_fun(m_draw, &Draw::del));                                                           /*!< Menu item for deleting selected text */
+    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll));                                              /*!< Menu item for selecting all text */
+    m_menu.find.connect(sigc::mem_fun(this, &MainWindow::show_search));                                              /*!< Menu item for finding text */
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
@@ -49,6 +50,7 @@ MainWindow::MainWindow()
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
     m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
+    m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::do_search));                           /*!< Execute the text search */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -78,20 +80,26 @@ MainWindow::MainWindow()
     m_backButton.set_sensitive(false);
     m_forwardButton.set_sensitive(false);
 
-    m_hbox_bar.pack_start(m_backButton, false, false, 0);
-    m_hbox_bar.pack_start(m_forwardButton, false, false, 0);
-    m_hbox_bar.pack_start(m_refreshButton, false, false, 0);
-    m_hbox_bar.pack_start(m_homeButton, false, false, 0);
-    m_hbox_bar.pack_start(m_addressBar, true, true, 8);
-    m_vbox.pack_start(m_hbox_bar, false, false, 6);
+    m_hboxBar.pack_start(m_backButton, false, false, 0);
+    m_hboxBar.pack_start(m_forwardButton, false, false, 0);
+    m_hboxBar.pack_start(m_refreshButton, false, false, 0);
+    m_hboxBar.pack_start(m_homeButton, false, false, 0);
+    m_hboxBar.pack_start(m_addressBar, true, true, 8);
+    m_vbox.pack_start(m_hboxBar, false, false, 6);
 
     // Browser text drawing area
     m_scrolledWindow.add(m_draw);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
-    m_vbox.pack_end(m_scrolledWindow, true, true, 0);
+    m_search.connect_entry(m_searchEntry);
+    m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
+    m_vbox.pack_start(m_scrolledWindow, true, true, 0);
+    m_vbox.pack_end(m_hboxBottom, false, true, 6);
+
     add(m_vbox);
     show_all_children();
+    // Hide bottom horizontal bar by default
+    m_hboxBottom.hide();
 
     // Grap focus to input field by default
     m_addressBar.grab_focus();
@@ -165,11 +173,33 @@ void MainWindow::go_home()
 }
 
 /**
- * Trigger when user input text in address bar
+ * Trigger when pressed enter in the search entry
+ */
+void MainWindow::do_search()
+{
+    std::cout << "Search for: " << m_searchEntry.get_text() << std::endl;
+}
+
+/**
+ * Trigger when pressed enter in the address bar
  */
 void MainWindow::address_bar_activate()
 {
     doRequest(m_addressBar.get_text());
+}
+
+void MainWindow::show_search()
+{
+    if (m_hboxBottom.is_visible())
+    {
+        m_hboxBottom.hide();
+        m_addressBar.grab_focus();
+    }
+    else
+    {
+        m_hboxBottom.show();
+        m_searchEntry.grab_focus();
+    }
 }
 
 void MainWindow::back()
