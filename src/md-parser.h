@@ -10,7 +10,7 @@
  * \class Parser
  * \brief Parser Markdown parser class, parse the content to an AST model
  */
-class 
+class Parser
 {
 public:
     // Singleton
