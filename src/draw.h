@@ -7,6 +7,11 @@
 #include <cmark-gfm.h>
 
 class MainWindow;
+
+/**
+ * \struct DispatchData
+ * \brief Data struct for dispatching calls to GTK thread (on idle)
+ */
 struct DispatchData;
 
 /**

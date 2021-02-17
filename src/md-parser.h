@@ -5,10 +5,12 @@
 #include <cmark-gfm.h>
 #include <render.h>
 #include <sstream>
+
 /**
- * \class Parser Markdown parser class, parse the content to an AST model
+ * \class Parser
+ * \brief Parser Markdown parser class, parse the content to an AST model
  */
-class Parser
+class 
 {
 public:
     // Singleton
