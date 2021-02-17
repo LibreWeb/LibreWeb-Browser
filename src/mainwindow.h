@@ -14,6 +14,10 @@
 #include "source-code-dialog.h"
 #include "draw.h"
 
+/**
+ * \class MainWindow
+ * \brief Main Application Window
+ */
 class MainWindow : public Gtk::Window
 {
 public:

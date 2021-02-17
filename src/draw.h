@@ -9,6 +9,10 @@
 class MainWindow;
 struct DispatchData;
 
+/**
+ * \class Draw
+ * \brief Draw text area, where the document content will be displayed
+ */
 class Draw : public Gtk::TextView
 {
 public:

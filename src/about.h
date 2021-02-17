@@ -6,7 +6,7 @@
 
 /**
  * \class About
- * \brief About dialog
+ * \brief About dialog window
  */
 class About: public Gtk::AboutDialog
 {

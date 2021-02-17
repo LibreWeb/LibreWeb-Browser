@@ -6,6 +6,10 @@
 #include <gtkmm/scrolledwindow.h>
 #include <string>
 
+/**
+ * \class SourceCodeDialog
+ * \brief Source-code pop-up window
+ */
 class SourceCodeDialog : public Gtk::Dialog
 {
 public:
