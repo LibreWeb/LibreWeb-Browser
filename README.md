@@ -51,6 +51,11 @@ For the build you need at least:
 * GTK & Cairo & Pango (including C++ bindings):
     - Package: `libgtkmm-3.0-dev` under Debian based distros
 
+
+### Documentation
+
+See latest [DWeb Browser Docs](https://gitlab.melroy.org/dwww/dbrowser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
+
 ### Diagrams
 
 There existing several design and/or research diagrams of Browser by using PlantUML. Sometimes words aren't enough to explain yourself.

@@ -6,13 +6,22 @@ variables:
 static_code_analysis:
   script: ./check.sh
 
+doxygen:
+   #stage: analysis
+   before_script:
+     - mkdir -p build/docs
+   script:
+     - doxygen docs/Doxyfile
+   artifacts:
+     paths:
+       - build/docs/html/
+
 build:
   script: ./scripts/build_prod.sh
   artifacts:
     name: "Packages + Documentation"
     expire_in: 1 week
     paths:
-    #- doc/doxygen/
     - build_prod/browser-*.deb
     - build_prod/browser-*.rpm
     - build_prod/browser-*.tar.gz
