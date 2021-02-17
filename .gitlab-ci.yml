@@ -19,8 +19,8 @@ doxygen:
 build:
   script: ./scripts/build_prod.sh
   artifacts:
-    name: "Packages + Documentation"
-    expire_in: 1 week
+    name: "Packages"
+    expire_in: 2 weeks
     paths:
     - build_prod/browser-*.deb
     - build_prod/browser-*.rpm
