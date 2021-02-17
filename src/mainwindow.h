@@ -25,8 +25,7 @@ public:
     void doRequest(const std::string &path= std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
 
 protected:
-    // Signal handlers:
-    // Our new improved on_button_clicked(). (see below)
+    // Signal handlers
     void go_home();
     void address_bar_activate();
     void back();
@@ -37,7 +36,8 @@ protected:
     void hide_about(int response);
     void show_source_code_dialog();
 
-    Glib::RefPtr<Gtk::AccelGroup> accelGroup;
+    Glib::RefPtr<Gtk::AccelGroup> accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
+
     // Child widgets
     Menu m_menu;
     Draw m_draw;

@@ -31,6 +31,7 @@ public:
     void cut();
     void copy();
     void paste();
+    void del();
 
 protected:
     // Signals

@@ -246,6 +246,20 @@ void Draw::paste()
     }
 }
 
+void Draw::del()
+{
+    bool isEditable = get_editable();
+    if (isEditable)
+    {
+        auto buffer = get_buffer();
+        Gtk::TextBuffer::iterator begin, end;
+        if (buffer->get_selection_bounds(begin, end))
+        {
+            buffer->erase(begin, end);
+        }
+    }
+}
+
 /**
  * Process and parse each node in the AST
  */
