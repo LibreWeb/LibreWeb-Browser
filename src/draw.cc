@@ -205,20 +205,36 @@ void Draw::processDocument(cmark_node *root_node)
 
 void Draw::selectAll()
 {
-    auto buffer = get_buffer();
-    buffer->select_range(buffer->begin(), buffer->end());
+    if (has_focus())
+    {
+        auto buffer = get_buffer();
+        buffer->select_range(buffer->begin(), buffer->end());
+    }
 }
 
 void Draw::cut()
 {
-    bool isEditable = get_editable();
-    if (isEditable)
+    if (has_focus())
     {
-        auto buffer = get_buffer();
-        auto clipboard = get_clipboard("CLIPBOARD");
-        buffer->cut_clipboard(clipboard);
+        bool isEditable = get_editable();
+        if (isEditable)
+        {
+            auto buffer = get_buffer();
+            auto clipboard = get_clipboard("CLIPBOARD");
+            buffer->cut_clipboard(clipboard);
+        }
+        else
+        {
+            auto buffer = get_buffer();
+            auto clipboard = get_clipboard("CLIPBOARD");
+            buffer->copy_clipboard(clipboard);
+        }
     }
-    else
+}
+
+void Draw::copy()
+{
+    if (has_focus())
     {
         auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
@@ -226,17 +242,11 @@ void Draw::cut()
     }
 }
 
-void Draw::copy()
-{
-    auto buffer = get_buffer();
-    auto clipboard = get_clipboard("CLIPBOARD");
-    buffer->copy_clipboard(clipboard);
-}
-
 void Draw::paste()
 {
     bool isEditable = get_editable();
-    if (isEditable)
+    bool hasFocus = has_focus();
+    if (isEditable && hasFocus)
     {
         auto buffer = get_buffer();
         auto pasteIter = buffer->get_iter_at_offset(0);
@@ -249,7 +259,8 @@ void Draw::paste()
 void Draw::del()
 {
     bool isEditable = get_editable();
-    if (isEditable)
+    bool hasFocus = has_focus();
+    if (isEditable && hasFocus)
     {
         auto buffer = get_buffer();
         Gtk::TextBuffer::iterator begin, end;
