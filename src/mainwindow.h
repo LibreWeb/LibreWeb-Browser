@@ -62,6 +62,7 @@ protected:
     Gtk::Image refreshIcon;
     Gtk::Image homeIcon;
     Gtk::ScrolledWindow m_scrolledWindow;
+    Gtk::Button m_exitBottomButton;
 
 private:
     File m_file;
