@@ -28,6 +28,7 @@ public:
 
 protected:
     // Signal handlers
+    void new_doc();
     void go_home();
     void address_bar_activate();
     void do_search();

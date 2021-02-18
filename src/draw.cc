@@ -35,14 +35,13 @@ Draw::Draw(MainWindow &mainWindow)
       heading3(fontFamily),
       heading4(fontFamily)
 {
-    set_editable(false);
+    this->disableEdit();
     set_indent(15);
     set_left_margin(10);
     set_right_margin(10);
     set_top_margin(5);
     set_bottom_margin(5);
     set_monospace(true);
-    set_cursor_visible(false);
     set_app_paintable(true);
 
     defaultFont.set_size(fontSize);
@@ -148,6 +147,22 @@ void Draw::populate_popup(Gtk::Menu *menu)
     menu->append(*sourceCodeMenuItem);
 }
 
+/************************************************
+ * Private methods
+ ************************************************/
+
+void Draw::disableEdit()
+{
+    set_editable(false);
+    set_cursor_visible(false);
+}
+
+void Draw::enableEdit()
+{
+    set_editable(true);
+    set_cursor_visible(true);
+}
+
 /**
  * Search for links
  */
@@ -168,7 +183,9 @@ void Draw::followLink(Gtk::TextBuffer::iterator &iter)
 
 void Draw::showMessage(const std::string &message, const std::string &detailed_info)
 {
-    this->clear();
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
 
     insertHeading1(message);
     insertText(detailed_info);
@@ -179,7 +196,9 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
  */
 void Draw::showStartPage()
 {
-    this->clear();
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
 
     insertHeading1("Welcome to the Decentralized Web (DWeb)");
     insertText("See also the: ");
@@ -191,7 +210,9 @@ void Draw::showStartPage()
  */
 void Draw::processDocument(cmark_node *root_node)
 {
-    this->clear();
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
 
     // Loop over AST nodes
     cmark_event_type ev_type;
@@ -249,9 +270,7 @@ void Draw::paste()
     if (isEditable && hasFocus)
     {
         auto buffer = get_buffer();
-        auto pasteIter = buffer->get_iter_at_offset(0);
         auto clipboard = get_clipboard("CLIPBOARD");
-        buffer->select_range(pasteIter, pasteIter);
         buffer->paste_clipboard(clipboard);
     }
 }
@@ -269,6 +288,20 @@ void Draw::del()
             buffer->erase(begin, end);
         }
     }
+}
+
+void Draw::newDocument()
+{
+    this->clearBuffer();
+    enableEdit();
+    grab_focus(); // Claim focus on text view
+    insertLinkTemplate();
+}
+
+void Draw::insertLinkTemplate()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("[link](ipfs://yourserver)");
 }
 
 /**
@@ -528,64 +561,17 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     }
 }
 
+/**
+ * Insert markup text - thread safe
+ */
 void Draw::insertText(const std::string &text)
 {
-    insertMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
+    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::insertHeading1(const std::string &text)
-{
-    insertMarkupText("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertHeading2(const std::string &text)
-{
-    insertMarkupText("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertHeading3(const std::string &text)
-{
-    insertMarkupText("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertHeading4(const std::string &text)
-{
-    insertMarkupText("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertHeading5(const std::string &text)
-{
-    insertMarkupText("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertHeading6(const std::string &text)
-{
-    insertMarkupText("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
-}
-
-void Draw::insertBold(const std::string &text)
-{
-    insertMarkupText("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertItalic(const std::string &text)
-{
-    insertMarkupText("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertBoldItalic(const std::string &text)
-{
-    insertMarkupText("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertMarkupText(const std::string &text)
-{
-    DispatchData *data = g_new0(struct DispatchData, 1);
-    data->buffer = buffer;
-    data->text = text;
-    gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
-}
-
+/**
+ * Insert url link - thread safe
+ */
 void Draw::insertLink(const std::string &text, const std::string &url)
 {
     DispatchData *data = g_new0(struct DispatchData, 1);
@@ -595,9 +581,72 @@ void Draw::insertLink(const std::string &text, const std::string &url)
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
 }
 
-void Draw::clear()
+void Draw::insertHeading1(const std::string &text)
 {
-    gdk_threads_add_idle((GSourceFunc)clearIdle, buffer);
+    insertMarkupTextOnThread("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertHeading2(const std::string &text)
+{
+    insertMarkupTextOnThread("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertHeading3(const std::string &text)
+{
+    insertMarkupTextOnThread("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertHeading4(const std::string &text)
+{
+    insertMarkupTextOnThread("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertHeading5(const std::string &text)
+{
+    insertMarkupTextOnThread("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertHeading6(const std::string &text)
+{
+    insertMarkupTextOnThread("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
+}
+
+void Draw::insertBold(const std::string &text)
+{
+    insertMarkupTextOnThread("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
+}
+
+void Draw::insertItalic(const std::string &text)
+{
+    insertMarkupTextOnThread("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
+}
+
+void Draw::insertBoldItalic(const std::string &text)
+{
+    insertMarkupTextOnThread("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
+}
+
+/******************************************************
+ * Helper functions below
+ *****************************************************/
+
+/**
+ * Insert markup pango text - thread safe
+ */
+void Draw::insertMarkupTextOnThread(const std::string &text)
+{
+    DispatchData *data = g_new0(struct DispatchData, 1);
+    data->buffer = buffer;
+    data->text = text;
+    gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
+}
+
+/**
+ * Clear buffer - thread-safe
+ */
+void Draw::clearOnThread()
+{
+    gdk_threads_add_idle((GSourceFunc)clearBufferIdle, buffer);
 }
 
 /**
@@ -631,15 +680,24 @@ gboolean Draw::insertLinkIdle(struct DispatchData *data)
 }
 
 /**
- * Clear Text on Idle Call function
+ * clearOnThread Text on Idle Call function
  */
-gboolean Draw::clearIdle(GtkTextBuffer *textBuffer)
+gboolean Draw::clearBufferIdle(GtkTextBuffer *textBuffer)
 {
     GtkTextIter start_iter, end_iter;
     gtk_text_buffer_get_start_iter(textBuffer, &start_iter);
     gtk_text_buffer_get_end_iter(textBuffer, &end_iter);
     gtk_text_buffer_delete(textBuffer, &start_iter, &end_iter);
     return FALSE;
+}
+
+/**
+ * Clear buffer
+ */
+void Draw::clearBuffer()
+{
+    auto buffer = get_buffer();
+    buffer->erase(buffer->begin(), buffer->end());
 }
 
 /**

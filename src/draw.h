@@ -32,6 +32,8 @@ public:
     void copy();
     void paste();
     void del();
+    void newDocument();
+    void insertLinkTemplate();
 
 protected:
     // Signals
@@ -39,11 +41,13 @@ protected:
     void populate_popup(Gtk::Menu *menu);
 
 private:
+    void disableEdit();
+    void enableEdit();
     void followLink(Gtk::TextBuffer::iterator &iter);
-
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
     void insertText(const std::string &text);
+    void insertLink(const std::string &text, const std::string &url);
     void insertHeading1(const std::string &text);
     void insertHeading2(const std::string &text);
     void insertHeading3(const std::string &text);
@@ -54,12 +58,12 @@ private:
     void insertBold(const std::string &text);
     void insertBoldItalic(const std::string &text);
 
-    void insertMarkupText(const std::string &text);
-    void insertLink(const std::string &text, const std::string &url);
-    void clear();
+    void insertMarkupTextOnThread(const std::string &text);
+    void clearOnThread();
     static gboolean insertTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
-    static gboolean clearIdle(GtkTextBuffer *textBuffer);
+    static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
+    void clearBuffer();
     static std::string const intToRoman(int num);
 
     MainWindow &mainWindow;

@@ -29,6 +29,7 @@ MainWindow::MainWindow()
     add_accel_group(accelGroup);
 
     // Connect signals
+    m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
     m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));                                                           /*!< Menu item for cut text */
     m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));                                                         /*!< Menu item for copy text */
@@ -50,7 +51,7 @@ MainWindow::MainWindow()
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
     m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
-    m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::do_search));                           /*!< Execute the text search */
+    m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::do_search));                            /*!< Execute the text search */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -166,6 +167,12 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
     m_menu.setBackMenuSensitive(currentHistoryIndex > 0);
     m_forwardButton.set_sensitive(currentHistoryIndex < history.size() - 1);
     m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
+}
+
+void MainWindow::new_doc()
+{
+    // Inform about new document in draw
+    m_draw.newDocument();
 }
 
 void MainWindow::go_home()
