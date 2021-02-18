@@ -14,6 +14,11 @@
 class Menu : public Gtk::MenuBar
 {
 public:
+    sigc::signal<void> new_doc;
+    sigc::signal<void> open;
+    sigc::signal<void> save;
+    sigc::signal<void> save_as;
+    sigc::signal<void> publish;
     sigc::signal<void> quit;
     sigc::signal<void> cut;
     sigc::signal<void> copy;
@@ -46,6 +51,7 @@ protected:
     Gtk::SeparatorMenuItem m_separator1;
     Gtk::SeparatorMenuItem m_separator2;
     Gtk::SeparatorMenuItem m_separator3;
+    Gtk::SeparatorMenuItem m_separator4;
 
 private:
     Gtk::MenuItem *createMenuItem(const Glib::ustring &label_text);

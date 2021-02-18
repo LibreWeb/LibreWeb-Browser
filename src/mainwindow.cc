@@ -91,13 +91,13 @@ MainWindow::MainWindow()
     m_scrolledWindow.add(m_draw);
     m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
 
-    // Search bar
+    // Bottom Search bar
     m_search.connect_entry(m_searchEntry);
     m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);
     m_exitBottomButton.set_label("\u2716");
     m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
+    m_hboxBottom.pack_start(m_exitBottomButton, false, false, 10);
     m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
-    m_hboxBottom.pack_end(m_exitBottomButton, false, false, 10);
     m_vbox.pack_start(m_scrolledWindow, true, true, 0);
     m_vbox.pack_end(m_hboxBottom, false, true, 6);
 

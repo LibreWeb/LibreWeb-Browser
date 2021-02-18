@@ -6,8 +6,22 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
       m_view("_View", true),
       m_help("_Help", true)
 {
-    // Create accelerator group
     // File sub-menu
+    auto newDocumentMenuItem = createMenuItem("_New Document");
+    newDocumentMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_N, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    newDocumentMenuItem->signal_activate().connect(new_doc);
+    auto openMenuItem = createMenuItem("_Open...");
+    openMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_O, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    openMenuItem->signal_activate().connect(open);
+    auto saveMenuitem = createMenuItem("_Save");
+    saveMenuitem->add_accelerator("activate", accelgroup, GDK_KEY_S, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    saveMenuitem->signal_activate().connect(save);
+    auto saveAsMenuItem = createMenuItem("Save _As...");
+    saveAsMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_S, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    saveAsMenuItem->signal_activate().connect(save_as);
+    auto publishMenuItem = createMenuItem("_Publish...");
+    publishMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_P, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    publishMenuItem->signal_activate().connect(publish);
     auto quitMenuItem = createMenuItem("_Quit");
     quitMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_Q, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     quitMenuItem->signal_activate().connect(quit);
@@ -55,20 +69,26 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     aboutMenuItem->signal_activate().connect(about);
 
     // Add items to sub-menus
+    m_fileSubmenu.append(*newDocumentMenuItem);
+    m_fileSubmenu.append(*openMenuItem);
+    m_fileSubmenu.append(*saveMenuitem);
+    m_fileSubmenu.append(*saveAsMenuItem);
+    m_fileSubmenu.append(*publishMenuItem);
+    m_fileSubmenu.append(m_separator1);
     m_fileSubmenu.append(*quitMenuItem);
     m_editSubmenu.append(*cutMenuItem);
     m_editSubmenu.append(*copyMenuItem);
     m_editSubmenu.append(*pasteMenuItem);
     m_editSubmenu.append(*deleteMenuItem);
-    m_editSubmenu.append(m_separator1);
-    m_editSubmenu.append(*selectAllMenuItem);
     m_editSubmenu.append(m_separator2);
+    m_editSubmenu.append(*selectAllMenuItem);
+    m_editSubmenu.append(m_separator3);
     m_editSubmenu.append(*findMenuItem);    
     m_viewSubmenu.append(*backMenuItem);
     m_viewSubmenu.append(*forwardMenuItem);
     m_viewSubmenu.append(*reloadMenuItem);
     m_viewSubmenu.append(*homePageMenuItem);    
-    m_viewSubmenu.append(m_separator3);
+    m_viewSubmenu.append(m_separator4);
     m_viewSubmenu.append(*sourceCodeMenuItem);
     m_helpSubmenu.append(*aboutMenuItem);
 
