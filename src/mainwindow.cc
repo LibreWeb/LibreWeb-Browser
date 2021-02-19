@@ -57,6 +57,7 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_menu, false, false, 0);
 
     // Editor buttons
+    m_headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
     m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_bold));
     m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_italic));
     m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_strikethrough));
@@ -100,6 +101,8 @@ MainWindow::MainWindow()
     m_highlightButton.add(hightlightIcon);
 
     // Disable focus on editor buttons
+    m_headingsComboBox.set_can_focus(false);
+    m_headingsComboBox.set_focus_on_click(false);
     m_boldButton.set_can_focus(false);
     m_italicButton.set_can_focus(false);
     m_strikethroughButton.set_can_focus(false);
@@ -113,6 +116,16 @@ MainWindow::MainWindow()
     m_bulletListButton.set_can_focus(false);
     m_numberedListButton.set_can_focus(false);
     m_highlightButton.set_can_focus(false);
+
+    // Populate the heading comboboxtext
+    m_headingsComboBox.append("", "Default Paragraph/Heading");
+    m_headingsComboBox.append("1", "Heading 1");
+    m_headingsComboBox.append("2", "Heading 2");
+    m_headingsComboBox.append("3", "Heading 3");
+    m_headingsComboBox.append("4", "Heading 4");
+    m_headingsComboBox.append("5", "Heading 5");
+    m_headingsComboBox.append("6", "Heading 6");
+    m_headingsComboBox.set_active(0);
 
     // Horizontal bar
     auto styleBack = m_backButton.get_style_context();
@@ -149,6 +162,7 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_hboxToolbar, false, false, 6);
 
     // Editor bar
+    m_hboxEditor.pack_start(m_headingsComboBox, false, false, 4);
     m_hboxEditor.pack_start(m_boldButton, false, false, 2);
     m_hboxEditor.pack_start(m_italicButton, false, false, 2);
     m_hboxEditor.pack_start(m_strikethroughButton, false, false, 2);
@@ -436,9 +450,37 @@ void MainWindow::openFromDisk()
     }
 }
 
-/// Show source code dialog window with the current content
+/**
+ * Show source code dialog window with the current content
+ */
 void MainWindow::show_source_code_dialog()
 {
     m_sourceCodeDialog.setText(currentContent);
     m_sourceCodeDialog.run();
+}
+
+/**
+ * Retrieve selected heading from combobox.
+ * Send to draw class
+ */
+void MainWindow::get_heading()
+{
+    std::string active = m_headingsComboBox.get_active_id();
+    if (active != "") {
+        std::string::size_type sz;
+        try
+        {
+            int headingLevel = std::stoi(active, &sz, 10);
+            m_draw.make_heading(headingLevel);
+        }
+        catch (std::invalid_argument)
+        {
+            // ignore
+            std::cerr << "Error: heading combobox id is invalid (not a number)." << std::endl;
+        }
+        catch (std::out_of_range)
+        {
+            // ignore
+        }
+    }
 }

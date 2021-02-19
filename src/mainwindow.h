@@ -6,6 +6,7 @@
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
+#include <gtkmm/comboboxtext.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
@@ -40,6 +41,7 @@ protected:
     void show_about();
     void hide_about(int response);
     void show_source_code_dialog();
+    void get_heading();
 
     Glib::RefPtr<Gtk::AccelGroup> accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
 
@@ -59,6 +61,7 @@ protected:
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
+    Gtk::ComboBoxText m_headingsComboBox;
     Gtk::Button m_boldButton;
     Gtk::Button m_italicButton;
     Gtk::Button m_strikethroughButton;

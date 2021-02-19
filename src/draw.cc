@@ -301,6 +301,13 @@ void Draw::newDocument()
  * Editor signals
  *************************************************************/
 
+void Draw::make_heading(int headingLevel)
+{
+    auto buffer = get_buffer();
+    std::string heading = std::string(headingLevel, '#');
+    buffer->insert_at_cursor(heading + " ");
+}
+
 void Draw::make_bold()
 {
     auto buffer = get_buffer();

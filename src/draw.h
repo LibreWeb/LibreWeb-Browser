@@ -35,6 +35,7 @@ public:
     void newDocument();
 
     // Signals editor calls
+    void make_heading(int headingLevel);
     void make_bold();
     void make_italic();
     void make_strikethrough();
