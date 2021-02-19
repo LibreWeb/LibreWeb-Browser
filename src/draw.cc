@@ -305,7 +305,7 @@ void Draw::make_heading(int headingLevel)
 {
     auto buffer = get_buffer();
     std::string heading = std::string(headingLevel, '#');
-    buffer->insert_at_cursor(heading + " ");
+    buffer->insert_at_cursor("\n" + heading + " ");
 }
 
 void Draw::make_bold()

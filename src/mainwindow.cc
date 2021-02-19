@@ -118,7 +118,7 @@ MainWindow::MainWindow()
     m_highlightButton.set_can_focus(false);
 
     // Populate the heading comboboxtext
-    m_headingsComboBox.append("", "Default Paragraph/Heading");
+    m_headingsComboBox.append("", "Select Heading");
     m_headingsComboBox.append("1", "Heading 1");
     m_headingsComboBox.append("2", "Heading 2");
     m_headingsComboBox.append("3", "Heading 3");
@@ -468,6 +468,7 @@ void MainWindow::show_source_code_dialog()
 void MainWindow::get_heading()
 {
     std::string active = m_headingsComboBox.get_active_id();
+    m_headingsComboBox.set_active(0); // Reset
     if (active != "") {
         std::string::size_type sz;
         try
