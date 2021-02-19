@@ -154,6 +154,7 @@ MainWindow::MainWindow()
     m_forwardButton.set_sensitive(false);
 
     // Toolbar
+    m_backButton.set_margin_left(6);
     m_hboxToolbar.pack_start(m_backButton, false, false, 0);
     m_hboxToolbar.pack_start(m_forwardButton, false, false, 0);
     m_hboxToolbar.pack_start(m_refreshButton, false, false, 0);
@@ -162,7 +163,8 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_hboxToolbar, false, false, 6);
 
     // Editor bar
-    m_hboxEditor.pack_start(m_headingsComboBox, false, false, 4);
+    m_headingsComboBox.set_margin_left(4);
+    m_hboxEditor.pack_start(m_headingsComboBox, false, false, 2);
     m_hboxEditor.pack_start(m_boldButton, false, false, 2);
     m_hboxEditor.pack_start(m_italicButton, false, false, 2);
     m_hboxEditor.pack_start(m_strikethroughButton, false, false, 2);
@@ -473,12 +475,12 @@ void MainWindow::get_heading()
             int headingLevel = std::stoi(active, &sz, 10);
             m_draw.make_heading(headingLevel);
         }
-        catch (std::invalid_argument)
+        catch (const std::invalid_argument&)
         {
             // ignore
             std::cerr << "Error: heading combobox id is invalid (not a number)." << std::endl;
         }
-        catch (std::out_of_range)
+        catch (const std::out_of_range&)
         {
             // ignore
         }
