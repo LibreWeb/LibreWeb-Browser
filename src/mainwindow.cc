@@ -15,15 +15,16 @@ MainWindow::MainWindow()
       m_menu(accelGroup),
       m_draw(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
-      m_hboxBar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_appName("DWeb Browser"),
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
       currentContent(""),
       currentHistoryIndex(0)
 {
-    set_title("DWeb Browser");
+    set_title(m_appName);
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
     add_accel_group(accelGroup);
@@ -46,14 +47,72 @@ MainWindow::MainWindow()
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
     m_draw.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                           /*!< Open source code dialog */
     m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
+    m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
     m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                                   /*!< Button for previous page */
     m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
-    m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
     m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::do_search));                            /*!< Execute the text search */
 
     m_vbox.pack_start(m_menu, false, false, 0);
+
+    // Editor buttons
+    m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_bold));
+    m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_italic));
+    m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_strikethrough));
+    m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_super));
+    m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_sub));
+    m_inlineCodeButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_inline_code));
+    m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_quote));
+    m_codeBlockButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_code_block));
+    m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_link));
+    m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_image));
+    m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_bullet_list));
+    m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_numbered_list));
+    m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_highlight));
+
+    // Add icons to the editor buttons
+    boldIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_boldButton.add(boldIcon);
+    italicIcon.set_from_icon_name("format-text-italic-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_italicButton.add(italicIcon);
+    strikethroughIcon.set_from_icon_name("format-text-strikethrough-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_strikethroughButton.add(strikethroughIcon);
+    superIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_superButton.add(superIcon);
+    subIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_subButton.add(subIcon);
+    inlineCodeIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_inlineCodeButton.add(inlineCodeIcon);
+    quoteIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_quoteButton.add(quoteIcon);
+    codeBlockIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_codeBlockButton.add(codeBlockIcon);
+    linkIcon.set_from_icon_name("insert-link-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_linkButton.add(linkIcon);
+    imageIcon.set_from_icon_name("insert-image-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_imageButton.add(imageIcon);
+    bulletIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_bulletListButton.add(bulletIcon);
+    numberedIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_numberedListButton.add(numberedIcon);
+    hightlightIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_highlightButton.add(hightlightIcon);
+
+    // Disable focus on editor buttons
+    m_boldButton.set_can_focus(false);
+    m_italicButton.set_can_focus(false);
+    m_strikethroughButton.set_can_focus(false);
+    m_superButton.set_can_focus(false);
+    m_subButton.set_can_focus(false);
+    m_inlineCodeButton.set_can_focus(false);
+    m_quoteButton.set_can_focus(false);
+    m_codeBlockButton.set_can_focus(false);
+    m_linkButton.set_can_focus(false);
+    m_imageButton.set_can_focus(false);
+    m_bulletListButton.set_can_focus(false);
+    m_numberedListButton.set_can_focus(false);
+    m_highlightButton.set_can_focus(false);
 
     // Horizontal bar
     auto styleBack = m_backButton.get_style_context();
@@ -67,7 +126,7 @@ MainWindow::MainWindow()
     m_refreshButton.set_relief(Gtk::RELIEF_NONE);
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
 
-    // Add icons to buttons
+    // Add icons to the toolbar buttons
     backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_backButton.add(backIcon);
     forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
@@ -81,12 +140,29 @@ MainWindow::MainWindow()
     m_backButton.set_sensitive(false);
     m_forwardButton.set_sensitive(false);
 
-    m_hboxBar.pack_start(m_backButton, false, false, 0);
-    m_hboxBar.pack_start(m_forwardButton, false, false, 0);
-    m_hboxBar.pack_start(m_refreshButton, false, false, 0);
-    m_hboxBar.pack_start(m_homeButton, false, false, 0);
-    m_hboxBar.pack_start(m_addressBar, true, true, 8);
-    m_vbox.pack_start(m_hboxBar, false, false, 6);
+    // Toolbar
+    m_hboxToolbar.pack_start(m_backButton, false, false, 0);
+    m_hboxToolbar.pack_start(m_forwardButton, false, false, 0);
+    m_hboxToolbar.pack_start(m_refreshButton, false, false, 0);
+    m_hboxToolbar.pack_start(m_homeButton, false, false, 0);
+    m_hboxToolbar.pack_start(m_addressBar, true, true, 8);
+    m_vbox.pack_start(m_hboxToolbar, false, false, 6);
+
+    // Editor bar
+    m_hboxEditor.pack_start(m_boldButton, false, false, 2);
+    m_hboxEditor.pack_start(m_italicButton, false, false, 2);
+    m_hboxEditor.pack_start(m_strikethroughButton, false, false, 2);
+    m_hboxEditor.pack_start(m_superButton, false, false, 2);
+    m_hboxEditor.pack_start(m_subButton, false, false, 2);
+    m_hboxEditor.pack_start(m_inlineCodeButton, false, false, 2);
+    m_hboxEditor.pack_start(m_quoteButton, false, false, 2);
+    m_hboxEditor.pack_start(m_codeBlockButton, false, false, 2);
+    m_hboxEditor.pack_start(m_linkButton, false, false, 2);
+    m_hboxEditor.pack_start(m_imageButton, false, false, 2);
+    m_hboxEditor.pack_start(m_bulletListButton, false, false, 2);
+    m_hboxEditor.pack_start(m_numberedListButton, false, false, 2);
+    m_hboxEditor.pack_start(m_highlightButton, false, false, 2);
+    m_vbox.pack_start(m_hboxEditor, false, false, 6);
 
     // Browser text drawing area
     m_scrolledWindow.add(m_draw);
@@ -104,8 +180,9 @@ MainWindow::MainWindow()
 
     add(m_vbox);
     show_all_children();
-    // Hide bottom horizontal bar by default
+    // Hide by default the bottom & editor box
     m_hboxBottom.hide();
+    m_hboxEditor.hide();
 
     // Grap focus to input field by default
     m_addressBar.grab_focus();
@@ -135,7 +212,7 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
     if (m_requestThread == nullptr)
     {
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
-        postDoRequest(path, setAddressBar, isHistoryRequest);
+        this->postDoRequest(path, setAddressBar, isHistoryRequest);
     }
 }
 
@@ -146,6 +223,8 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
 {
     if (setAddressBar)
         m_addressBar.set_text(path);
+
+    this->disableEditing();
 
     // Do not insert history back/forward calls into the history (again)
     if (!isHistoryRequest)
@@ -171,8 +250,10 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
 
 void MainWindow::new_doc()
 {
-    // Inform about new document in draw
+    // Inform the Draw class about the new document
     m_draw.newDocument();
+    // Enable editing mode
+    this->enableEditing();
 }
 
 void MainWindow::go_home()
@@ -181,6 +262,7 @@ void MainWindow::go_home()
     this->finalRequestPath = "";
     this->currentContent = "";
     this->m_addressBar.set_text("");
+    this->disableEditing();
     m_draw.showStartPage();
 }
 
@@ -237,6 +319,20 @@ void MainWindow::refresh()
     doRequest();
 }
 
+void MainWindow::enableEditing()
+{
+    this->m_hboxEditor.show();
+    set_title("Untitled * - " + m_appName);
+}
+
+void MainWindow::disableEditing()
+{
+    if (m_hboxEditor.is_visible())
+    {
+        this->m_hboxEditor.hide();
+        set_title(m_appName);
+    }
+}
 /**
  * Get the file from disk or IPFS network, from the provided path,
  * parse the content, and display the document

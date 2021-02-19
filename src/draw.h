@@ -33,7 +33,21 @@ public:
     void paste();
     void del();
     void newDocument();
-    void insertLinkTemplate();
+
+    // Signals editor calls
+    void make_bold();
+    void make_italic();
+    void make_strikethrough();
+    void make_super();
+    void make_sub();
+    void make_inline_code();
+    void make_quote();
+    void make_code_block();
+    void insert_link();
+    void insert_image();
+    void insert_bullet_list();
+    void insert_numbered_list();
+    void make_highlight();
 
 protected:
     // Signals

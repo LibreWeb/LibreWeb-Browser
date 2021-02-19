@@ -49,8 +49,7 @@ For the build you need at least:
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
 * GTK & Cairo & Pango (including C++ bindings):
-    - Package: `libgtkmm-3.0-dev` under Debian based distros
-
+  * Package: `libgtkmm-3.0-dev` under Debian based distros
 
 ### Documentation
 

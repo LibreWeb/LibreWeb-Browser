@@ -295,13 +295,88 @@ void Draw::newDocument()
     this->clearBuffer();
     enableEdit();
     grab_focus(); // Claim focus on text view
-    insertLinkTemplate();
 }
 
-void Draw::insertLinkTemplate()
+/*************************************************************
+ * Editor signals
+ *************************************************************/
+
+void Draw::make_bold()
 {
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("[link](ipfs://yourserver)");
+    buffer->insert_at_cursor("**text**");
+}
+
+void Draw::make_italic()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("*text*");
+}
+
+void Draw::make_strikethrough()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("~~text~~");
+}
+
+void Draw::make_super()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("^text^");
+}
+
+void Draw::make_sub()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("~text~");
+}
+
+void Draw::make_inline_code()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("`code`");
+}
+
+void Draw::make_quote()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("\n> text");
+}
+
+void Draw::make_code_block()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("\n\n```python\ncode\n```\n\n");
+}
+
+void Draw::insert_link()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("[link](ipfs://youraddress)");
+}
+
+void Draw::insert_image()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("![alt](ipfs://image.jpg)");
+}
+
+void Draw::insert_bullet_list()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("\n* item");
+}
+
+void Draw::insert_numbered_list()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("\n1. item");
+}
+
+void Draw::make_highlight()
+{
+    auto buffer = get_buffer();
+    buffer->insert_at_cursor("==text==");
 }
 
 /**
