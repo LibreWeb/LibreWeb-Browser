@@ -940,7 +940,7 @@ gboolean Draw::insertLinkIdle(struct DispatchData *data)
     GtkTextTag *tag;
     gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
     tag = gtk_text_buffer_create_tag(data->buffer, NULL,
-                                     "foreground", "#1a0dab",
+                                     "foreground", "#569cd6",
                                      "underline", PANGO_UNDERLINE_SINGLE,
                                      NULL);
     g_object_set_data(G_OBJECT(tag), "url", g_strdup(data->url.c_str()));
