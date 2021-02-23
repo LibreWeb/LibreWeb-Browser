@@ -3,6 +3,7 @@
 #include "mainwindow.h"
 #include <gdk/gdkthreads.h>
 #include <gdk/gdkselection.h>
+#include <gtkmm/textiter.h>
 #include <iostream>
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
@@ -325,7 +326,10 @@ void Draw::make_bold()
     }
     else
     {
-        buffer->insert_at_cursor(" **text**");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("****");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -341,7 +345,10 @@ void Draw::make_italic()
     }
     else
     {
-        buffer->insert_at_cursor(" *text*");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("**");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -357,7 +364,10 @@ void Draw::make_strikethrough()
     }
     else
     {
-        buffer->insert_at_cursor(" ~~text~~");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("~~~~");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -373,7 +383,10 @@ void Draw::make_super()
     }
     else
     {
-        buffer->insert_at_cursor(" ^text^");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("^^");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -389,7 +402,10 @@ void Draw::make_sub()
     }
     else
     {
-        buffer->insert_at_cursor(" ~text~");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("~~");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -444,8 +460,10 @@ void Draw::make_code()
     }
     else
     {
-        buffer->insert_at_cursor(" `code`");
-        // TODO: buffer->place_cursor(start);
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("``");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -455,13 +473,21 @@ void Draw::insert_link()
     auto buffer = get_buffer();
     if (buffer->get_selection_bounds(start, end))
     {
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
         std::string text = buffer->get_text(start, end);
         buffer->erase_selection();
-        buffer->insert_at_cursor("[" + text + "](ipfs://)");
+        buffer->insert_at_cursor("[" + text + "](ipfs://url)");
+        auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 10);
+        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + text.length()  + 13);
+        buffer->select_range(beginCursorPos, endCursorPos);
     }
     else
     {
-        buffer->insert_at_cursor("[click](ipfs://address)");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("[](ipfs://url)");
+        auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 10);
+        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 13);
+        buffer->select_range(beginCursorPos, endCursorPos);
     }
 }
 
@@ -477,7 +503,11 @@ void Draw::insert_image()
     }
     else
     {
-        buffer->insert_at_cursor("![alt text](ipfs://image.jpg)");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("![](ipfs://image.jpg)");
+        auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 11);
+        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 20);
+        buffer->select_range(beginCursorPos, endCursorPos);
     }
 }
 
@@ -498,7 +528,7 @@ void Draw::insert_bullet_list()
     }
     else
     {
-        buffer->insert_at_cursor("\n* item");
+        buffer->insert_at_cursor("\n* ");
     }
 }
 
@@ -521,7 +551,7 @@ void Draw::insert_numbered_list()
     }
     else
     {
-        buffer->insert_at_cursor("\n1. item");
+        buffer->insert_at_cursor("\n1. ");
     }
 }
 
@@ -537,7 +567,10 @@ void Draw::make_highlight()
     }
     else
     {
-        buffer->insert_at_cursor(" ==text==");
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("====");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
