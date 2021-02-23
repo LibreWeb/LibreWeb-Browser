@@ -8,7 +8,8 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 *Note:* Project is still WIP!
 
-![Browser Screenshot](./docs/browser_screenshot.png)
+![Browser Screenshot](./docs/browser_screenshot.png)  
+![Browser Markdown Editor](./docs/browser_screenshot_2.png)
 
 ## Ideas/Features
 
