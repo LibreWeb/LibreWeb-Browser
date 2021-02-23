@@ -2,6 +2,7 @@
 
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
@@ -72,30 +73,55 @@ MainWindow::MainWindow()
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_highlight));
 
     // Add icons to the editor buttons
-    boldIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_boldButton.add(boldIcon);
-    italicIcon.set_from_icon_name("format-text-italic-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_italicButton.add(italicIcon);
-    strikethroughIcon.set_from_icon_name("format-text-strikethrough-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_strikethroughButton.add(strikethroughIcon);
-    superIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_superButton.add(superIcon);
-    subIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_subButton.add(subIcon);
-    quoteIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_quoteButton.add(quoteIcon);
-    codeIcon.set_from_icon_name("view-paged-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_codeButton.add(codeIcon);
-    linkIcon.set_from_icon_name("insert-link-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_linkButton.add(linkIcon);
-    imageIcon.set_from_icon_name("insert-image-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_imageButton.add(imageIcon);
-    bulletIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_bulletListButton.add(bulletIcon);
-    numberedIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_numberedListButton.add(numberedIcon);
-    hightlightIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_highlightButton.add(hightlightIcon);
+    int iconSize = 16;
+    m_boldIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/bold.svg", iconSize, iconSize));
+    m_boldButton.set_tooltip_text("Add bold text");
+    m_boldButton.add(m_boldIcon);
+    m_boldButton.set_relief(Gtk::RELIEF_NONE);
+    m_italicIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/italic.svg", iconSize, iconSize));
+    m_italicButton.set_tooltip_text("Add italic text");
+    m_italicButton.add(m_italicIcon);
+    m_italicButton.set_relief(Gtk::RELIEF_NONE);
+    m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/strikethrough.svg", iconSize, iconSize));
+    m_strikethroughButton.set_tooltip_text("Add strikethrough text");
+    m_strikethroughButton.add(m_strikethroughIcon);
+    m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
+    m_superIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/superscript.svg", iconSize, iconSize));
+    m_superButton.set_tooltip_text("Add superscript text");
+    m_superButton.add(m_superIcon);
+    m_superButton.set_relief(Gtk::RELIEF_NONE);
+    m_subIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/subscript.svg", iconSize, iconSize));
+    m_subButton.set_tooltip_text("Add subscript text");
+    m_subButton.add(m_subIcon);
+    m_subButton.set_relief(Gtk::RELIEF_NONE);
+    m_quoteIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/quote.svg", iconSize, iconSize));
+    m_quoteButton.set_tooltip_text("Insert a quote");
+    m_quoteButton.add(m_quoteIcon);
+    m_quoteButton.set_relief(Gtk::RELIEF_NONE);
+    m_codeIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/code.svg", iconSize, iconSize));
+    m_codeButton.set_tooltip_text("Insert code");
+    m_codeButton.add(m_codeIcon);
+    m_codeButton.set_relief(Gtk::RELIEF_NONE);
+    m_linkIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/link.svg", iconSize, iconSize));
+    m_linkButton.set_tooltip_text("Add a link");
+    m_linkButton.add(m_linkIcon);
+    m_linkButton.set_relief(Gtk::RELIEF_NONE);
+    m_imageIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/shapes.svg", iconSize, iconSize));
+    m_imageButton.set_tooltip_text("Add a image");
+    m_imageButton.add(m_imageIcon);
+    m_imageButton.set_relief(Gtk::RELIEF_NONE);
+    m_bulletListIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/bullet_list.svg", iconSize, iconSize));
+    m_bulletListButton.set_tooltip_text("Add a bullet list");
+    m_bulletListButton.add(m_bulletListIcon);
+    m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
+    m_numberedListIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/number_list.svg", iconSize, iconSize));
+    m_numberedListButton.set_tooltip_text("Add a numbered list");
+    m_numberedListButton.add(m_numberedListIcon);
+    m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
+    m_hightlightIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/filled/highlighter.svg", iconSize, iconSize));
+    m_highlightButton.set_tooltip_text("Add highlight text");
+    m_highlightButton.add(m_hightlightIcon);
+    m_highlightButton.set_relief(Gtk::RELIEF_NONE);
 
     // Disable focus on editor buttons
     m_headingsComboBox.set_can_focus(false);
@@ -136,14 +162,14 @@ MainWindow::MainWindow()
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
-    backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_backButton.add(backIcon);
-    forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_forwardButton.add(forwardIcon);
-    refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_refreshButton.add(refreshIcon);
-    homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_homeButton.add(homeIcon);
+    m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_backButton.add(m_backIcon);
+    m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_forwardButton.add(m_forwardIcon);
+    m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_refreshButton.add(m_refreshIcon);
+    m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_homeButton.add(m_homeIcon);
 
     // Disable back/forward button on start-up
     m_backButton.set_sensitive(false);
@@ -200,7 +226,7 @@ MainWindow::MainWindow()
 
     // Show start page by default
     // Load test.md file on start-up
-    doRequest("file:///media/melroy/Data/Projects/browser/test.md", true);
+    doRequest("file://../../test.md", true);
     //go_home();
 }
 
