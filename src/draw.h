@@ -41,9 +41,8 @@ public:
     void make_strikethrough();
     void make_super();
     void make_sub();
-    void make_inline_code();
     void make_quote();
-    void make_code_block();
+    void make_code();
     void insert_link();
     void insert_image();
     void insert_bullet_list();

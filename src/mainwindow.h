@@ -67,9 +67,8 @@ protected:
     Gtk::Button m_strikethroughButton;
     Gtk::Button m_superButton;
     Gtk::Button m_subButton;
-    Gtk::Button m_inlineCodeButton;
     Gtk::Button m_quoteButton;
-    Gtk::Button m_codeBlockButton;
+    Gtk::Button m_codeButton;
     Gtk::Button m_linkButton;
     Gtk::Button m_imageButton;
     Gtk::Button m_bulletListButton;
@@ -84,9 +83,8 @@ protected:
     Gtk::Image strikethroughIcon;
     Gtk::Image superIcon;
     Gtk::Image subIcon;
-    Gtk::Image inlineCodeIcon;
     Gtk::Image quoteIcon;
-    Gtk::Image codeBlockIcon;
+    Gtk::Image codeIcon;
     Gtk::Image linkIcon;
     Gtk::Image imageIcon;
     Gtk::Image bulletIcon;

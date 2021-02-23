@@ -287,6 +287,11 @@ void Draw::del()
         {
             buffer->erase(begin, end);
         }
+        else
+        {
+            end++;
+            buffer->erase(begin, end);
+        }
     }
 }
 
@@ -310,80 +315,230 @@ void Draw::make_heading(int headingLevel)
 
 void Draw::make_bold()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("**text**");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("**" + text + "**");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" **text**");
+    }
 }
 
 void Draw::make_italic()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("*text*");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("*" + text + "*");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" *text*");
+    }
 }
 
 void Draw::make_strikethrough()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("~~text~~");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("~~" + text + "~~");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" ~~text~~");
+    }
 }
 
 void Draw::make_super()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("^text^");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("^" + text + "^");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" ^text^");
+    }
 }
 
 void Draw::make_sub()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("~text~");
-}
-
-void Draw::make_inline_code()
-{
-    auto buffer = get_buffer();
-    buffer->insert_at_cursor("`code`");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("~" + text + "~");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" ~text~");
+    }
 }
 
 void Draw::make_quote()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("\n> text");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        std::istringstream iss(text);
+        std::string line;
+        while (std::getline(iss, line))
+        {
+            buffer->insert_at_cursor(">" + line + "\n");
+        }
+    }
+    else
+    {
+        buffer->insert_at_cursor("\n> text");
+    }
 }
 
-void Draw::make_code_block()
+void Draw::make_code()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("\n\n```python\ncode\n```\n\n");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        // Strip begin & end line breaks
+        if (text.starts_with('\n'))
+        {
+            text.erase(0, 1);
+        }
+        if (text.ends_with('\n'))
+        {
+            text.erase(text.size() - 1);
+        }
+        if (text.find('\n') != std::string::npos)
+        {
+            // Insert code block
+            buffer->insert_at_cursor("```\n" + text + "\n```\n");
+        }
+        else
+        {
+            // Insert inline code
+            buffer->insert_at_cursor("`" + text + "`");
+        }
+    }
+    else
+    {
+        buffer->insert_at_cursor(" `code`");
+        // TODO: buffer->place_cursor(start);
+    }
 }
 
 void Draw::insert_link()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("[link](ipfs://youraddress)");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("[" + text + "](ipfs://)");
+    }
+    else
+    {
+        buffer->insert_at_cursor("[click](ipfs://address)");
+    }
 }
 
 void Draw::insert_image()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("![alt](ipfs://image.jpg)");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("![](" + text + "]");
+    }
+    else
+    {
+        buffer->insert_at_cursor("![alt text](ipfs://image.jpg)");
+    }
 }
 
 void Draw::insert_bullet_list()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("\n* item");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        std::istringstream iss(text);
+        std::string line;
+        while (std::getline(iss, line))
+        {
+            buffer->insert_at_cursor("* " + line + "\n");
+        }
+    }
+    else
+    {
+        buffer->insert_at_cursor("\n* item");
+    }
 }
 
 void Draw::insert_numbered_list()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("\n1. item");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        std::istringstream iss(text);
+        std::string line;
+        int counter = 1;
+        while (std::getline(iss, line))
+        {
+            buffer->insert_at_cursor(std::to_string(counter) + ". " + line + "\n");
+            counter++;
+        }
+    }
+    else
+    {
+        buffer->insert_at_cursor("\n1. item");
+    }
 }
 
 void Draw::make_highlight()
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
-    buffer->insert_at_cursor("==text==");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor("==" + text + "==");
+    }
+    else
+    {
+        buffer->insert_at_cursor(" ==text==");
+    }
 }
 
 /**

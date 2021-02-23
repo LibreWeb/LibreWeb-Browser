@@ -63,9 +63,8 @@ MainWindow::MainWindow()
     m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_strikethrough));
     m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_super));
     m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_sub));
-    m_inlineCodeButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_inline_code));
     m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_quote));
-    m_codeBlockButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_code_block));
+    m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_code));
     m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_link));
     m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_image));
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_bullet_list));
@@ -83,12 +82,10 @@ MainWindow::MainWindow()
     m_superButton.add(superIcon);
     subIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_subButton.add(subIcon);
-    inlineCodeIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_inlineCodeButton.add(inlineCodeIcon);
     quoteIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_quoteButton.add(quoteIcon);
-    codeBlockIcon.set_from_icon_name("format-text-bold-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    m_codeBlockButton.add(codeBlockIcon);
+    codeIcon.set_from_icon_name("view-paged-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    m_codeButton.add(codeIcon);
     linkIcon.set_from_icon_name("insert-link-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_linkButton.add(linkIcon);
     imageIcon.set_from_icon_name("insert-image-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
@@ -108,9 +105,8 @@ MainWindow::MainWindow()
     m_strikethroughButton.set_can_focus(false);
     m_superButton.set_can_focus(false);
     m_subButton.set_can_focus(false);
-    m_inlineCodeButton.set_can_focus(false);
     m_quoteButton.set_can_focus(false);
-    m_codeBlockButton.set_can_focus(false);
+    m_codeButton.set_can_focus(false);
     m_linkButton.set_can_focus(false);
     m_imageButton.set_can_focus(false);
     m_bulletListButton.set_can_focus(false);
@@ -170,9 +166,8 @@ MainWindow::MainWindow()
     m_hboxEditor.pack_start(m_strikethroughButton, false, false, 2);
     m_hboxEditor.pack_start(m_superButton, false, false, 2);
     m_hboxEditor.pack_start(m_subButton, false, false, 2);
-    m_hboxEditor.pack_start(m_inlineCodeButton, false, false, 2);
     m_hboxEditor.pack_start(m_quoteButton, false, false, 2);
-    m_hboxEditor.pack_start(m_codeBlockButton, false, false, 2);
+    m_hboxEditor.pack_start(m_codeButton, false, false, 2);
     m_hboxEditor.pack_start(m_linkButton, false, false, 2);
     m_hboxEditor.pack_start(m_imageButton, false, false, 2);
     m_hboxEditor.pack_start(m_bulletListButton, false, false, 2);
