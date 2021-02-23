@@ -290,7 +290,7 @@ void Draw::del()
         }
         else
         {
-            end++;
+            ++end;
             buffer->erase(begin, end);
         }
     }
