@@ -16,7 +16,7 @@ struct DispatchData;
 
 /**
  * \class Draw
- * \brief Draw text area, where the document content will be displayed
+ * \brief Draw text area (GTK TextView), where the document content will be displayed or used a text editor
  */
 class Draw : public Gtk::TextView
 {
@@ -26,6 +26,7 @@ public:
     explicit Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
+    void setViewSourceMenuItem(bool isEnabled);
     void processDocument(cmark_node *root_node);
     void selectAll();
     void cut();
@@ -55,8 +56,8 @@ protected:
     void populate_popup(Gtk::Menu *menu);
 
 private:
-    void disableEdit();
     void enableEdit();
+    void disableEdit();
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
@@ -82,6 +83,7 @@ private:
 
     MainWindow &mainWindow;
     GtkTextBuffer *buffer;
+    bool addViewSourceMenuItem;
     int fontSize;
     std::string fontFamily;
     int headingLevel;

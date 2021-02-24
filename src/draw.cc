@@ -17,6 +17,7 @@ struct DispatchData
 Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
+      addViewSourceMenuItem(true),
       fontSize(10 * PANGO_SCALE),
       fontFamily("Ubuntu Monospace"),
       headingLevel(0),
@@ -142,26 +143,29 @@ void Draw::populate_popup(Gtk::Menu *menu)
             item->hide();
         }
     }
-    Gtk::MenuItem *sourceCodeMenuItem = Gtk::manage(new Gtk::MenuItem("View Source", true));
-    sourceCodeMenuItem->signal_activate().connect(source_code);
-    sourceCodeMenuItem->show();
-    menu->append(*sourceCodeMenuItem);
+    if (this->addViewSourceMenuItem)
+    {
+        Gtk::MenuItem *sourceCodeMenuItem = Gtk::manage(new Gtk::MenuItem("View Source", true));
+        sourceCodeMenuItem->signal_activate().connect(source_code);
+        sourceCodeMenuItem->show();
+        menu->append(*sourceCodeMenuItem);
+    }
 }
 
 /************************************************
  * Private methods
  ************************************************/
 
-void Draw::disableEdit()
-{
-    set_editable(false);
-    set_cursor_visible(false);
-}
-
 void Draw::enableEdit()
 {
     set_editable(true);
     set_cursor_visible(true);
+}
+
+void Draw::disableEdit()
+{
+    set_editable(false);
+    set_cursor_visible(false);
 }
 
 /**
@@ -206,8 +210,13 @@ void Draw::showStartPage()
     insertLink("Example page on IPFS", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
 }
 
+void Draw::setViewSourceMenuItem(bool isEnabled)
+{
+    this->addViewSourceMenuItem = isEnabled;
+}
+
 /**
- * Process AST document and draw the text in the GTK TextView
+ * Process AST document (markdown format) and draw the text in the GTK TextView
  */
 void Draw::processDocument(cmark_node *root_node)
 {
@@ -478,7 +487,7 @@ void Draw::insert_link()
         buffer->erase_selection();
         buffer->insert_at_cursor("[" + text + "](ipfs://url)");
         auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 10);
-        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + text.length()  + 13);
+        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 13);
         buffer->select_range(beginCursorPos, endCursorPos);
     }
     else

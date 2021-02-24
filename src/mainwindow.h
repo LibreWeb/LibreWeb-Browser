@@ -10,6 +10,7 @@
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
+#include <gtkmm/paned.h>
 #include <thread>
 #include "menu.h"
 #include "file.h"
@@ -47,9 +48,11 @@ protected:
 
     // Child widgets
     Menu m_menu;
-    Draw m_draw;
+    Draw m_draw_main;
+    Draw m_draw_secondary;
     SourceCodeDialog m_sourceCodeDialog;
     About m_about;
+    Gtk::HPaned m_paned;
     Gtk::SearchBar m_search;
     Gtk::SearchEntry m_searchEntry;
     Gtk::Box m_vbox;
@@ -90,7 +93,8 @@ protected:
     Gtk::Image m_bulletListIcon;
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
-    Gtk::ScrolledWindow m_scrolledWindow;
+    Gtk::ScrolledWindow m_scrolledWindowMain;
+    Gtk::ScrolledWindow m_scrolledWindowSecondary;
     Gtk::Button m_exitBottomButton;
 
 private:
@@ -103,8 +107,8 @@ private:
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
 
-    void enableEditing();
-    void disableEditing();
+    void enableEdit();
+    void disableEdit();
     void postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest);
     void processRequest(const std::string &path);
     void fetchFromIPFS();

@@ -14,7 +14,8 @@
 MainWindow::MainWindow()
     : accelGroup(Gtk::AccelGroup::create()),
       m_menu(accelGroup),
-      m_draw(*this),
+      m_draw_main(*this),
+      m_draw_secondary(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_hboxToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
@@ -33,20 +34,22 @@ MainWindow::MainWindow()
     // Connect signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
-    m_menu.cut.connect(sigc::mem_fun(m_draw, &Draw::cut));                                                           /*!< Menu item for cut text */
-    m_menu.copy.connect(sigc::mem_fun(m_draw, &Draw::copy));                                                         /*!< Menu item for copy text */
-    m_menu.paste.connect(sigc::mem_fun(m_draw, &Draw::paste));                                                       /*!< Menu item for paste text */
-    m_menu.del.connect(sigc::mem_fun(m_draw, &Draw::del));                                                           /*!< Menu item for deleting selected text */
-    m_menu.select_all.connect(sigc::mem_fun(m_draw, &Draw::selectAll));                                              /*!< Menu item for selecting all text */
+    m_menu.cut.connect(sigc::mem_fun(m_draw_main, &Draw::cut));                                                      /*!< Menu item for cut text */
+    m_menu.copy.connect(sigc::mem_fun(m_draw_main, &Draw::copy));                                                    /*!< Menu item for copy text */
+    m_menu.paste.connect(sigc::mem_fun(m_draw_main, &Draw::paste));                                                  /*!< Menu item for paste text */
+    m_menu.del.connect(sigc::mem_fun(m_draw_main, &Draw::del));                                                      /*!< Menu item for deleting selected text */
+    m_menu.select_all.connect(sigc::mem_fun(m_draw_main, &Draw::selectAll));                                         /*!< Menu item for selecting all text */
     m_menu.find.connect(sigc::mem_fun(this, &MainWindow::show_search));                                              /*!< Menu item for finding text */
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
     m_menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                                                  /*!< Menu item for home page */
     m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                           /*!< Source code dialog */
+    m_menu.copy.connect(sigc::mem_fun(m_draw_secondary, &Draw::copy));                                               /*!< Menu item for copy text in secondary text draw */
+    m_menu.select_all.connect(sigc::mem_fun(m_draw_secondary, &Draw::selectAll));                                    /*!< Menu item for selecting all text in secondary text draw  */
     m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
-    m_draw.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                           /*!< Open source code dialog */
+    m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
     m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
     m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate));                  /*!< User pressed enter the address bar */
     m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                                   /*!< Button for previous page */
@@ -59,18 +62,18 @@ MainWindow::MainWindow()
 
     // Editor buttons
     m_headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
-    m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_bold));
-    m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_italic));
-    m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_strikethrough));
-    m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_super));
-    m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_sub));
-    m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_quote));
-    m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_code));
-    m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_link));
-    m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_image));
-    m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_bullet_list));
-    m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::insert_numbered_list));
-    m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw, &Draw::make_highlight));
+    m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_bold));
+    m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_italic));
+    m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_strikethrough));
+    m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_super));
+    m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
+    m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
+    m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
+    m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
+    m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+    m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
+    m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
+    m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
 
     // Add icons to the editor buttons
     int iconSize = 16;
@@ -202,9 +205,15 @@ MainWindow::MainWindow()
     m_hboxEditor.pack_start(m_highlightButton, false, false, 2);
     m_vbox.pack_start(m_hboxEditor, false, false, 6);
 
-    // Browser text drawing area
-    m_scrolledWindow.add(m_draw);
-    m_scrolledWindow.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    // Browser text main drawing area
+    m_scrolledWindowMain.add(m_draw_main);
+    m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    // Secondary drawing area
+    m_draw_secondary.setViewSourceMenuItem(false);
+    m_draw_secondary.showMessage("Hello world");
+    m_scrolledWindowSecondary.add(m_draw_secondary);
+    m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    m_scrolledWindowSecondary.set_size_request(450, -1);
 
     // Bottom Search bar
     m_search.connect_entry(m_searchEntry);
@@ -213,14 +222,19 @@ MainWindow::MainWindow()
     m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
     m_hboxBottom.pack_start(m_exitBottomButton, false, false, 10);
     m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
-    m_vbox.pack_start(m_scrolledWindow, true, true, 0);
+
+    m_paned.pack1(m_scrolledWindowMain, true, false);
+    m_paned.pack2(m_scrolledWindowSecondary, false, true);
+
+    m_vbox.pack_start(m_paned, true, true, 0);
     m_vbox.pack_end(m_hboxBottom, false, true, 6);
 
     add(m_vbox);
     show_all_children();
-    // Hide by default the bottom & editor box
+    // Hide by default the bottom & editor box & secondary text view
     m_hboxBottom.hide();
     m_hboxEditor.hide();
+    m_scrolledWindowSecondary.hide();
 
     // Grap focus to input field by default
     m_addressBar.grab_focus();
@@ -262,7 +276,7 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
     if (setAddressBar)
         m_addressBar.set_text(path);
 
-    this->disableEditing();
+    this->disableEdit();
 
     // Do not insert history back/forward calls into the history (again)
     if (!isHistoryRequest)
@@ -289,9 +303,9 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
 void MainWindow::new_doc()
 {
     // Inform the Draw class about the new document
-    m_draw.newDocument();
+    m_draw_main.newDocument();
     // Enable editing mode
-    this->enableEditing();
+    this->enableEdit();
 }
 
 void MainWindow::go_home()
@@ -300,8 +314,8 @@ void MainWindow::go_home()
     this->finalRequestPath = "";
     this->currentContent = "";
     this->m_addressBar.set_text("");
-    this->disableEditing();
-    m_draw.showStartPage();
+    this->disableEdit();
+    m_draw_main.showStartPage();
 }
 
 /**
@@ -357,17 +371,21 @@ void MainWindow::refresh()
     doRequest();
 }
 
-void MainWindow::enableEditing()
+void MainWindow::enableEdit()
 {
     this->m_hboxEditor.show();
+    this->m_scrolledWindowSecondary.show();
+    this->m_draw_main.setViewSourceMenuItem(false);
     set_title("Untitled * - " + m_appName);
 }
 
-void MainWindow::disableEditing()
+void MainWindow::disableEdit()
 {
     if (m_hboxEditor.is_visible())
     {
         this->m_hboxEditor.hide();
+        this->m_scrolledWindowSecondary.hide();
+        this->m_draw_main.setViewSourceMenuItem(true); // Show "view source" menu item again
         set_title(m_appName);
     }
 }
@@ -428,7 +446,7 @@ void MainWindow::fetchFromIPFS()
     {
         currentContent = m_file.fetch(finalRequestPath);
         cmark_node *doc = Parser::parseContent(currentContent);
-        m_draw.processDocument(doc);
+        m_draw_main.processDocument(doc);
         cmark_node_free(doc);
     }
     catch (const std::runtime_error &error)
@@ -441,15 +459,15 @@ void MainWindow::fetchFromIPFS()
             errorMessage.erase(0, errorMessage.find(':') + 2);
             auto content = nlohmann::json::parse(errorMessage);
             std::string message = content.value("Message", "");
-            m_draw.showMessage("Page not found!", message);
+            m_draw_main.showMessage("Page not found!", message);
         }
         else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
         {
-            m_draw.showMessage("Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
+            m_draw_main.showMessage("Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
         }
         else
         {
-            m_draw.showMessage("Something went wrong", "Error message: " + std::string(error.what()));
+            m_draw_main.showMessage("Something went wrong", "Error message: " + std::string(error.what()));
         }
     }
 }
@@ -464,13 +482,13 @@ void MainWindow::openFromDisk()
     {
         currentContent = m_file.read(finalRequestPath);
         cmark_node *doc = Parser::parseContent(currentContent);
-        m_draw.processDocument(doc);
+        m_draw_main.processDocument(doc);
         cmark_node_free(doc);
     }
     catch (const std::runtime_error &error)
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
-        m_draw.showMessage("Page not found!", "Error message: " + std::string(error.what()));
+        m_draw_main.showMessage("Page not found!", "Error message: " + std::string(error.what()));
     }
 }
 
@@ -485,25 +503,26 @@ void MainWindow::show_source_code_dialog()
 
 /**
  * Retrieve selected heading from combobox.
- * Send to draw class
+ * Send to main Draw class
  */
 void MainWindow::get_heading()
 {
     std::string active = m_headingsComboBox.get_active_id();
     m_headingsComboBox.set_active(0); // Reset
-    if (active != "") {
+    if (active != "")
+    {
         std::string::size_type sz;
         try
         {
             int headingLevel = std::stoi(active, &sz, 10);
-            m_draw.make_heading(headingLevel);
+            m_draw_main.make_heading(headingLevel);
         }
-        catch (const std::invalid_argument&)
+        catch (const std::invalid_argument &)
         {
             // ignore
             std::cerr << "Error: heading combobox id is invalid (not a number)." << std::endl;
         }
-        catch (const std::out_of_range&)
+        catch (const std::out_of_range &)
         {
             // ignore
         }
