@@ -210,7 +210,6 @@ MainWindow::MainWindow()
     m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
     // Secondary drawing area
     m_draw_secondary.setViewSourceMenuItem(false);
-    m_draw_secondary.showMessage("Hello world");
     m_scrolledWindowSecondary.add(m_draw_secondary);
     m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
     m_scrolledWindowSecondary.set_size_request(450, -1);
@@ -302,8 +301,6 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
 
 void MainWindow::new_doc()
 {
-    // Inform the Draw class about the new document
-    m_draw_main.newDocument();
     // Enable editing mode
     this->enableEdit();
 }
@@ -373,9 +370,17 @@ void MainWindow::refresh()
 
 void MainWindow::enableEdit()
 {
+    // Inform the Draw class that we are creating a new document
+    this->m_draw_main.newDocument();
+    // Show editor
     this->m_hboxEditor.show();
+    // Enabled secondary text view (on the right)
     this->m_scrolledWindowSecondary.show();
+    // Disable "view source" menu item
     this->m_draw_main.setViewSourceMenuItem(false);
+    // Connect changed signal
+    this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text)); 
+    // Set new title
     set_title("Untitled * - " + m_appName);
 }
 
@@ -385,10 +390,16 @@ void MainWindow::disableEdit()
     {
         this->m_hboxEditor.hide();
         this->m_scrolledWindowSecondary.hide();
-        this->m_draw_main.setViewSourceMenuItem(true); // Show "view source" menu item again
+        // Disconnect text changed signal
+        this->textChangedSignalHandler.disconnect();
+        // Show "view source" menu item again
+        this->m_draw_main.setViewSourceMenuItem(true);
+        this->m_draw_secondary.clearText();
+        // Restore title
         set_title(m_appName);
     }
 }
+
 /**
  * Get the file from disk or IPFS network, from the provided path,
  * parse the content, and display the document
@@ -490,6 +501,17 @@ void MainWindow::openFromDisk()
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
         m_draw_main.showMessage("Page not found!", "Error message: " + std::string(error.what()));
     }
+}
+
+void MainWindow::editor_changed_text()
+{
+    // Retrieve text from text editor
+    std::string text = m_draw_main.getText();
+    // Parse the markdown contents
+    cmark_node *doc = Parser::parseContent(text);
+    // Show the document as a preview on the right side text-view panel
+    m_draw_secondary.processDocument(doc);
+    cmark_node_free(doc);
 }
 
 /**

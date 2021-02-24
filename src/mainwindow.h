@@ -41,6 +41,7 @@ protected:
     void on_button_clicked(Glib::ustring data);
     void show_about();
     void hide_about(int response);
+    void editor_changed_text();
     void show_source_code_dialog();
     void get_heading();
 
@@ -106,6 +107,7 @@ private:
     std::string currentContent;
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
+    sigc::connection textChangedSignalHandler;
 
     void enableEdit();
     void disableEdit();

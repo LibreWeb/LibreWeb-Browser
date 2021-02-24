@@ -26,14 +26,16 @@ public:
     explicit Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
     void showStartPage();
-    void setViewSourceMenuItem(bool isEnabled);
     void processDocument(cmark_node *root_node);
+    void setViewSourceMenuItem(bool isEnabled);
+    void newDocument();
+    std::string getText();
+    void clearText();
     void selectAll();
     void cut();
     void copy();
     void paste();
     void del();
-    void newDocument();
 
     // Signals editor calls
     void make_heading(int headingLevel);
@@ -78,7 +80,6 @@ private:
     static gboolean insertTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
-    void clearBuffer();
     static std::string const intToRoman(int num);
 
     MainWindow &mainWindow;

@@ -152,9 +152,68 @@ void Draw::populate_popup(Gtk::Menu *menu)
     }
 }
 
-/************************************************
- * Private methods
- ************************************************/
+void Draw::showMessage(const std::string &message, const std::string &detailed_info)
+{
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
+
+    insertHeading1(message);
+    insertText(detailed_info);
+}
+
+void Draw::showStartPage()
+{
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
+
+    insertHeading1("Welcome to the Decentralized Web (DWeb)");
+    insertText("See also the: ");
+    insertLink("Example page on IPFS", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+}
+
+/**
+ * Process AST document (markdown format) and draw the text in the GTK TextView
+ */
+void Draw::processDocument(cmark_node *root_node)
+{
+    if (get_editable())
+        this->disableEdit();
+    this->clearOnThread();
+
+    // Loop over AST nodes
+    cmark_event_type ev_type;
+    cmark_iter *iter = cmark_iter_new(root_node);
+    while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE)
+    {
+        cmark_node *cur = cmark_iter_get_node(iter);
+        processNode(cur, ev_type);
+    }
+}
+
+void Draw::setViewSourceMenuItem(bool isEnabled)
+{
+    this->addViewSourceMenuItem = isEnabled;
+}
+
+void Draw::newDocument()
+{
+    this->clearText();
+    enableEdit();
+    grab_focus(); // Claim focus on text view
+}
+
+std::string Draw::getText()
+{
+    return get_buffer().get()->get_text();
+}
+
+void Draw::clearText()
+{
+    auto buffer = get_buffer();
+    buffer->erase(buffer->begin(), buffer->end());
+}
 
 void Draw::enableEdit()
 {
@@ -183,54 +242,6 @@ void Draw::followLink(Gtk::TextBuffer::iterator &iter)
             mainWindow.doRequest(url, true);
             break;
         }
-    }
-}
-
-void Draw::showMessage(const std::string &message, const std::string &detailed_info)
-{
-    if (get_editable())
-        this->disableEdit();
-    this->clearOnThread();
-
-    insertHeading1(message);
-    insertText(detailed_info);
-}
-
-/**
- * Show start page
- */
-void Draw::showStartPage()
-{
-    if (get_editable())
-        this->disableEdit();
-    this->clearOnThread();
-
-    insertHeading1("Welcome to the Decentralized Web (DWeb)");
-    insertText("See also the: ");
-    insertLink("Example page on IPFS", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
-}
-
-void Draw::setViewSourceMenuItem(bool isEnabled)
-{
-    this->addViewSourceMenuItem = isEnabled;
-}
-
-/**
- * Process AST document (markdown format) and draw the text in the GTK TextView
- */
-void Draw::processDocument(cmark_node *root_node)
-{
-    if (get_editable())
-        this->disableEdit();
-    this->clearOnThread();
-
-    // Loop over AST nodes
-    cmark_event_type ev_type;
-    cmark_iter *iter = cmark_iter_new(root_node);
-    while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE)
-    {
-        cmark_node *cur = cmark_iter_get_node(iter);
-        processNode(cur, ev_type);
     }
 }
 
@@ -305,15 +316,8 @@ void Draw::del()
     }
 }
 
-void Draw::newDocument()
-{
-    this->clearBuffer();
-    enableEdit();
-    grab_focus(); // Claim focus on text view
-}
-
 /*************************************************************
- * Editor signals
+ * Editor signals calls
  *************************************************************/
 
 void Draw::make_heading(int headingLevel)
@@ -493,9 +497,9 @@ void Draw::insert_link()
     else
     {
         int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        buffer->insert_at_cursor("[](ipfs://url)");
-        auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 10);
-        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 13);
+        buffer->insert_at_cursor("[link](ipfs://url)");
+        auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 14);
+        auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 17);
         buffer->select_range(beginCursorPos, endCursorPos);
     }
 }
@@ -582,6 +586,10 @@ void Draw::make_highlight()
         buffer->place_cursor(newCursorPos);
     }
 }
+
+/************************************************
+ * Private methods
+ ************************************************/
 
 /**
  * Process and parse each node in the AST
@@ -968,15 +976,6 @@ gboolean Draw::clearBufferIdle(GtkTextBuffer *textBuffer)
     gtk_text_buffer_get_end_iter(textBuffer, &end_iter);
     gtk_text_buffer_delete(textBuffer, &start_iter, &end_iter);
     return FALSE;
-}
-
-/**
- * Clear buffer
- */
-void Draw::clearBuffer()
-{
-    auto buffer = get_buffer();
-    buffer->erase(buffer->begin(), buffer->end());
 }
 
 /**
