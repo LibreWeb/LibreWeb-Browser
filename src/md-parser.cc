@@ -7,7 +7,7 @@
 #include <syntax_extension.h>
 #include <filesystem>
 
-static const int OPTIONS = CMARK_OPT_DEFAULT;
+static const int OPTIONS = CMARK_OPT_STRIKETHROUGH_DOUBLE_TILDE;
 
 /// Meyers Singleton
 Parser::Parser() = default;

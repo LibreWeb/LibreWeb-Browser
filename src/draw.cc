@@ -1,5 +1,6 @@
 #include "draw.h"
 #include "node.h"
+#include "strikethrough.h"
 #include "mainwindow.h"
 #include <gdk/gdkthreads.h>
 #include <gdk/gdkselection.h>
@@ -843,6 +844,9 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_EMPH:
         isItalic = entering;
         break;
+
+    //case CMARK_NODE_STRIKETHROUGH:
+        //break;
 
     case CMARK_NODE_LINK:
         isLink = entering;
