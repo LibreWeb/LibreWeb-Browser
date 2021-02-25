@@ -692,6 +692,10 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_CODE_BLOCK:
+    {
+        std::string code = cmark_node_get_literal(node);
+        insertCode("\n" + code);
+    }
         break;
 
     case CMARK_NODE_HTML_BLOCK:
@@ -810,7 +814,11 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         break;
 
     case CMARK_NODE_CODE:
-        break;
+    {
+        std::string code = cmark_node_get_literal(node);
+        insertCode(code);
+    }
+    break;
 
     case CMARK_NODE_HTML_INLINE:
         break;
@@ -854,6 +862,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 void Draw::insertText(const std::string &text)
 {
     insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
+}
+
+/**
+ * Insert code - thread safe
+ */
+void Draw::insertCode(const std::string &code)
+{
+    insertMarkupTextOnThread("<span foreground=\"#323232\" background=\"#e0e0e0\">" + code + "</span>");
 }
 
 /**

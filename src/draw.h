@@ -64,6 +64,7 @@ private:
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
     void insertText(const std::string &text);
+    void insertCode(const std::string &code);
     void insertLink(const std::string &text, const std::string &url);
     void insertHeading1(const std::string &text);
     void insertHeading2(const std::string &text);
