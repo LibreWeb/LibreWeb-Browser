@@ -25,22 +25,27 @@ Parser &Parser::getInstance()
 }
 
 /**
- * Parse markdown file from string content
+ * Parse markdown file from string content.
+ * Note: Do not forgot to execute: cmark_node_free(document); when you are done with the doc.
  * @return AST structure (of type cmark_node)
  */
 cmark_node *Parser::parseContent(const std::string &content)
 {
-    //cmark_node *doc;
-    // Parse to AST with cmark
-    // mark_parser *parser = cmark_parser_new(OPTIONS);
-
-    // Add extensions
-    //addMarkdownExtension(parser, "strikethrough");
-    //addMarkdownExtension(parser, "table");
-
     const char *data = content.c_str();
-    // TODO: Copy cmark_parse_document() to be able to add extensions to the parser
-    return cmark_parse_document(data, strlen(data), OPTIONS);
+
+    cmark_gfm_core_extensions_ensure_registered();
+
+    // Modified version of cmark_parse_document() in blocks.c
+    cmark_parser *parser = cmark_parser_new(OPTIONS);
+    cmark_node *document;
+    // Add extensions
+    addMarkdownExtension(parser, "strikethrough");
+    addMarkdownExtension(parser, "table");
+
+    cmark_parser_feed(parser, data, strlen(data));
+    document = cmark_parser_finish(parser);
+    cmark_parser_free(parser);
+    return document;
 }
 
 /**

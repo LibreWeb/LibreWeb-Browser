@@ -5,6 +5,8 @@
 #include <gdk/gdkselection.h>
 #include <gtkmm/textiter.h>
 #include <iostream>
+#include <stdexcept>
+
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
 struct DispatchData
@@ -188,7 +190,15 @@ void Draw::processDocument(cmark_node *root_node)
     while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE)
     {
         cmark_node *cur = cmark_iter_get_node(iter);
-        processNode(cur, ev_type);
+        try
+        {
+            processNode(cur, ev_type);
+        }
+        catch (const std::runtime_error &error)
+        {
+            std::cerr << "Error: Processing node failed, with message: " << error.what() << std::endl;
+            // Continue nevertheless
+        }
     }
 }
 
@@ -696,7 +706,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         std::string code = cmark_node_get_literal(node);
         insertCode("\n" + code);
     }
-        break;
+    break;
 
     case CMARK_NODE_HTML_BLOCK:
         break;
@@ -851,7 +861,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_FOOTNOTE_DEFINITION:
         break;
     default:
-        assert(false);
+        throw std::runtime_error("Node type not found. Type (int): " + std::to_string(node->type));
         break;
     }
 }
