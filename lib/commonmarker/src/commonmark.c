@@ -225,6 +225,7 @@ static int S_render_node(cmark_renderer *renderer, cmark_node *node,
       // this ensures that a following indented code block or list will be
       // inteprereted correctly.
       CR();
+      // MBGJ: Do not output html in parser
       //LIT("<!-- end list -->");
       BLANKLINE();
     }
