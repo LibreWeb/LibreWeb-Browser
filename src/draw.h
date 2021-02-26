@@ -72,9 +72,10 @@ private:
     void insertHeading4(const std::string &text);
     void insertHeading5(const std::string &text);
     void insertHeading6(const std::string &text);
+    void insertBoldItalic(const std::string &text);
     void insertItalic(const std::string &text);
     void insertBold(const std::string &text);
-    void insertBoldItalic(const std::string &text);
+    void insertStrikethrough(const std::string &text);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
@@ -92,6 +93,7 @@ private:
     int listLevel;
     bool isBold;
     bool isItalic;
+    bool isStrikethrough;
     int bulletListLevel;
     int orderedListLevel;
     bool isOrderedList;

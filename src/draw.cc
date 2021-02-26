@@ -1,5 +1,6 @@
 #include "draw.h"
 #include "node.h"
+#include "syntax_extension.h"
 #include "strikethrough.h"
 #include "mainwindow.h"
 #include <gdk/gdkthreads.h>
@@ -27,14 +28,15 @@ Draw::Draw(MainWindow &mainWindow)
       listLevel(0),
       isBold(false),
       isItalic(false),
+      isStrikethrough(false),
       bulletListLevel(0),
       orderedListLevel(0),
       isOrderedList(false),
       isLink(false),
       defaultFont(fontFamily),
+      boldItalic(fontFamily),
       bold(fontFamily),
       italic(fontFamily),
-      boldItalic(fontFamily),
       heading1(fontFamily),
       heading2(fontFamily),
       heading3(fontFamily),
@@ -609,15 +611,30 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 {
     bool entering = (ev_type == CMARK_EVENT_ENTER);
 
+    // Take care of the markdown extensions
+    if (node->extension)
+    {
+        if (strcmp(node->extension->name, "strikethrough") == 0)
+        {
+            isStrikethrough = entering;
+        }
+        return;
+    }
+
     switch (node->type)
     {
     case CMARK_NODE_DOCUMENT:
         if (entering)
         {
-            // Reset
+            // Reset all (better safe then sorry)
             headingLevel = 0;
             bulletListLevel = 0;
+            orderedListLevel = 0;
             listLevel = 0;
+            isOrderedList = false;
+            isBold = false;
+            isItalic = false;
+            isStrikethrough = false;
         }
         break;
 
@@ -787,7 +804,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 break;
             }
         }
-        // Bold/italic text
+        // Bold, italic and strikethrough text
         else if (isBold && isItalic)
         {
             insertBoldItalic(text);
@@ -799,6 +816,10 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         else if (isItalic)
         {
             insertItalic(text);
+        }
+        else if (isStrikethrough) 
+        {
+            insertStrikethrough(text);
         }
         // URL
         else if (isLink)
@@ -845,7 +866,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         isItalic = entering;
         break;
 
-    //case CMARK_NODE_STRIKETHROUGH:
+        //case CMARK_NODE_STRIKETHROUGH:
         //break;
 
     case CMARK_NODE_LINK:
@@ -928,6 +949,11 @@ void Draw::insertHeading6(const std::string &text)
     insertMarkupTextOnThread("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
 }
 
+void Draw::insertBoldItalic(const std::string &text)
+{
+    insertMarkupTextOnThread("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
+}
+
 void Draw::insertBold(const std::string &text)
 {
     insertMarkupTextOnThread("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
@@ -938,9 +964,9 @@ void Draw::insertItalic(const std::string &text)
     insertMarkupTextOnThread("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
 }
 
-void Draw::insertBoldItalic(const std::string &text)
+void Draw::insertStrikethrough(const std::string &text)
 {
-    insertMarkupTextOnThread("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
+    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" strikethrough=\"true\">" + text + "</span>");
 }
 
 /******************************************************

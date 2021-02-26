@@ -74,6 +74,9 @@
         "unordered_set": "cpp",
         "regex": "cpp",
         "shared_mutex": "cpp",
-        "*.inc": "cpp"
+        "*.inc": "cpp",
+        "syntax_extension.h": "c",
+        "render.h": "c",
+        "node.h": "c"
     }
 }
