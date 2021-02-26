@@ -76,6 +76,7 @@ private:
     void insertItalic(const std::string &text);
     void insertBold(const std::string &text);
     void insertStrikethrough(const std::string &text);
+    void insertHighlight(const std::string &text);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
@@ -94,6 +95,7 @@ private:
     bool isBold;
     bool isItalic;
     bool isStrikethrough;
+    bool isHighlight;
     int bulletListLevel;
     int orderedListLevel;
     bool isOrderedList;
@@ -102,9 +104,9 @@ private:
     std::map<int,int> orderedListCounters;
 
     Pango::FontDescription defaultFont;
+    Pango::FontDescription boldItalic;
     Pango::FontDescription bold;
     Pango::FontDescription italic;
-    Pango::FontDescription boldItalic;
     Pango::FontDescription heading1;
     Pango::FontDescription heading2;
     Pango::FontDescription heading3;

@@ -10,6 +10,7 @@ set (LIBRARY_SOURCES
   ext_scanners.re
   ext_scanners.h
   tasklist.c
+  highlight.c
 )
 
 set_property(GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})

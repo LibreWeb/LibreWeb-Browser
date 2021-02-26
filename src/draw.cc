@@ -29,6 +29,7 @@ Draw::Draw(MainWindow &mainWindow)
       isBold(false),
       isItalic(false),
       isStrikethrough(false),
+      isHighlight(false),
       bulletListLevel(0),
       orderedListLevel(0),
       isOrderedList(false),
@@ -52,13 +53,13 @@ Draw::Draw(MainWindow &mainWindow)
     set_app_paintable(true);
 
     defaultFont.set_size(fontSize);
+    boldItalic.set_size(fontSize);
+    boldItalic.set_weight(Pango::WEIGHT_BOLD);
+    boldItalic.set_style(Pango::Style::STYLE_ITALIC);
     bold.set_size(fontSize);
     bold.set_weight(Pango::WEIGHT_BOLD);
     italic.set_size(fontSize);
     italic.set_style(Pango::Style::STYLE_ITALIC);
-    boldItalic.set_size(fontSize);
-    boldItalic.set_weight(Pango::WEIGHT_BOLD);
-    boldItalic.set_style(Pango::Style::STYLE_ITALIC);
 
     heading1.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
     heading1.set_weight(Pango::WEIGHT_BOLD);
@@ -617,8 +618,13 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         if (strcmp(node->extension->name, "strikethrough") == 0)
         {
             isStrikethrough = entering;
+            return;
         }
-        return;
+        else if (strcmp(node->extension->name, "highlight") == 0)
+        {
+            isHighlight = entering;
+            return;
+        }
     }
 
     switch (node->type)
@@ -635,6 +641,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             isBold = false;
             isItalic = false;
             isStrikethrough = false;
+            isHighlight = false;
         }
         break;
 
@@ -821,6 +828,10 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             insertStrikethrough(text);
         }
+        else if (isHighlight)
+        {
+            insertHighlight(text);
+        }
         // URL
         else if (isLink)
         {
@@ -967,6 +978,11 @@ void Draw::insertItalic(const std::string &text)
 void Draw::insertStrikethrough(const std::string &text)
 {
     insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" strikethrough=\"true\">" + text + "</span>");
+}
+
+void Draw::insertHighlight(const std::string &text)
+{
+    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"black\" background=\"#FFFF00\">" + text + "</span>");
 }
 
 /******************************************************
