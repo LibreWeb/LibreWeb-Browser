@@ -824,7 +824,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             insertItalic(text);
         }
-        else if (isStrikethrough) 
+        else if (isStrikethrough)
         {
             insertStrikethrough(text);
         }
@@ -876,9 +876,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_EMPH:
         isItalic = entering;
         break;
-
-        //case CMARK_NODE_STRIKETHROUGH:
-        //break;
 
     case CMARK_NODE_LINK:
         isLink = entering;
