@@ -2,7 +2,6 @@ cmake_minimum_required (VERSION 3.11.0)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-# Get VERSION from most recent git tag
 include(git_version)
 
 project (browser

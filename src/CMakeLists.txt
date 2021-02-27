@@ -39,6 +39,8 @@ if(NOT json_POPULATED)
   add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/project_config.h)
+
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   # Include CPack packaging settings
   #include(packaging)

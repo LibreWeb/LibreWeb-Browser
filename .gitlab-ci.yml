@@ -1,22 +1,27 @@
 image: danger89/gtk3-docker-cmake-ninja:2.1
 
+stages:
+  - build
+  - test
+  - upload
+  - release
+
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
-
-static_code_analysis:
-  script: ./check.sh
+  PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dweb-browser/${CI_COMMIT_TAG}"
 
 doxygen:
-   #stage: analysis
-   before_script:
-     - mkdir -p build/docs
-   script:
-     - doxygen docs/Doxyfile
-   artifacts:
-     paths:
-       - build/docs/html/
+  stage: build
+  before_script:
+    - mkdir -p build/docs
+  script:
+    - doxygen docs/Doxyfile
+  artifacts:
+    paths:
+      - build/docs/html/
 
 build:
+  stage: build
   script: ./scripts/build_prod.sh
   artifacts:
     name: "Packages"
@@ -25,9 +30,43 @@ build:
     - build_prod/browser-*.deb
     - build_prod/browser-*.rpm
     - build_prod/browser-*.tar.gz
-  cache:
-      key: "$CI_PIPELINE_ID"
-      paths:
-        - build_prod/bin
-      policy: push
+  after_script:
+      - echo "JOB_ID=$CI_JOB_ID" >> job.env
+    artifacts:
+      reports:
+        dotenv: job.env
+
+static_code_analysis:
+  stage: test
+  script: ./check.sh
+
+#unit_test:
+#  stage: test
+#  script :
+
+upload:
+  stage: upload
+  image: curlimages/curl:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - 'curl --location --output Packages.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${JOB_ID}/artifacts?job_token=${CI_JOB_TOKEN}'
+    - unzip Packages.zip
+    - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.deb ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb'
+    - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.rpm ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm'
+    - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.tar.gz ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz'
+
+release:
+  # Caution, as of 2021-02-02 these assets links require a login, see:
+  # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: $CI_COMMIT_TAG
+  script:
+    - |
+      release-cli create --name "Release $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+        --assets-link "{\"name\":\"DWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-${CI_COMMIT_TAG}.deb\"}" \
+        --assets-link "{\"name\":\"DWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-${CI_COMMIT_TAG}.rpm\"}" \
+        --assets-link "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-${CI_COMMIT_TAG}.tar.gz\"}"
 

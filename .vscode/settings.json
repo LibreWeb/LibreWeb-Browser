@@ -77,6 +77,7 @@
         "*.inc": "cpp",
         "syntax_extension.h": "c",
         "render.h": "c",
-        "node.h": "c"
+        "node.h": "c",
+        "*.in": "cpp"
     }
 }

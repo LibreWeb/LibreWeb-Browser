@@ -17,7 +17,10 @@ namespace n_fs = ::std::filesystem;
 int IPFS::startIPFSDaemon()
 {
     // Be sure to kill any running daemons
-    std::system("killall -q ipfs");
+    int res = std::system("killall -q ipfs");
+    if (res != 0) {
+        // ignore
+    }
 
     /// open /dev/null for writing
     int fd = open("/dev/null", O_WRONLY);

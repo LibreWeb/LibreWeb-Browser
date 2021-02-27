@@ -1,4 +1,5 @@
 #include "about.h"
+#include "project_config.h"
 
 About::About()
 {
@@ -7,7 +8,7 @@ About::About()
     logo.set("../../images/browser_logo_small.png");
 
     set_program_name("DWeb Browser");
-    set_version("0.6.0");
+    set_version(PROJECT_VER);
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
     set_website("https://melroy.org/");
