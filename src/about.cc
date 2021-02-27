@@ -4,7 +4,7 @@ About::About()
 {
     std::vector<Glib::ustring> devs;
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
-    logo.set("../../misc/browser_logo_small.png");
+    logo.set("../../images/browser_logo_small.png");
 
     set_program_name("DWeb Browser");
     set_version("0.6.0");
