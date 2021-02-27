@@ -2,6 +2,8 @@ Hello *World*, What a **happy** day!
 blabla.  
 [test](ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq)
 
+==Highlight== as well as ~~strikethrough~~
+
 # Heading 1
 
 ## Heading 2
@@ -14,8 +16,8 @@ New line.
 * list 1
 * list 2
 * list 3
-    * list 3.1
-    * list 3.2
+  * list 3.1
+  * list 3.2
 * list 4
 
 1. first

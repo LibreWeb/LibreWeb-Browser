@@ -7,7 +7,7 @@ About::About()
     logo.set("../../misc/browser_logo_small.png");
 
     set_program_name("DWeb Browser");
-    set_version("0.5.0");
+    set_version("0.6.0");
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
     set_website("https://melroy.org/");

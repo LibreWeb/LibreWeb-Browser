@@ -688,7 +688,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             }
             else
             {
-                // TODO: Un-indent list level again
+                // Un-indent list level again
                 if (listType == cmark_list_type::CMARK_BULLET_LIST)
                 {
                     bulletListLevel--;
@@ -755,14 +755,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_TEXT:
     {
-        // Instead of creating seperate pango layouts we may want to use Pango attributes,
-        // for changing parts of the text. Which is most likely be faster.
-        // https://developer.gnome.org/pango/stable/pango-Text-Attributes.html
-        // Pango is using a simple parser for parsing (X)HTML:
-        // https://developer.gnome.org/glib/stable/glib-Simple-XML-Subset-Parser.html
-        // We can use simular parse functions and using their own 'OpenTag' struct containing a list of Pango attributes:
-        // https://gitlab.gnome.org/GNOME/pango/-/blob/master/pango/pango-markup.c#L515
-
         std::string text = cmark_node_get_literal(node);
         // Insert tabs & bullet/number
         if (bulletListLevel > 0)
