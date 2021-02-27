@@ -13,7 +13,7 @@ if(GIT_FOUND)
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     # For debug reasons use:
-    #    message("GIT_HEAD_TAG = ${GIT_HEAD_TAG}")
+        message("GIT_HEAD_TAG = ${GIT_HEAD_TAG}")
 
     if("${GIT_HEAD_TAG}" MATCHES "^v([0-9]+)\\.([0-9]+)\\.([0-9]+).*$")
         string(REGEX REPLACE "^v([0-9]+)\\.([0-9]+)\\.([0-9]+).*$"

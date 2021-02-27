@@ -24,8 +24,6 @@ build:
   stage: build
   script: 
     - ./scripts/build_prod.sh
-  after_script:
-    - echo "JOB_ID=$CI_JOB_ID" >> job.env
   artifacts:
     name: "Packages"
     expire_in: 2 weeks
@@ -33,8 +31,6 @@ build:
     - build_prod/browser-*.deb
     - build_prod/browser-*.rpm
     - build_prod/browser-*.tar.gz
-    reports:
-      dotenv: job.env
 
 static_code_analysis:
   stage: test
@@ -50,8 +46,6 @@ upload:
   rules:
     - if: $CI_COMMIT_TAG
   script:
-    - 'curl --location --output Packages.zip "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/jobs/${JOB_ID}/artifacts?job_token=${CI_JOB_TOKEN}"'
-    - unzip Packages.zip
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.deb ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.rpm ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.tar.gz ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz'
