@@ -8,6 +8,13 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 *Note:* Project is still WIP!
 
+## Download
+
+[See Releases page](https://gitlab.melroy.org/dwww/dbrowser/-/releases).
+
+
+## Screens
+
 ![Browser Screenshot](./docs/browser_screenshot.png)  
 ![Browser Markdown Editor](./docs/browser_screenshot_2.png)
 
