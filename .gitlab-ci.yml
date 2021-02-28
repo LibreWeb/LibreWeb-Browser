@@ -2,13 +2,14 @@ image: danger89/gtk3-docker-cmake-ninja:2.1
 
 stages:
   - build
-  - test
-  - upload
   - release
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dweb-browser/${CI_COMMIT_TAG}"
+  RELEASE_LINKS_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
+
+  https://gitlab.example.com/api/v4/projects/24/releases/v0.1
 
 doxygen:
   stage: build
@@ -33,15 +34,16 @@ build:
     - build_prod/browser-*.tar.gz
 
 static_code_analysis:
-  stage: test
+  stage: build
   script: ./check.sh
 
 #unit_test:
 #  stage: test
 #  script :
 
-upload:
-  stage: upload
+# Upload artifacts & add links to the release
+upload_and_release:
+  stage: release
   image: curlimages/curl:latest
   rules:
     - if: $CI_COMMIT_TAG
@@ -49,19 +51,18 @@ upload:
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.deb ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.rpm ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.tar.gz ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz'
+    - 'curl --header "PRIVATE-TOKEN: ${ACCESS_TOKEN}" --header "Content-Type: application/json" --request POST --data "{\"name\":\"DWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb\",\"link_type\":\"package\"}" ${RELEASE_LINKS_URL}'
+    - 'curl --header "PRIVATE-TOKEN: ${ACCESS_TOKEN}" --header "Content-Type: application/json" --request POST --data "{\"name\":\"DWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm\",\"link_type\":\"package\"}" ${RELEASE_LINKS_URL}'
+    - 'curl --header "PRIVATE-TOKEN: ${ACCESS_TOKEN}" --header "Content-Type: application/json" --request POST --data "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}" ${RELEASE_LINKS_URL}'
 
-release:
-  # Caution, as of 2021-02-02 these assets links require a login, see:
-  # https://gitlab.com/gitlab-org/gitlab/-/issues/299384
-  stage: release
-  image: registry.gitlab.com/gitlab-org/release-cli:latest
-  rules:
-    - if: $CI_COMMIT_TAG
-  script:
-    - ping -c 5 gitlab.melroy.org
-    - |
-      release-cli --timeout 700s create --name "Release version $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-        --assets-link "{\"name\":\"DWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb\"}" \
-        --assets-link "{\"name\":\"DWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm\"}" \
-        --assets-link "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz\"}"
-
+#release:
+#  stage: release
+#  image: registry.gitlab.com/gitlab-org/release-cli:latest
+#  rules:
+#    - if: $CI_COMMIT_TAG
+#  script:
+#    - |
+#      release-cli --timeout 700s create --name "Release version $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
+#        --assets-link "{\"name\":\"DWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb\"}" \
+#        --assets-link "{\"name\":\"DWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm\"}" \
+#        --assets-link "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz\"}"
