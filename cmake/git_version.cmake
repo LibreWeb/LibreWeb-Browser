@@ -3,7 +3,7 @@ if(GIT_FOUND)
     # Get last tag from git
     execute_process(COMMAND ${GIT_EXECUTABLE} describe --abbrev=0 --tags
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-        OUTPUT_VARIABLE $GIT_TAG
+        OUTPUT_VARIABLE GIT_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
     if("${GIT_TAG}" MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
