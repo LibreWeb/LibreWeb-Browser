@@ -77,9 +77,9 @@ MainWindow::MainWindow()
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
 
     // Add icons to the editor buttons
-    int iconSize = 16;
-    std::string iconTheme = "flat"; // filled or flat
     try {
+        int iconSize = 16;
+        std::string iconTheme = "flat"; // filled or flat
         m_boldIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/bold.svg", iconSize, iconSize));
         m_boldButton.set_tooltip_text("Add bold text");
         m_boldButton.add(m_boldIcon);
