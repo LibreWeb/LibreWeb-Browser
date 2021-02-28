@@ -9,8 +9,6 @@ variables:
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dweb-browser/${CI_COMMIT_TAG}"
   RELEASE_LINKS_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
 
-  https://gitlab.example.com/api/v4/projects/24/releases/v0.1
-
 doxygen:
   stage: build
   before_script:
