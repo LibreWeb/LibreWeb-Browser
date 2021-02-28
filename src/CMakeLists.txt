@@ -105,3 +105,7 @@ target_link_directories(${PROJECT_TARGET} PRIVATE
 target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES} nlohmann_json::nlohmann_json)
 
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)
+install(FILES misc/dweb-browser.desktop DESTINATION share/applications)
+install(DIRECTORY images DESTINATION share/dweb-browser)
+#install(FILES images/dweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
+#install(FILES images/dweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)

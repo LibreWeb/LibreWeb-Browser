@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=DWeb Browser
+Comment=Decentralized Web-Browser
+Exec=/usr/bin/browser
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=browser
+Categories=Network;WebBrowser
+Keywords=Browser;Internet;WWW;Decentralized;Web
