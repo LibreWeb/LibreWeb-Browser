@@ -49,7 +49,6 @@ upload:
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.deb ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.rpm ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm'
     - 'curl --header "JOB-TOKEN: ${CI_JOB_TOKEN}" --upload-file build_prod/browser-v${CI_COMMIT_TAG}.tar.gz ${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz'
-    - ping gitlab.melroy.org
 
 release:
   # Caution, as of 2021-02-02 these assets links require a login, see:
