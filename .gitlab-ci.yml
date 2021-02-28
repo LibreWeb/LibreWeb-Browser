@@ -62,5 +62,5 @@ release:
       release-cli create --name "Release version $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
         --assets-link "{\"name\":\"DWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.deb\"}" \
         --assets-link "{\"name\":\"DWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.rpm\"}" \
-        --assets-link "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz\"}"
+        --assets-link "{\"name\":\"DWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/browser-v${CI_COMMIT_TAG}.tar.gz\"}" --timeout 60s
 
