@@ -1,32 +1,16 @@
 find_package(Git QUIET REQUIRED)
 if(GIT_FOUND)
-    set_property(GLOBAL APPEND
-        PROPERTY CMAKE_CONFIGURE_DEPENDS
-        "${CMAKE_SOURCE_DIR}/.git/index")
-
-    execute_process(
-        COMMAND "${GIT_EXECUTABLE}" describe --always HEAD
-        WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-        RESULT_VARIABLE res
-        OUTPUT_VARIABLE GIT_HEAD_TAG
-        ERROR_QUIET
+    # Get last tag from git
+    execute_process(COMMAND ${GIT_EXECUTABLE} describe --abbrev=0 --tags
+        WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+        OUTPUT_VARIABLE $GIT_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-        message("GIT_HEAD_TAG = ${GIT_HEAD_TAG}")
-
-    if("${GIT_HEAD_TAG}" MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
-        string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$"
-        "\\1;\\2;\\3" _ver_parts "${GIT_HEAD_TAG}")
-        list(GET _ver_parts 0 GIT_TAG_VERSION_MAJOR)
-        list(GET _ver_parts 1 GIT_TAG_VERSION_MINOR)
-        list(GET _ver_parts 2 GIT_TAG_VERSION_PATCH)
+    if("${GIT_TAG}" MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+        set(GIT_TAG_VERSION "${GIT_TAG}")
     else()
-        set(GIT_TAG_VERSION_MAJOR "0")
-        set(GIT_TAG_VERSION_MINOR "0")
-        set(GIT_TAG_VERSION_PATCH "0")
+        set(GIT_TAG_VERSION "0.0.0")
     endif()
-
-    set(GIT_TAG_VERSION "${GIT_TAG_VERSION_MAJOR}.${GIT_TAG_VERSION_MINOR}.${GIT_TAG_VERSION_PATCH}")
 else(GIT_FOUND)
     message("GIT needs to be installed to generate GIT versioning.")
 endif(GIT_FOUND)
