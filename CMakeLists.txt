@@ -26,9 +26,8 @@ add_subdirectory (lib/commonmarker/extensions)
 add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (src)
 
-# Add desktop/images files
-install(FILES misc/browser.desktop DESTINATION share/applications)
-#install(FILES misc/browser.png DESTINATION share/icons/hicolor/48x48/apps)
-#install(FILES misc/browser.svg DESTINATION share/icons/hicolor/scalable/apps)
-#install(DIRECTORY images DESTINATION share/browser)
-
+# Additional install files
+install(FILES misc/dweb-browser.desktop DESTINATION share/applications)
+install(DIRECTORY images DESTINATION share/dweb-browser)
+install(FILES images/icons/dweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
+install(FILES images/icons/dweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)

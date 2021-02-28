@@ -5,6 +5,6 @@ Exec=/usr/bin/browser
 Terminal=false
 Type=Application
 StartupNotify=true
-Icon=browser
+Icon=dweb-browser
 Categories=Network;WebBrowser
 Keywords=Browser;Internet;WWW;Decentralized;Web
