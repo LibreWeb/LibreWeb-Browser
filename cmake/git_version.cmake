@@ -12,11 +12,10 @@ if(GIT_FOUND)
         ERROR_QUIET
         OUTPUT_STRIP_TRAILING_WHITESPACE)
 
-    # For debug reasons use:
-    #    message("GIT_HEAD_TAG = ${GIT_HEAD_TAG}")
+        message("GIT_HEAD_TAG = ${GIT_HEAD_TAG}")
 
-    if("${GIT_HEAD_TAG}" MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+).*$")
-        string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+).*$"
+    if("${GIT_HEAD_TAG}" MATCHES "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$")
+        string(REGEX REPLACE "^([0-9]+)\\.([0-9]+)\\.([0-9]+)$"
         "\\1;\\2;\\3" _ver_parts "${GIT_HEAD_TAG}")
         list(GET _ver_parts 0 GIT_TAG_VERSION_MAJOR)
         list(GET _ver_parts 1 GIT_TAG_VERSION_MINOR)
