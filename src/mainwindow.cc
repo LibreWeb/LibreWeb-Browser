@@ -1,16 +1,17 @@
 #include "mainwindow.h"
 
+#include "md-parser.h"
+#include "menu.h"
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
-#include <glibmm/fileutils.h> 
+#include <giomm/file.h>
+#include <glibmm/fileutils.h>
+#include <glibmm/miscutils.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
-
-#include "md-parser.h"
-#include "menu.h"
 
 MainWindow::MainWindow()
     : accelGroup(Gtk::AccelGroup::create()),
@@ -21,6 +22,7 @@ MainWindow::MainWindow()
       m_hboxToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_appName("DWeb Browser"),
+      m_iconTheme("flat"), // filled or flat
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
@@ -76,60 +78,61 @@ MainWindow::MainWindow()
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
 
-    // Add icons to the editor buttons
-    try {
+    try
+    {
+        // Add icons to the editor buttons
         int iconSize = 16;
-        std::string iconTheme = "flat"; // filled or flat
-        m_boldIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/bold.svg", iconSize, iconSize));
+        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("bold.svg"), iconSize, iconSize));
         m_boldButton.set_tooltip_text("Add bold text");
         m_boldButton.add(m_boldIcon);
         m_boldButton.set_relief(Gtk::RELIEF_NONE);
-        m_italicIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/italic.svg", iconSize, iconSize));
+        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("italic.svg"), iconSize, iconSize));
         m_italicButton.set_tooltip_text("Add italic text");
         m_italicButton.add(m_italicIcon);
         m_italicButton.set_relief(Gtk::RELIEF_NONE);
-        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/strikethrough.svg", iconSize, iconSize));
+        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("strikethrough.svg"), iconSize, iconSize));
         m_strikethroughButton.set_tooltip_text("Add strikethrough text");
         m_strikethroughButton.add(m_strikethroughIcon);
         m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
-        m_superIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/superscript.svg", iconSize, iconSize));
+        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("superscript.svg"), iconSize, iconSize));
         m_superButton.set_tooltip_text("Add superscript text");
         m_superButton.add(m_superIcon);
         m_superButton.set_relief(Gtk::RELIEF_NONE);
-        m_subIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/subscript.svg", iconSize, iconSize));
+        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("subscript.svg"), iconSize, iconSize));
         m_subButton.set_tooltip_text("Add subscript text");
         m_subButton.add(m_subIcon);
         m_subButton.set_relief(Gtk::RELIEF_NONE);
-        m_quoteIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/quote.svg", iconSize, iconSize));
+        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("quote.svg"), iconSize, iconSize));
         m_quoteButton.set_tooltip_text("Insert a quote");
         m_quoteButton.add(m_quoteIcon);
         m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-        m_codeIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/code.svg", iconSize, iconSize));
+        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("code.svg"), iconSize, iconSize));
         m_codeButton.set_tooltip_text("Insert code");
         m_codeButton.add(m_codeIcon);
         m_codeButton.set_relief(Gtk::RELIEF_NONE);
-        m_linkIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/link.svg", iconSize, iconSize));
+        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("link.svg"), iconSize, iconSize));
         m_linkButton.set_tooltip_text("Add a link");
         m_linkButton.add(m_linkIcon);
         m_linkButton.set_relief(Gtk::RELIEF_NONE);
-        m_imageIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/shapes.svg", iconSize, iconSize));
+        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("shapes.svg"), iconSize, iconSize));
         m_imageButton.set_tooltip_text("Add a image");
         m_imageButton.add(m_imageIcon);
         m_imageButton.set_relief(Gtk::RELIEF_NONE);
-        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/bullet_list.svg", iconSize, iconSize));
+        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("bullet_list.svg"), iconSize, iconSize));
         m_bulletListButton.set_tooltip_text("Add a bullet list");
         m_bulletListButton.add(m_bulletListIcon);
         m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
-        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/number_list.svg", iconSize, iconSize));
+        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("number_list.svg"), iconSize, iconSize));
         m_numberedListButton.set_tooltip_text("Add a numbered list");
         m_numberedListButton.add(m_numberedListIcon);
         m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
-        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file("../../images/icons/" + iconTheme + "/highlighter.svg", iconSize, iconSize));
+        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("highlighter.svg"), iconSize, iconSize));
         m_highlightButton.set_tooltip_text("Add highlight text");
         m_highlightButton.add(m_hightlightIcon);
         m_highlightButton.set_relief(Gtk::RELIEF_NONE);
     }
-    catch(const Glib::FileError &e) { 
+    catch (const Glib::FileError &e)
+    {
         std::cerr << "Error: Icons could not be loaded: " << e.what() << std::endl;
     }
 
@@ -385,7 +388,7 @@ void MainWindow::enableEdit()
     // Disable "view source" menu item
     this->m_draw_main.setViewSourceMenuItem(false);
     // Connect changed signal
-    this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text)); 
+    this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
     // Set new title
     set_title("Untitled * - " + m_appName);
 }
@@ -506,6 +509,33 @@ void MainWindow::openFromDisk()
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
         m_draw_main.showMessage("Page not found!", "Error message: " + std::string(error.what()));
+    }
+}
+
+std::string MainWindow::getIconImage(const std::string &iconFilename)
+{
+    // Try absolute path first
+    for (std::string data_dir : Glib::get_system_data_dirs())
+    {
+        std::vector<std::string> path_builder{data_dir, "dweb-browser", "images", "icons", m_iconTheme, iconFilename};
+        std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
+        if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+        {
+            return file_path;
+        }
+    }
+
+    // Try local path if the images are not installed (yet)
+    // When working directory is in the build/bin folder (relative path)
+    std::string file_path = Glib::build_filename("../../images/icons", m_iconTheme, iconFilename);
+    std::cout << file_path << std::endl;
+    if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+    {
+        return file_path;
+    }
+    else
+    {
+        return "";
     }
 }
 

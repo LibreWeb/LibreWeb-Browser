@@ -31,11 +31,7 @@ int main(int argc, char *argv[])
     {
         // Run by child process
         printf("INFO: Starting IPFS daemon.\n");
-        int res = IPFS::startIPFSDaemon();
-        if (res != 0) {
-            printf("ERROR: IPFS daemon failed to start.\n");
-        }
-        return res;
+        return IPFS::startIPFSDaemon();
     }
     else if (child_pid > 0)
     {

@@ -18,36 +18,30 @@ int IPFS::startIPFSDaemon()
 {
     // Be sure to kill any running daemons
     int res = std::system("killall -q ipfs");
-    if (res != 0) {
+    if (res != 0)
+    {
         // ignore
     }
 
-    /// open /dev/null for writing
-    int fd = open("/dev/null", O_WRONLY);
-
-    dup2(fd, 1); // make stdout a copy of fd (> /dev/null)
-    dup2(fd, 2); // ..and same with stderr
-    close(fd);   // close fd
-
-    // stdout and stderr now write to /dev/null
     // Ready to call exec to start IPFS Daemon
     std::string currentPath = n_fs::current_path().string();
     std::string executable = currentPath.append("/../../go-ipfs/ipfs");
-    const char *exe = executable.c_str();
-    std::cout << "Info: Starting IPFS Daemon from: " << exe << std::endl;
-    char *proc[] = {strdup(exe), strdup("daemon"), strdup("--init"), strdup("--migrate"), NULL};
-    return execv(exe, proc);
-}
+    if (n_fs::exists(executable))
+    {
+        /// open /dev/null for writing
+        int fd = open("/dev/null", O_WRONLY);
+        dup2(fd, 1); // make stdout a copy of fd (> /dev/null)
+        dup2(fd, 2); // ..and same with stderr
+        close(fd);   // close fd
+        // stdout and stderr now write to /dev/null
 
-/*
-std::string IPFS::getExecutablePath() {
-  char buff[PATH_MAX];
-  ssize_t len = ::readlink("/proc/self/exe", buff, sizeof(buff)-1);
-  if (len != -1) {
-    buff[len] = '\0';
-    return std::string(buff);
-  }
-  else {
-    return "";
-  }
-}*/
+        const char *exe = executable.c_str();
+        char *proc[] = {strdup(exe), strdup("daemon"), strdup("--init"), strdup("--migrate"), NULL};
+        return execv(exe, proc);
+    }
+    else
+    {
+        std::cerr << "Error: IPFS Daemon is not found. IPFS will not work!" << std::endl;
+        return -1;
+    }
+}

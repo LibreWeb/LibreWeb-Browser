@@ -100,6 +100,7 @@ protected:
 
 private:
     std::string m_appName;
+    std::string m_iconTheme;
     File m_file;
     std::thread *m_requestThread;
     std::string requestPath;
@@ -115,6 +116,7 @@ private:
     void processRequest(const std::string &path);
     void fetchFromIPFS();
     void openFromDisk();
+    std::string getIconImage(const std::string &iconFilename);
 };
 
 #endif
