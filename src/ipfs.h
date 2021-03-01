@@ -11,5 +11,7 @@ class IPFS
 {
 public:
     static int startIPFSDaemon();
+private:
+    static std::string findIPFSBinary();
 };
 #endif

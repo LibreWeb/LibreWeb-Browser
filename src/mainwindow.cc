@@ -528,7 +528,6 @@ std::string MainWindow::getIconImage(const std::string &iconFilename)
     // Try local path if the images are not installed (yet)
     // When working directory is in the build/bin folder (relative path)
     std::string file_path = Glib::build_filename("../../images/icons", m_iconTheme, iconFilename);
-    std::cout << file_path << std::endl;
     if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
     {
         return file_path;
