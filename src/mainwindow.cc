@@ -247,10 +247,13 @@ MainWindow::MainWindow()
     // Grap focus to input field by default
     m_addressBar.grab_focus();
 
+    #ifdef NDEBUG
     // Show start page by default
-    // Load test.md file on start-up
+    go_home();
+    #else
+    // Load test.md file in debug
     doRequest("file://../../test.md", true);
-    //go_home();
+    #endif
 }
 
 /**

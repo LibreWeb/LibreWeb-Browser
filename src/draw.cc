@@ -175,8 +175,11 @@ void Draw::showStartPage()
     this->clearOnThread();
 
     insertHeading1("Welcome to the Decentralized Web (DWeb)");
-    insertText("See also the: ");
-    insertLink("Example page on IPFS", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    insertText("You can surf the web as intended, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
+The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
+This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
+    insertText("See an example page hosted on IPFS: ");
+    insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
 }
 
 /**
