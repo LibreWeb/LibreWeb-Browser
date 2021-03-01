@@ -18,8 +18,9 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   include(packaging)
 endif()
 
-# Disable CTest testcases in cpp-ipfs-http-client
+# Disable CTest testcases & install in cpp-ipfs-http-client
 set (BUILD_TESTING OFF CACHE BOOL "Disable CTest" FORCE)
+set (DISABLE_INSTALL ON CACHE BOOL "Disable Install" FORCE)
 
 add_subdirectory (lib/commonmarker/src)
 add_subdirectory (lib/commonmarker/extensions)

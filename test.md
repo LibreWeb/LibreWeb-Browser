@@ -2,7 +2,7 @@ Hello *World*, What a **happy** day!
 blabla.  
 [test](ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq)
 
-==Highlight== as well as ~~strikethrough~~
+==Highlight== as well as ~~strikethrough~~ this is also a very very long line without any breaks, checking how line wrapping is behaving.
 
 # Heading 1
 
