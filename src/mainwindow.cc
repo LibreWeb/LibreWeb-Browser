@@ -21,7 +21,7 @@ MainWindow::MainWindow()
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_hboxToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
-      m_appName("DWeb Browser"),
+      m_appName("LibreWeb Browser"),
       m_iconTheme("flat"), // filled or flat
       m_requestThread(nullptr),
       requestPath(""),
@@ -520,7 +520,7 @@ std::string MainWindow::getIconImage(const std::string &iconFilename)
     // Try absolute path first
     for (std::string data_dir : Glib::get_system_data_dirs())
     {
-        std::vector<std::string> path_builder{data_dir, "dweb-browser", "images", "icons", m_iconTheme, iconFilename};
+        std::vector<std::string> path_builder{data_dir, "libreweb-browser", "images", "icons", m_iconTheme, iconFilename};
         std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
         if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
         {

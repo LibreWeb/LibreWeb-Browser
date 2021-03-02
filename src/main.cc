@@ -15,12 +15,12 @@ int main(int argc, char *argv[])
             {
             case 'v':
                 // Display version, and directly exit the program.
-                std::cout << "DWeb Browser " << PROJECT_VER << std::endl;
+                std::cout << "LibreWeb Browser " << PROJECT_VER << std::endl;
                 exit(EXIT_SUCCESS);
                 break;
             case 'h':
             case '?': // Unknown
-                fprintf(stderr, "Usuage: browser [-v] \nDecentralized Web Browser\n\nOptions are:\n    -v : output version information and exit\n\n");
+                fprintf(stderr, "Usuage: browser [-v] \nDecentralized Web-Browser, part of the LibreWeb Project\n\nOptions are:\n    -v : output version information and exit\n\n");
                 exit(EXIT_SUCCESS);
                 break;
             }
@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
     else if (child_pid > 0)
     {
         // Parent process (child_pid is PID of child)
-        auto app = Gtk::Application::create(argc, argv, "org.melroy.browser");
+        auto app = Gtk::Application::create(argc, argv, "org.libreweb.browser");
 
         MainWindow window;
         int exitCode = app->run(window);

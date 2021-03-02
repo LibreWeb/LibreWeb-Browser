@@ -54,7 +54,7 @@ std::string IPFS::findIPFSBinary()
     // Try absolute path first
     for (std::string data_dir : Glib::get_system_data_dirs())
     {
-        std::vector<std::string> path_builder{data_dir, "dweb-browser", "go-ipfs", "ipfs"};
+        std::vector<std::string> path_builder{data_dir, "libreweb-browser", "go-ipfs", "ipfs"};
         std::string ipfs_binary_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
         if (Glib::file_test(ipfs_binary_path, Glib::FileTest::FILE_TEST_IS_EXECUTABLE))
         {

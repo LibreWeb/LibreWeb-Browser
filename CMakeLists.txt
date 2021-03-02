@@ -28,8 +28,8 @@ add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (src)
 
 # Additional install files
-install(FILES misc/dweb-browser.desktop DESTINATION share/applications)
-install(PROGRAMS go-ipfs/ipfs DESTINATION share/dweb-browser/go-ipfs)
-install(DIRECTORY images DESTINATION share/dweb-browser)
-install(FILES images/icons/dweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
-install(FILES images/icons/dweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)
+install(FILES misc/libreweb-browser.desktop DESTINATION share/applications)
+install(PROGRAMS go-ipfs/ipfs DESTINATION share/libreweb-browser/go-ipfs)
+install(DIRECTORY images DESTINATION share/libreweb-browser)
+install(FILES images/icons/libreweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
+install(FILES images/icons/libreweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)

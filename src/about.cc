@@ -10,11 +10,11 @@ About::About()
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
     logo.set(this->getLogoImage());
 
-    set_program_name("DWeb Browser");
+    set_program_name("LibreWeb Browser");
     set_version(PROJECT_VER);
     set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
-    set_website("https://melroy.org/");
+    set_website("https://libreweb.org/");
     set_copyright("Copyright © 2020-2021 Melroy van den Berg");
     set_authors(devs);
     set_artists(devs);
@@ -43,7 +43,7 @@ std::string About::getLogoImage()
     // Try absolute path first
     for (std::string data_dir : Glib::get_system_data_dirs())
     {
-        std::vector<std::string> path_builder{data_dir, "dweb-browser", "images", "browser_logo_small.png"};
+        std::vector<std::string> path_builder{data_dir, "libreweb-browser", "images", "browser_logo_small.png"};
         std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
         if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
         {

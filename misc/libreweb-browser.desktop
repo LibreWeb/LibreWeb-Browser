@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=LibreWeb Browser
+Comment=Decentralized Web-Browser
+Exec=/usr/bin/libreweb-browser
+Terminal=false
+Type=Application
+StartupNotify=true
+Icon=libreweb-browser
+Categories=Network;WebBrowser
+Keywords=Browser;Internet;WWW;Decentralized;Web;LibreWeb

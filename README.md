@@ -10,7 +10,7 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 ## Download
 
-* [Download the latest release](https://gitlab.melroy.org/dwww/dbrowser/-/releases)
+* [Download the latest release](https://gitlab.melroy.org/libreweb/browser/-/releases)
 
 ## Screens
 
@@ -60,7 +60,7 @@ For the build you need at least:
 
 ### Documentation
 
-See latest [DWeb Browser Docs](https://gitlab.melroy.org/dwww/dbrowser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
+See latest [Developer Docs](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
 
 ### Research
 
