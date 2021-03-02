@@ -25,7 +25,7 @@ build:
     - ./scripts/build_prod.sh
   artifacts:
     name: "Packages"
-    expire_in: 2 weeks
+    expire_in: 1 week
     paths:
     - build_prod/libreweb-browser-*.deb
     - build_prod/libreweb-browser-*.rpm
