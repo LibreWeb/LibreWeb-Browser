@@ -7,7 +7,7 @@
 About::About()
 {
     std::vector<Glib::ustring> devs;
-    devs.push_back("Melroy van den Berg <melroy@melroy.org>");
+    devs.push_back("Melroy van den Berg <info@libreweb.org>");
     logo.set(this->getLogoImage());
 
     set_program_name("LibreWeb Browser");

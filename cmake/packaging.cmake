@@ -2,7 +2,7 @@
 # Example: https://github.com/MariaDB/server/tree/10.5/cmake
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LibreWeb Browser - Decentralized Web-Browser")
 set(CPACK_PACKAGE_VENDOR "Melroy van den Berg")
-set(CPACK_PACKAGE_CONTACT "Melroy van den Berg <melroy@melroy.org>")
+set(CPACK_PACKAGE_CONTACT "Melroy van den Berg <info@libreweb.org>")
 set(CPACK_PACKAGE_HOMEPAGE_URL "https://libreweb.org")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
