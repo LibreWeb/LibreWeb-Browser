@@ -6,6 +6,7 @@
 #include <gdk/gdkthreads.h>
 #include <gdk/gdkselection.h>
 #include <gtkmm/textiter.h>
+#include <gdkmm/window.h>
 #include <iostream>
 #include <stdexcept>
 
@@ -34,6 +35,7 @@ Draw::Draw(MainWindow &mainWindow)
       orderedListLevel(0),
       isOrderedList(false),
       isLink(false),
+      hovingOverLink(false),
       defaultFont(fontFamily),
       boldItalic(fontFamily),
       bold(fontFamily),
@@ -74,8 +76,15 @@ Draw::Draw(MainWindow &mainWindow)
     heading6.set_size(fontSize * PANGO_SCALE_MEDIUM);
     heading6.set_weight(Pango::WEIGHT_BOLD);
 
+    // Set cursors
+    auto display = get_display();
+    normalCursor = Gdk::Cursor::create(display, "default");
+    linkCursor = Gdk::Cursor::create(display, "grab");
+    textCursor = Gdk::Cursor::create(display, "text");
+
     // Connect Signals
     signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
+    signal_motion_notify_event().connect(sigc::mem_fun(this, &Draw::motion_notify_event));
     signal_populate_popup().connect(sigc::mem_fun(this, &Draw::populate_popup));
 }
 
@@ -112,6 +121,17 @@ void Draw::event_after(GdkEvent *ev)
     get_iter_at_location(iter, x, y);
     // Find the links
     followLink(iter);
+}
+
+/**
+ * Update the cursor whenever there is a link
+ */
+bool Draw::motion_notify_event(GdkEventMotion *motion_event)
+{
+    int x, y;
+    window_to_buffer_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, motion_event->x, motion_event->y, x, y);
+    this->changeCursor(x, y);
+    return false;
 }
 
 /**
@@ -998,6 +1018,39 @@ void Draw::insertMarkupTextOnThread(const std::string &text)
 void Draw::clearOnThread()
 {
     gdk_threads_add_idle((GSourceFunc)clearBufferIdle, buffer);
+}
+
+/* Looks at all tags covering the position (x, y) in the text view,
+ * and if one of them is a link, change the cursor to the "hands" cursor
+ * typically used by web browsers.
+ */
+void Draw::changeCursor(int x, int y)
+{
+    Gtk::TextBuffer::iterator iter;
+    bool hovering = false;
+
+    get_iter_at_location(iter, x, y);
+    auto tags = iter.get_tags();
+    for (auto &tag : tags)
+    {
+        char *url = static_cast<char *>(tag->get_data("url"));
+        if (url != 0 && (strlen(url) > 0))
+        {
+            // Link
+            hovering = true;
+            break;
+        }
+    }
+
+    if (hovering != hovingOverLink)
+    {
+        hovingOverLink = hovering;
+        auto window = get_window(Gtk::TextWindowType::TEXT_WINDOW_TEXT);
+        if (hovingOverLink)
+            window->set_cursor(linkCursor);
+        else
+            window->set_cursor(normalCursor);
+    }
 }
 
 /**

@@ -3,6 +3,7 @@
 
 #include <gtkmm/textview.h>
 #include <gtkmm/menu.h>
+#include <gdkmm/cursor.h>
 #include <pangomm/layout.h>
 #include <cmark-gfm.h>
 
@@ -55,6 +56,7 @@ public:
 protected:
     // Signals
     void event_after(GdkEvent *ev);
+    bool motion_notify_event(GdkEventMotion* motion_event);
     void populate_popup(Gtk::Menu *menu);
 
 private:
@@ -80,6 +82,7 @@ private:
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
+    void changeCursor(int x, int y);
     static gboolean insertTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
@@ -102,6 +105,10 @@ private:
     bool isLink;
     std::string linkURL;
     std::map<int,int> orderedListCounters;
+    Glib::RefPtr<Gdk::Cursor> normalCursor;
+    Glib::RefPtr<Gdk::Cursor> linkCursor;
+    Glib::RefPtr<Gdk::Cursor> textCursor;
+    bool hovingOverLink;
 
     Pango::FontDescription defaultFont;
     Pango::FontDescription boldItalic;
