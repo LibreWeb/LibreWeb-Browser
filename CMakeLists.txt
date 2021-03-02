@@ -4,9 +4,9 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 include(git_version)
 
-project (browser
+project (libreweb-browser
   VERSION ${GIT_TAG_VERSION}
-  DESCRIPTION "Browser - Decentralized WWW"
+  DESCRIPTION "LibreWeb Browser - Decentralized Web-Browser"
   LANGUAGES C CXX)
 
 message("CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}")
