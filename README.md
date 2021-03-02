@@ -1,16 +1,16 @@
-# DWeb Browser
+# LibreWeb Browser
 
-Decentralized Browser; a revolution of the WWW.
+Decentralized Web-Browser; a revolution of the WWW.
 
 What would you do different; if you could **reinvent** The Internet in 21st century? With all the knowledge and new technologies available today.
 
 I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
 
-*Note:* Project is still WIP!
+*Note:* Project is still in Alpha phase!
 
 ## Download
 
-[See Releases page](https://gitlab.melroy.org/dwww/dbrowser/-/releases).
+* [Download the latest release](https://gitlab.melroy.org/dwww/dbrowser/-/releases)
 
 
 ## Screens
@@ -37,7 +37,7 @@ The current success criteria:
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
-## Devs
+## Developers
 
 Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
 
@@ -63,22 +63,9 @@ For the build you need at least:
 
 See latest [DWeb Browser Docs](https://gitlab.melroy.org/dwww/dbrowser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
 
-### Diagrams
+### Research
 
-There existing several design and/or research diagrams of Browser by using PlantUML. Sometimes words aren't enough to explain yourself.
+For [research document](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/diagrams.md)) see the:  
+* [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/libreweb/-/tree/master)
 
-[Check-out the diagrams page](docs/diagrams.md).
 
-### Drawing/Graphics rendering engine/GUI
-
-We are currently in an exploration phase about which 2D (vector) graphics rendering library we should use.
-
-**Findings:** Using GTK 3 + Cairo + Pango, which works fine and is very fast!
-
-See [research document](docs/research.md) (also in markdown) for more information and conclusions based on facts.
-
-### Decentralized Web
-
-We are also currently in an exploration page about which kind of P2P or decentralized network solution is the best fit.
-
-See [research document](docs/research.md) (also in markdown) for more information and conclusions based on facts.
