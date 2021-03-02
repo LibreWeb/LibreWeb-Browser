@@ -17,5 +17,7 @@ public:
     void hide_about(int response);
 protected:
     Gtk::Image logo; /*!< The logo of the app */
+private:
+    std::string getLogoImage();
 };
 #endif

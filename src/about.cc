@@ -1,11 +1,14 @@
 #include "about.h"
 #include "project_config.h"
 
+#include <glibmm/miscutils.h>
+#include <glibmm/fileutils.h>
+
 About::About()
 {
     std::vector<Glib::ustring> devs;
     devs.push_back("Melroy van den Berg <melroy@melroy.org>");
-    logo.set("../../images/browser_logo_small.png");
+    logo.set(this->getLogoImage());
 
     set_program_name("DWeb Browser");
     set_version(PROJECT_VER);
@@ -33,4 +36,30 @@ void About::show_about()
 void About::hide_about(__attribute__((unused)) int response)
 {
     hide();
+}
+
+std::string About::getLogoImage()
+{
+    // Try absolute path first
+    for (std::string data_dir : Glib::get_system_data_dirs())
+    {
+        std::vector<std::string> path_builder{data_dir, "dweb-browser", "images", "browser_logo_small.png"};
+        std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
+        if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+        {
+            return file_path;
+        }
+    }
+
+    // Try local path if the images are not installed (yet)
+    // When working directory is in the build/bin folder (relative path)
+    std::string file_path = Glib::build_filename("../../images", "browser_logo_small.png");
+    if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+    {
+        return file_path;
+    }
+    else
+    {
+        return "";
+    }
 }
