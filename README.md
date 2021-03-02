@@ -12,11 +12,10 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 * [Download the latest release](https://gitlab.melroy.org/dwww/dbrowser/-/releases)
 
-
 ## Screens
 
-![Browser Screenshot](./docs/browser_screenshot.png)  
-![Browser Markdown Editor](./docs/browser_screenshot_2.png)
+![Browser Screenshot](./misc/browser_screenshot.png)  
+![Browser Markdown Editor](./misc/browser_screenshot_2.png)
 
 ## Ideas/Features
 
@@ -65,7 +64,6 @@ See latest [DWeb Browser Docs](https://gitlab.melroy.org/dwww/dbrowser/-/jobs/ar
 
 ### Research
 
-For [research document](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/diagrams.md)) see the:  
+For [research document](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/diagrams.md)) see the:
+
 * [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/libreweb/-/tree/master)
-
-
