@@ -14,7 +14,7 @@ doxygen:
   before_script:
     - mkdir -p build/docs
   script:
-    - doxygen docs/Doxyfile
+    - doxygen misc/Doxyfile
   artifacts:
     paths:
       - build/docs/html/
