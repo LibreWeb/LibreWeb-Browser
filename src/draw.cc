@@ -282,38 +282,16 @@ void Draw::followLink(Gtk::TextBuffer::iterator &iter)
     }
 }
 
-void Draw::selectAll()
-{
-    if (has_focus())
-    {
-        auto buffer = get_buffer();
-        buffer->select_range(buffer->begin(), buffer->end());
-    }
-}
-
 void Draw::cut()
 {
-    if (has_focus())
+    bool isEditable = get_editable();
+    if (isEditable)
     {
-        bool isEditable = get_editable();
-        if (isEditable)
-        {
-            auto buffer = get_buffer();
-            auto clipboard = get_clipboard("CLIPBOARD");
-            buffer->cut_clipboard(clipboard);
-        }
-        else
-        {
-            auto buffer = get_buffer();
-            auto clipboard = get_clipboard("CLIPBOARD");
-            buffer->copy_clipboard(clipboard);
-        }
+        auto buffer = get_buffer();
+        auto clipboard = get_clipboard("CLIPBOARD");
+        buffer->cut_clipboard(clipboard);
     }
-}
-
-void Draw::copy()
-{
-    if (has_focus())
+    else
     {
         auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
@@ -321,11 +299,17 @@ void Draw::copy()
     }
 }
 
+void Draw::copy()
+{
+    auto buffer = get_buffer();
+    auto clipboard = get_clipboard("CLIPBOARD");
+    buffer->copy_clipboard(clipboard);
+}
+
 void Draw::paste()
 {
     bool isEditable = get_editable();
-    bool hasFocus = has_focus();
-    if (isEditable && hasFocus)
+    if (isEditable)
     {
         auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
@@ -336,8 +320,7 @@ void Draw::paste()
 void Draw::del()
 {
     bool isEditable = get_editable();
-    bool hasFocus = has_focus();
-    if (isEditable && hasFocus)
+    if (isEditable)
     {
         auto buffer = get_buffer();
         Gtk::TextBuffer::iterator begin, end;
@@ -351,6 +334,12 @@ void Draw::del()
             buffer->erase(begin, end);
         }
     }
+}
+
+void Draw::selectAll()
+{
+    auto buffer = get_buffer();
+    buffer->select_range(buffer->begin(), buffer->end());
 }
 
 /*************************************************************

@@ -26,10 +26,15 @@ class MainWindow : public Gtk::Window
 {
 public:
     MainWindow();
-    void doRequest(const std::string &path= std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
+    void doRequest(const std::string &path = std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
 
 protected:
     // Signal handlers
+    void cut();
+    void copy();
+    void paste();
+    void del();
+    void selectAll();
     void new_doc();
     void go_home();
     void address_bar_activate();

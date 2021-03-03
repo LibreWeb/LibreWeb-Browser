@@ -32,11 +32,11 @@ public:
     void newDocument();
     std::string getText();
     void clearText();
-    void selectAll();
     void cut();
     void copy();
     void paste();
     void del();
+    void selectAll();
 
     // Signals editor calls
     void make_heading(int headingLevel);

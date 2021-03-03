@@ -37,19 +37,17 @@ MainWindow::MainWindow()
     // Connect signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
-    m_menu.cut.connect(sigc::mem_fun(m_draw_main, &Draw::cut));                                                      /*!< Menu item for cut text */
-    m_menu.copy.connect(sigc::mem_fun(m_draw_main, &Draw::copy));                                                    /*!< Menu item for copy text */
-    m_menu.paste.connect(sigc::mem_fun(m_draw_main, &Draw::paste));                                                  /*!< Menu item for paste text */
-    m_menu.del.connect(sigc::mem_fun(m_draw_main, &Draw::del));                                                      /*!< Menu item for deleting selected text */
-    m_menu.select_all.connect(sigc::mem_fun(m_draw_main, &Draw::selectAll));                                         /*!< Menu item for selecting all text */
+    m_menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                                                       /*!< Menu item for cut text */
+    m_menu.copy.connect(sigc::mem_fun(this, &MainWindow::copy));                                                     /*!< Menu item for copy text */
+    m_menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                                                   /*!< Menu item for paste text */
+    m_menu.del.connect(sigc::mem_fun(this, &MainWindow::del));                                                       /*!< Menu item for deleting selected text */
+    m_menu.select_all.connect(sigc::mem_fun(this, &MainWindow::selectAll));                                          /*!< Menu item for selecting all text */
     m_menu.find.connect(sigc::mem_fun(this, &MainWindow::show_search));                                              /*!< Menu item for finding text */
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
     m_menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                                                  /*!< Menu item for home page */
     m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                           /*!< Source code dialog */
-    m_menu.copy.connect(sigc::mem_fun(m_draw_secondary, &Draw::copy));                                               /*!< Menu item for copy text in secondary text draw */
-    m_menu.select_all.connect(sigc::mem_fun(m_draw_secondary, &Draw::selectAll));                                    /*!< Menu item for selecting all text in secondary text draw  */
     m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
     m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
     m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
@@ -247,13 +245,13 @@ MainWindow::MainWindow()
     // Grap focus to input field by default
     m_addressBar.grab_focus();
 
-    #ifdef NDEBUG
+#ifdef NDEBUG
     // Show start page by default
     go_home();
-    #else
+#else
     // Load test.md file in debug
     doRequest("file://../../test.md", true);
-    #endif
+#endif
 }
 
 /**
@@ -277,6 +275,122 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
         this->postDoRequest(path, setAddressBar, isHistoryRequest);
     }
+}
+
+/***
+ * Cut/copy/paste/delete/select all keybindings
+ */
+void MainWindow::cut()
+{
+    if (m_draw_main.has_focus())
+    {
+        m_draw_main.cut();
+    }
+    else if (m_draw_secondary.has_focus())
+    {
+        m_draw_secondary.cut();
+    }
+    else if (m_addressBar.has_focus())
+    {
+        m_addressBar.cut_clipboard();
+    }
+    else if (m_searchEntry.has_focus())
+    {
+        m_searchEntry.cut_clipboard();
+    }
+}
+
+void MainWindow::copy()
+{
+    if (m_draw_main.has_focus())
+    {
+        m_draw_main.copy();
+    }
+    else if (m_draw_secondary.has_focus())
+    {
+        m_draw_secondary.copy();
+    }
+    else if (m_addressBar.has_focus())
+    {
+        m_addressBar.copy_clipboard();
+    }
+    else if (m_searchEntry.has_focus())
+    {
+        m_searchEntry.copy_clipboard();
+    }
+}
+
+void MainWindow::paste()
+{
+    if (m_draw_main.has_focus())
+    {
+        m_draw_main.paste();
+    }
+    else if (m_draw_secondary.has_focus())
+    {
+        m_draw_secondary.paste();
+    }
+    else if (m_addressBar.has_focus())
+    {
+        m_addressBar.paste_clipboard();
+    }
+    else if (m_searchEntry.has_focus())
+    {
+        m_searchEntry.paste_clipboard();
+    }
+}
+
+void MainWindow::del()
+{
+    if (m_draw_main.has_focus())
+    {
+        m_draw_main.del();
+    }
+    else if (m_draw_secondary.has_focus())
+    {
+        m_draw_secondary.del();
+    }
+    else if (m_addressBar.has_focus())
+    {
+        int start, end;
+        m_addressBar.get_selection_bounds(start, end);
+        m_addressBar.delete_text(start, end);
+    }
+    else if (m_searchEntry.has_focus())
+    {
+        int start, end;
+        m_searchEntry.get_selection_bounds(start, end);
+        m_searchEntry.delete_text(start, end);
+    }
+}
+
+void MainWindow::selectAll()
+{
+    if (m_draw_main.has_focus())
+    {
+        m_draw_main.selectAll();
+    }
+    else if (m_draw_secondary.has_focus())
+    {
+        m_draw_secondary.selectAll();
+    }
+    else if (m_addressBar.has_focus())
+    {
+        m_addressBar.select_region(0, -1);
+    }
+    else if (m_searchEntry.has_focus())
+    {
+        m_searchEntry.select_region(0, -1);
+    }
+}
+
+/**
+ * Trigger/creating a new document
+ */
+void MainWindow::new_doc()
+{
+    // Enable editing mode
+    this->enableEdit();
 }
 
 /**
@@ -311,12 +425,6 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
     m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
 }
 
-void MainWindow::new_doc()
-{
-    // Enable editing mode
-    this->enableEdit();
-}
-
 void MainWindow::go_home()
 {
     this->requestPath = "";
@@ -341,6 +449,8 @@ void MainWindow::do_search()
 void MainWindow::address_bar_activate()
 {
     doRequest(m_addressBar.get_text());
+    // When user actually entered the address bar, focus on the main draw
+    m_draw_main.grab_focus();
 }
 
 void MainWindow::show_search()
