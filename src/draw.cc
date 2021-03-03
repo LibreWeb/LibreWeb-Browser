@@ -53,6 +53,10 @@ Draw::Draw(MainWindow &mainWindow)
     set_bottom_margin(5);
     set_monospace(true);
     set_app_paintable(true);
+    set_pixels_above_lines(1);
+    set_pixels_below_lines(1);
+    // set_pixels_inside_wrap(1);
+    set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
 
     defaultFont.set_size(fontSize);
     boldItalic.set_size(fontSize);
