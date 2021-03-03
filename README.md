@@ -64,6 +64,6 @@ See latest [Developer Docs](https://gitlab.melroy.org/libreweb/browser/-/jobs/ar
 
 ### Research
 
-For [research document](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/libreweb/-/blob/master/diagrams.md)) see the:
+For [research document](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/diagrams.md)) see the:
 
-* [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/libreweb/-/tree/master)
+* [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/research_lab/-/tree/master)
