@@ -79,6 +79,8 @@ private:
     void insertBold(const std::string &text);
     void insertStrikethrough(const std::string &text);
     void insertHighlight(const std::string &text);
+    void insertSubscript(const std::string &text);
+    void insertSuperscript(const std::string &text);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
@@ -99,6 +101,7 @@ private:
     bool isItalic;
     bool isStrikethrough;
     bool isHighlight;
+    bool isQuote;
     int bulletListLevel;
     int orderedListLevel;
     bool isOrderedList;
