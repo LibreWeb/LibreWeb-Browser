@@ -657,6 +657,7 @@ void MainWindow::editor_changed_text()
     std::string text = m_draw_main.getText();
     // Parse the markdown contents
     cmark_node *doc = Parser::parseContent(text);
+
     // Show the document as a preview on the right side text-view panel
     m_draw_secondary.processDocument(doc);
     cmark_node_free(doc);

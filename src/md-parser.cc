@@ -41,6 +41,8 @@ cmark_node *Parser::parseContent(const std::string &content)
     // Add extensions
     addMarkdownExtension(parser, "strikethrough");
     addMarkdownExtension(parser, "highlight");
+    addMarkdownExtension(parser, "superscript");
+    addMarkdownExtension(parser, "subscript");
     //addMarkdownExtension(parser, "table");
 
     cmark_parser_feed(parser, data, strlen(data));

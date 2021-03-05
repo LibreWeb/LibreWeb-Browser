@@ -78,6 +78,7 @@
         "syntax_extension.h": "c",
         "render.h": "c",
         "node.h": "c",
-        "*.in": "cpp"
+        "*.in": "cpp",
+        "superscript.h": "c"
     }
 }

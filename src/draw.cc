@@ -31,15 +31,15 @@ Draw::Draw(MainWindow &mainWindow)
       isItalic(false),
       isStrikethrough(false),
       isHighlight(false),
+      isSuperscript(false),
+      isSubscript(false),
+      isQuote(false),
       bulletListLevel(0),
       orderedListLevel(0),
       isOrderedList(false),
       isLink(false),
       hovingOverLink(false),
       defaultFont(fontFamily),
-      boldItalic(fontFamily),
-      bold(fontFamily),
-      italic(fontFamily),
       heading1(fontFamily),
       heading2(fontFamily),
       heading3(fontFamily),
@@ -57,15 +57,6 @@ Draw::Draw(MainWindow &mainWindow)
     set_pixels_below_lines(1);
     // set_pixels_inside_wrap(1);
     set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
-
-    defaultFont.set_size(fontSize);
-    boldItalic.set_size(fontSize);
-    boldItalic.set_weight(Pango::WEIGHT_BOLD);
-    boldItalic.set_style(Pango::Style::STYLE_ITALIC);
-    bold.set_size(fontSize);
-    bold.set_weight(Pango::WEIGHT_BOLD);
-    italic.set_size(fontSize);
-    italic.set_style(Pango::Style::STYLE_ITALIC);
 
     heading1.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
     heading1.set_weight(Pango::WEIGHT_BOLD);
@@ -464,7 +455,7 @@ void Draw::make_quote()
         std::string line;
         while (std::getline(iss, line))
         {
-            buffer->insert_at_cursor(">" + line + "\n");
+            buffer->insert_at_cursor("\n>" + line + "\n");
         }
     }
     else
@@ -641,6 +632,16 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             isHighlight = entering;
             return;
         }
+        else if (strcmp(node->extension->name, "superscript") == 0)
+        {
+            isSuperscript = entering;
+            return;
+        }
+        else if (strcmp(node->extension->name, "subscript") == 0)
+        {
+            isSubscript = entering;
+            return;
+        }
     }
 
     switch (node->type)
@@ -648,7 +649,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_DOCUMENT:
         if (entering)
         {
-            // Reset all (better safe then sorry)
+            // Reset all (better safe than sorry)
             headingLevel = 0;
             bulletListLevel = 0;
             orderedListLevel = 0;
@@ -658,10 +659,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             isItalic = false;
             isStrikethrough = false;
             isHighlight = false;
+            isSuperscript = false;
+            isSubscript = false;
+            isQuote = false;
         }
         break;
 
     case CMARK_NODE_BLOCK_QUOTE:
+        isQuote = entering;
         break;
 
     case CMARK_NODE_LIST:
@@ -673,7 +678,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         }
         else
         {
-            // Last list level new line
+            // New line at the end of the list (list level == 1)
             if (listLevel == 1)
             {
                 insertText("\n");
@@ -721,9 +726,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_ITEM:
-        // Line break for each item
-        if (entering)
-            insertText("\n");
         if (entering && isOrderedList)
         {
             // Increasement ordered list counter
@@ -745,7 +747,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_CODE_BLOCK:
     {
         std::string code = cmark_node_get_literal(node);
-        insertCode("\n" + code);
+        insertCode(code + "\n");
     }
     break;
 
@@ -757,15 +759,29 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_THEMATIC_BREAK:
     {
-        insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015");
+        isBold = true;
+        insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\n\n");
+        isBold = false;
     }
     break;
 
     case CMARK_NODE_PARAGRAPH:
         if (listLevel == 0)
         {
-            // insert new line, but not when listing is enabled
-            insertText("\n");
+            if (entering && isQuote)
+            {
+                insertText("\uFF5C ");
+            }
+
+            // insert new lines, but not when listing is enabled
+            if (!entering && isQuote)
+            {
+                insertText("\n\uFF5C\n"); // Causes always new lines at the end of a quote
+            }
+            else if (!entering)
+            {
+                insertText("\n\n"); // Causes always new lines at the end of text
+            }
         }
         break;
 
@@ -775,7 +791,15 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // Insert tabs & bullet/number
         if (bulletListLevel > 0)
         {
-            text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
+            if (bulletListLevel % 2 == 0)
+            {
+                text.insert(0, std::string(bulletListLevel, '\u0009') + "\u25e6 ");
+            }
+            else
+            {
+                text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
+            }
+            text.append("\n");
         }
         else if (orderedListLevel > 0)
         {
@@ -789,9 +813,10 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
             }
             text.insert(0, std::string(orderedListLevel, '\u0009') + number);
+            text.append("\n");
         }
 
-        // Unsert headings
+        // Headings
         if (headingLevel > 0)
         {
             switch (headingLevel)
@@ -819,36 +844,15 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 break;
             }
         }
-        // Bold, italic and strikethrough text
-        else if (isBold && isItalic)
-        {
-            insertBoldItalic(text);
-        }
-        else if (isBold)
-        {
-            insertBold(text);
-        }
-        else if (isItalic)
-        {
-            insertItalic(text);
-        }
-        else if (isStrikethrough)
-        {
-            insertStrikethrough(text);
-        }
-        else if (isHighlight)
-        {
-            insertHighlight(text);
-        }
         // URL
         else if (isLink)
         {
             insertLink(text, linkURL);
             linkURL = "";
         }
+        // Text (with optional inline formatting)
         else
         {
-            // Normal text only
             insertText(text);
         }
     }
@@ -902,7 +906,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_FOOTNOTE_DEFINITION:
         break;
     default:
-        throw std::runtime_error("Node type not found. Type (int): " + std::to_string(node->type));
+        throw std::runtime_error("Node type '" + std::string(cmark_node_get_type_string(node)) + "' not found.");
         break;
     }
 }
@@ -912,7 +916,51 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
  */
 void Draw::insertText(const std::string &text)
 {
-    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\">" + text + "</span>");
+    auto font = defaultFont;
+    std::string span;
+    std::string foreground;
+    std::string background;
+    if (isQuote)
+    {
+        // eg. font.set_size(8000);
+        foreground = "blue";
+    }
+    if (isStrikethrough)
+    {
+        span.append(" strikethrough=\"true\"");
+    }
+    if (isSuperscript)
+    {
+        font.set_size(8000);
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    if (isBold)
+    {
+        font.set_weight(Pango::WEIGHT_BOLD);
+    }
+    if (isItalic)
+    {
+        font.set_style(Pango::STYLE_ITALIC);
+    }
+    if (isHighlight)
+    {
+        foreground = "black";
+        background = "#FFFF00";
+    }
+    if (!foreground.empty())
+    {
+        span.append("foreground=\"" + foreground + "\"");
+    }
+    if (!background.empty())
+    {
+        span.append("background=\"" + background + "\"");
+    }
+    span.insert(0, "font_desc=\"" + font.to_string() + "\"");
+    insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
 }
 
 /**
@@ -920,7 +968,20 @@ void Draw::insertText(const std::string &text)
  */
 void Draw::insertCode(const std::string &code)
 {
-    insertMarkupTextOnThread("<span foreground=\"#323232\" background=\"#e0e0e0\">" + code + "</span>");
+    std::string span = "foreground=\"#323232\" background=\"#e0e0e0\"";
+    if (isQuote)
+    {
+        span.append(" size=\"2000\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("<span " + span + ">" + code + "</span>");
 }
 
 /**
@@ -937,58 +998,112 @@ void Draw::insertLink(const std::string &text, const std::string &url)
 
 void Draw::insertHeading1(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span font_desc=\"" + heading1.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading1.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
 void Draw::insertHeading2(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span font_desc=\"" + heading2.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading2.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
 void Draw::insertHeading3(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span font_desc=\"" + heading3.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading3.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
 void Draw::insertHeading4(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span font_desc=\"" + heading4.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading4.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
 void Draw::insertHeading5(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span font_desc=\"" + heading5.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading5.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
 void Draw::insertHeading6(const std::string &text)
 {
-    insertMarkupTextOnThread("\n<span foreground=\"gray\" font_desc=\"" + heading6.to_string() + "\">" + text + "</span>\n");
+    std::string span = "font_desc=\"" + heading6.to_string() + "\"";
+    if (isQuote)
+    {
+        span.append(" foreground=\"blue\"");
+    }
+    if (isSuperscript)
+    {
+        span.append(" rise=\"6000\"");
+    }
+    if (isSubscript)
+    {
+        span.append(" rise=\"-6000\"");
+    }
+    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
 }
 
-void Draw::insertBoldItalic(const std::string &text)
-{
-    insertMarkupTextOnThread("<span font_desc=\"" + boldItalic.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertBold(const std::string &text)
-{
-    insertMarkupTextOnThread("<span font_desc=\"" + bold.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertItalic(const std::string &text)
-{
-    insertMarkupTextOnThread("<span font_desc=\"" + italic.to_string() + "\">" + text + "</span>");
-}
-
-void Draw::insertStrikethrough(const std::string &text)
-{
-    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" strikethrough=\"true\">" + text + "</span>");
-}
-
-void Draw::insertHighlight(const std::string &text)
-{
-    insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"black\" background=\"#FFFF00\">" + text + "</span>");
-}
 
 /******************************************************
  * Helper functions below
