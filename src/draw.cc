@@ -659,6 +659,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_LIST:
     {
         cmark_list_type listType = node->as.list.list_type;
+
         if (entering)
         {
             listLevel++;
@@ -713,10 +714,45 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_ITEM:
-        if (entering && isOrderedList)
+        if (entering)
         {
-            // Increasement ordered list counter
-            orderedListCounters[orderedListLevel]++;
+            if (isOrderedList)
+            {
+                // Increasement ordered list counter
+                orderedListCounters[orderedListLevel]++;
+            }
+
+            // Insert tabs & bullet/number
+            if (bulletListLevel > 0)
+            {
+                if (bulletListLevel % 2 == 0)
+                {
+                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u25e6 ");
+                }
+                else
+                {
+                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u2022 ");
+                }
+                //text.append("\n");
+            }
+            else if (orderedListLevel > 0)
+            {
+                std::string number;
+                if (orderedListLevel % 2 == 0)
+                {
+                    number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
+                }
+                else
+                {
+                    number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
+                }
+                this->insertText(std::string(orderedListLevel, '\u0009') + number);
+                // text.append("\n");
+            }
+        }
+        else
+        {
+            this->insertText("\n");
         }
         break;
 
@@ -775,38 +811,11 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_TEXT:
     {
         std::string text = cmark_node_get_literal(node);
-        // Insert tabs & bullet/number
-        if (bulletListLevel > 0)
-        {
-            if (bulletListLevel % 2 == 0)
-            {
-                text.insert(0, std::string(bulletListLevel, '\u0009') + "\u25e6 ");
-            }
-            else
-            {
-                text.insert(0, std::string(bulletListLevel, '\u0009') + "\u2022 ");
-            }
-            text.append("\n");
-        }
-        else if (orderedListLevel > 0)
-        {
-            std::string number;
-            if (orderedListLevel % 2 == 0)
-            {
-                number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
-            }
-            else
-            {
-                number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
-            }
-            text.insert(0, std::string(orderedListLevel, '\u0009') + number);
-            text.append("\n");
-        }
-
+        std::cout << "Text: " << text << std::endl;
         // URL
         if (isLink)
         {
-            insertLink(text, linkURL);
+            this->insertLink(text, linkURL);
             linkURL = "";
         }
         // Text (with optional inline formatting)

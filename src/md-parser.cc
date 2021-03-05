@@ -63,6 +63,17 @@ std::string const Parser::renderHTML(cmark_node *node)
 }
 
 /**
+ * Built-in cmark parser to markdown (again)
+ */
+std::string const Parser::renderMarkdown(cmark_node *node)
+{
+    char *tmp = cmark_render_commonmark(node, OPTIONS, 600);
+    std::string output = std::string(tmp);
+    free(tmp);
+    return output;
+}
+
+/**
  * This is a function that will make enabling extensions easier
  */
 void Parser::addMarkdownExtension(cmark_parser *parser, const char *extName)
