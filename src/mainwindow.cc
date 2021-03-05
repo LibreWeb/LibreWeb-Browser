@@ -69,9 +69,9 @@ MainWindow::MainWindow()
     m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_super));
     m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
     m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
-    m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
     m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
     m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+    m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
@@ -104,10 +104,6 @@ MainWindow::MainWindow()
         m_quoteButton.set_tooltip_text("Insert a quote");
         m_quoteButton.add(m_quoteIcon);
         m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("code.svg"), iconSize, iconSize));
-        m_codeButton.set_tooltip_text("Insert code");
-        m_codeButton.add(m_codeIcon);
-        m_codeButton.set_relief(Gtk::RELIEF_NONE);
         m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("link.svg"), iconSize, iconSize));
         m_linkButton.set_tooltip_text("Add a link");
         m_linkButton.add(m_linkIcon);
@@ -116,6 +112,10 @@ MainWindow::MainWindow()
         m_imageButton.set_tooltip_text("Add a image");
         m_imageButton.add(m_imageIcon);
         m_imageButton.set_relief(Gtk::RELIEF_NONE);
+        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("code.svg"), iconSize, iconSize));
+        m_codeButton.set_tooltip_text("Insert code");
+        m_codeButton.add(m_codeIcon);
+        m_codeButton.set_relief(Gtk::RELIEF_NONE);
         m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("bullet_list.svg"), iconSize, iconSize));
         m_bulletListButton.set_tooltip_text("Add a bullet list");
         m_bulletListButton.add(m_bulletListIcon);
@@ -143,9 +143,9 @@ MainWindow::MainWindow()
     m_superButton.set_can_focus(false);
     m_subButton.set_can_focus(false);
     m_quoteButton.set_can_focus(false);
-    m_codeButton.set_can_focus(false);
     m_linkButton.set_can_focus(false);
     m_imageButton.set_can_focus(false);
+    m_codeButton.set_can_focus(false);
     m_bulletListButton.set_can_focus(false);
     m_numberedListButton.set_can_focus(false);
     m_highlightButton.set_can_focus(false);
@@ -204,9 +204,9 @@ MainWindow::MainWindow()
     m_hboxEditor.pack_start(m_superButton, false, false, 2);
     m_hboxEditor.pack_start(m_subButton, false, false, 2);
     m_hboxEditor.pack_start(m_quoteButton, false, false, 2);
-    m_hboxEditor.pack_start(m_codeButton, false, false, 2);
     m_hboxEditor.pack_start(m_linkButton, false, false, 2);
     m_hboxEditor.pack_start(m_imageButton, false, false, 2);
+    m_hboxEditor.pack_start(m_codeButton, false, false, 2);
     m_hboxEditor.pack_start(m_bulletListButton, false, false, 2);
     m_hboxEditor.pack_start(m_numberedListButton, false, false, 2);
     m_hboxEditor.pack_start(m_highlightButton, false, false, 2);
@@ -657,8 +657,8 @@ void MainWindow::editor_changed_text()
     std::string text = m_draw_main.getText();
     // Parse the markdown contents
     cmark_node *doc = Parser::parseContent(text);
-    std::string md = Parser::renderMarkdown(doc);
-    std::cout << "Markdown:\n" << md << std::endl;
+    /*std::string md = Parser::renderMarkdown(doc);
+    std::cout << "Markdown:\n" << md << std::endl;*/
 
     // Show the document as a preview on the right side text-view panel
     m_draw_secondary.processDocument(doc);

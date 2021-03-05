@@ -15,8 +15,11 @@
 struct DispatchData
 {
     GtkTextBuffer *buffer;
+    // For inserting text
     std::string text;
     std::string url;
+    // For removing text
+    int charsTruncated;
 };
 
 Draw::Draw(MainWindow &mainWindow)
@@ -330,9 +333,22 @@ void Draw::selectAll()
 
 void Draw::make_heading(int headingLevel)
 {
+    Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
     std::string heading = std::string(headingLevel, '#');
-    buffer->insert_at_cursor("\n" + heading + " ");
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        buffer->insert_at_cursor(heading + " " + text);
+    }
+    else
+    {
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor(heading + " \n");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + headingLevel + 1);
+        buffer->place_cursor(newCursorPos);
+    }
 }
 
 void Draw::make_bold()
@@ -447,44 +463,7 @@ void Draw::make_quote()
     }
     else
     {
-        buffer->insert_at_cursor("\n> text");
-    }
-}
-
-void Draw::make_code()
-{
-    Gtk::TextBuffer::iterator start, end;
-    auto buffer = get_buffer();
-    if (buffer->get_selection_bounds(start, end))
-    {
-        std::string text = buffer->get_text(start, end);
-        buffer->erase_selection();
-        // Strip begin & end line breaks
-        if (text.starts_with('\n'))
-        {
-            text.erase(0, 1);
-        }
-        if (text.ends_with('\n'))
-        {
-            text.erase(text.size() - 1);
-        }
-        if (text.find('\n') != std::string::npos)
-        {
-            // Insert code block
-            buffer->insert_at_cursor("```\n" + text + "\n```\n");
-        }
-        else
-        {
-            // Insert inline code
-            buffer->insert_at_cursor("`" + text + "`");
-        }
-    }
-    else
-    {
-        int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        buffer->insert_at_cursor("``");
-        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
-        buffer->place_cursor(newCursorPos);
+        buffer->insert_at_cursor("\n> text"); // TODO: only insert new line if there is non before
     }
 }
 
@@ -529,6 +508,43 @@ void Draw::insert_image()
         auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 11);
         auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 20);
         buffer->select_range(beginCursorPos, endCursorPos);
+    }
+}
+
+void Draw::make_code()
+{
+    Gtk::TextBuffer::iterator start, end;
+    auto buffer = get_buffer();
+    if (buffer->get_selection_bounds(start, end))
+    {
+        std::string text = buffer->get_text(start, end);
+        buffer->erase_selection();
+        // Strip begin & end line breaks
+        if (text.starts_with('\n'))
+        {
+            text.erase(0, 1);
+        }
+        if (text.ends_with('\n'))
+        {
+            text.erase(text.size() - 1);
+        }
+        if (text.find('\n') != std::string::npos)
+        {
+            // Insert code block
+            buffer->insert_at_cursor("```\n" + text + "\n```\n");
+        }
+        else
+        {
+            // Insert inline code
+            buffer->insert_at_cursor("`" + text + "`");
+        }
+    }
+    else
+    {
+        int insertOffset = buffer->get_insert()->get_iter().get_offset();
+        buffer->insert_at_cursor("``");
+        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
+        buffer->place_cursor(newCursorPos);
     }
 }
 
@@ -654,6 +670,12 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_BLOCK_QUOTE:
         isQuote = entering;
+        if (!entering)
+        {
+            // Replace last quote '|'-sign with a normal blank line
+            this->truncateText(2);
+            this->insertText("\n");
+        }
         break;
 
     case CMARK_NODE_LIST:
@@ -666,11 +688,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         }
         else
         {
-            // New line at the end of the list (list level == 1)
-            if (listLevel == 1)
-            {
-                this->insertText("\n");
-            }
             listLevel--;
         }
         if (listLevel == 0)
@@ -679,6 +696,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             bulletListLevel = 0;
             orderedListLevel = 0;
             isOrderedList = false;
+            if (!entering)
+                this->insertText("\n");
         }
         else if (listLevel > 0)
         {
@@ -733,7 +752,6 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 {
                     this->insertText(std::string(bulletListLevel, '\u0009') + "\u2022 ");
                 }
-                //text.append("\n");
             }
             else if (orderedListLevel > 0)
             {
@@ -747,12 +765,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                     number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
                 }
                 this->insertText(std::string(orderedListLevel, '\u0009') + number);
-                // text.append("\n");
             }
-        }
-        else
-        {
-            this->insertText("\n");
         }
         break;
 
@@ -770,7 +783,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_CODE_BLOCK:
     {
         std::string code = cmark_node_get_literal(node);
-        insertCode(code + "\n");
+        std::string newline = (isQuote) ? "" : "\n";
+        this->insertText(code + newline, CodeTypeEnum::CODE_BLOCK);
     }
     break;
 
@@ -789,29 +803,30 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     break;
 
     case CMARK_NODE_PARAGRAPH:
-        if (listLevel == 0)
+        // For listings only insert a single new line
+        if (!entering && (listLevel > 0))
         {
-            if (entering && isQuote)
-            {
-                this->insertText("\uFF5C ");
-            }
-
-            // insert new lines, but not when listing is enabled
-            if (!entering && isQuote)
-            {
-                this->insertText("\n\uFF5C\n"); // Causes always new lines at the end of a quote
-            }
-            else if (!entering)
-            {
-                this->insertText("\n\n"); // Causes always new lines at the end of text
-            }
+            this->insertText("\n");
+        }
+        // Dealing with paragraphs in quotes
+        else if (entering && isQuote)
+        {
+            this->insertText("\uFF5C ");
+        }
+        else if (!entering && isQuote)
+        {
+            this->insertText("\n\uFF5C\n");
+        }
+        // Normal paragraph, just blank line
+        else if (!entering)
+        {
+            this->insertText("\n\n");
         }
         break;
 
     case CMARK_NODE_TEXT:
     {
         std::string text = cmark_node_get_literal(node);
-        std::cout << "Text: " << text << std::endl;
         // URL
         if (isLink)
         {
@@ -839,7 +854,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_CODE:
     {
         std::string code = cmark_node_get_literal(node);
-        insertCode(code);
+        this->insertText(code, CodeTypeEnum::INLINE_CODE);
     }
     break;
 
@@ -882,17 +897,12 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 /**
  * Insert markup text - thread safe
  */
-void Draw::insertText(const std::string &text)
+void Draw::insertText(const std::string &text, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
     std::string span;
     std::string foreground;
     std::string background;
-    if (isQuote)
-    {
-        // eg. font.set_size(8000);
-        foreground = "blue";
-    }
     if (isStrikethrough)
     {
         span.append(" strikethrough=\"true\"");
@@ -919,6 +929,11 @@ void Draw::insertText(const std::string &text)
     {
         foreground = "black";
         background = "#FFFF00";
+    }
+    if (codeType != Draw::CodeTypeEnum::NONE)
+    {
+        foreground = "#323232";
+        background = "#e0e0e0";
     }
     if (headingLevel > 0)
     {
@@ -948,6 +963,10 @@ void Draw::insertText(const std::string &text)
             break;
         }
     }
+    if (isQuote)
+    {
+        foreground = "blue";
+    }
     if (!foreground.empty())
     {
         span.append(" foreground=\"" + foreground + "\"");
@@ -957,35 +976,35 @@ void Draw::insertText(const std::string &text)
         span.append(" background=\"" + background + "\"");
     }
     span.insert(0, "font_desc=\"" + font.to_string() + "\"");
+
     if (headingLevel > 0)
     {
-        insertMarkupTextOnThread("<span " + span + ">" + text + "</span>\n\n");
+        // Special case for headings within quote
+        if (isQuote)
+            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
+        // Insert headings the normal way (with break line)
+        else
+            insertMarkupTextOnThread("<span " + span + ">" + text + "</span>\n\n");
     }
     else
     {
-        insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
+        // Special case for code blocks within quote
+        if ((codeType == Draw::CodeTypeEnum::CODE_BLOCK) && isQuote)
+        {
+            std::istringstream iss(text);
+            std::string line;
+            // Add a quote for each new code line
+            while (getline(iss, line)) {
+                insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + line + "</span>\n");
+            }
+            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
+        }
+        // Just insert text the normal way
+        else
+        {
+            insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
+        }
     }
-}
-
-/**
- * Insert code - thread safe
- */
-void Draw::insertCode(const std::string &code)
-{
-    std::string span = "foreground=\"#323232\" background=\"#e0e0e0\"";
-    if (isQuote)
-    {
-        span.append(" size=\"2000\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("<span " + span + ">" + code + "</span>");
 }
 
 /**
@@ -998,6 +1017,17 @@ void Draw::insertLink(const std::string &text, const std::string &url)
     data->text = text;
     data->url = url;
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
+}
+
+/**
+ * Remove nr. chars from the end of the text buffer - thread safe
+ */
+void Draw::truncateText(int charsTruncated)
+{
+    DispatchData *data = g_new0(struct DispatchData, 1);
+    data->buffer = buffer;
+    data->charsTruncated = charsTruncated;
+    gdk_threads_add_idle((GSourceFunc)truncateTextIdle, data);
 }
 
 /******************************************************
@@ -1082,6 +1112,20 @@ gboolean Draw::insertLinkIdle(struct DispatchData *data)
                                      NULL);
     g_object_set_data(G_OBJECT(tag), "url", g_strdup(data->url.c_str()));
     gtk_text_buffer_insert_with_tags(data->buffer, &end_iter, data->text.c_str(), -1, tag, NULL);
+    g_free(data);
+    return FALSE;
+}
+
+/**
+ * Truncate text from the end of the buffer
+ */
+gboolean Draw::truncateTextIdle(struct DispatchData *data)
+{
+    GtkTextIter end_iter;
+    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
+    GtkTextIter begin_iter = end_iter;
+    gtk_text_iter_backward_chars(&begin_iter, data->charsTruncated);
+    gtk_text_buffer_delete(data->buffer, &begin_iter, &end_iter);
     g_free(data);
     return FALSE;
 }

@@ -23,6 +23,12 @@ class Draw : public Gtk::TextView
 {
 public:
     sigc::signal<void> source_code;
+    enum CodeTypeEnum
+    {
+        NONE = 0,
+        INLINE_CODE,
+        CODE_BLOCK
+    };
 
     explicit Draw(MainWindow &mainWindow);
     void showMessage(const std::string &message, const std::string &detailed_info = "");
@@ -46,9 +52,9 @@ public:
     void make_super();
     void make_sub();
     void make_quote();
-    void make_code();
     void insert_link();
     void insert_image();
+    void make_code();
     void insert_bullet_list();
     void insert_numbered_list();
     void make_highlight();
@@ -56,7 +62,7 @@ public:
 protected:
     // Signals
     void event_after(GdkEvent *ev);
-    bool motion_notify_event(GdkEventMotion* motion_event);
+    bool motion_notify_event(GdkEventMotion *motion_event);
     void populate_popup(Gtk::Menu *menu);
 
 private:
@@ -65,15 +71,16 @@ private:
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
-    void insertText(const std::string &text);
-    void insertCode(const std::string &code);
+    void insertText(const std::string &text, CodeTypeEnum codeType = CodeTypeEnum::NONE);
     void insertLink(const std::string &text, const std::string &url);
+    void truncateText(int charsTruncated);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
     void changeCursor(int x, int y);
     static gboolean insertTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
+    static gboolean truncateTextIdle(struct DispatchData *data);
     static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
     static std::string const intToRoman(int num);
 
@@ -96,7 +103,7 @@ private:
     bool isOrderedList;
     bool isLink;
     std::string linkURL;
-    std::map<int,int> orderedListCounters;
+    std::map<int, int> orderedListCounters;
     Glib::RefPtr<Gdk::Cursor> normalCursor;
     Glib::RefPtr<Gdk::Cursor> linkCursor;
     Glib::RefPtr<Gdk::Cursor> textCursor;

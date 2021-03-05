@@ -77,9 +77,9 @@ protected:
     Gtk::Button m_superButton;
     Gtk::Button m_subButton;
     Gtk::Button m_quoteButton;
-    Gtk::Button m_codeButton;
     Gtk::Button m_linkButton;
     Gtk::Button m_imageButton;
+    Gtk::Button m_codeButton;
     Gtk::Button m_bulletListButton;
     Gtk::Button m_numberedListButton;
     Gtk::Button m_highlightButton;
