@@ -1,5 +1,5 @@
 /**
- * Markdown Highlight extension by Melroy van den Berg
+ * Cmark Highlight inline extension by Melroy van den Berg
  * Usage: ==Highlight text==
  */
 #ifndef CMARK_GFM_HIGHLIGHT_H

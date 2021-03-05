@@ -74,13 +74,6 @@ private:
     void insertHeading4(const std::string &text);
     void insertHeading5(const std::string &text);
     void insertHeading6(const std::string &text);
-    void insertBoldItalic(const std::string &text);
-    void insertItalic(const std::string &text);
-    void insertBold(const std::string &text);
-    void insertStrikethrough(const std::string &text);
-    void insertHighlight(const std::string &text);
-    void insertSubscript(const std::string &text);
-    void insertSuperscript(const std::string &text);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
@@ -101,6 +94,8 @@ private:
     bool isItalic;
     bool isStrikethrough;
     bool isHighlight;
+    bool isSuperscript;
+    bool isSubscript;
     bool isQuote;
     int bulletListLevel;
     int orderedListLevel;
@@ -114,9 +109,6 @@ private:
     bool hovingOverLink;
 
     Pango::FontDescription defaultFont;
-    Pango::FontDescription boldItalic;
-    Pango::FontDescription bold;
-    Pango::FontDescription italic;
     Pango::FontDescription heading1;
     Pango::FontDescription heading2;
     Pango::FontDescription heading3;
