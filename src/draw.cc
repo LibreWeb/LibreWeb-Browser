@@ -39,37 +39,20 @@ Draw::Draw(MainWindow &mainWindow)
       isOrderedList(false),
       isLink(false),
       hovingOverLink(false),
-      defaultFont(fontFamily),
-      heading1(fontFamily),
-      heading2(fontFamily),
-      heading3(fontFamily),
-      heading4(fontFamily)
+      defaultFont(fontFamily)
 {
     this->disableEdit();
     set_indent(15);
     set_left_margin(10);
     set_right_margin(10);
-    set_top_margin(5);
-    set_bottom_margin(5);
+    set_top_margin(12);
+    set_bottom_margin(0);
     set_monospace(true);
     set_app_paintable(true);
     set_pixels_above_lines(1);
     set_pixels_below_lines(1);
     // set_pixels_inside_wrap(1);
     set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
-
-    heading1.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
-    heading1.set_weight(Pango::WEIGHT_BOLD);
-    heading2.set_size(fontSize * PANGO_SCALE_XX_LARGE);
-    heading2.set_weight(Pango::WEIGHT_BOLD);
-    heading3.set_size(fontSize * PANGO_SCALE_X_LARGE);
-    heading3.set_weight(Pango::WEIGHT_BOLD);
-    heading4.set_size(fontSize * PANGO_SCALE_LARGE);
-    heading4.set_weight(Pango::WEIGHT_BOLD);
-    heading5.set_size(fontSize * PANGO_SCALE_MEDIUM);
-    heading5.set_weight(Pango::WEIGHT_BOLD);
-    heading6.set_size(fontSize * PANGO_SCALE_MEDIUM);
-    heading6.set_weight(Pango::WEIGHT_BOLD);
 
     // Set cursors
     auto display = get_display();
@@ -179,8 +162,10 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
         this->disableEdit();
     this->clearOnThread();
 
-    insertHeading1(message);
-    insertText(detailed_info);
+    this->headingLevel = 1;
+    this->insertText(message);
+    this->headingLevel = 0;
+    this->insertText(detailed_info);
 }
 
 void Draw::showStartPage()
@@ -189,12 +174,14 @@ void Draw::showStartPage()
         this->disableEdit();
     this->clearOnThread();
 
-    insertHeading1("Welcome to the Decentralized Web (DWeb)");
-    insertText("You can surf the web as intended via LibreWeb, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
+    this->headingLevel = 1;
+    this->insertText("Welcome to the Decentralized Web (DWeb)");
+    this->headingLevel = 0;
+    this->insertText("You can surf the web as intended via LibreWeb, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
 The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
 This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
-    insertText("See an example page hosted on IPFS: ");
-    insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    this->insertText("See an example page hosted on IPFS: ");
+    this->insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
 }
 
 /**
@@ -681,7 +668,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             // New line at the end of the list (list level == 1)
             if (listLevel == 1)
             {
-                insertText("\n");
+                this->insertText("\n");
             }
             listLevel--;
         }
@@ -759,9 +746,9 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_THEMATIC_BREAK:
     {
-        isBold = true;
-        insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\n\n");
-        isBold = false;
+        this->isBold = true;
+        this->insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\n\n");
+        this->isBold = false;
     }
     break;
 
@@ -770,17 +757,17 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             if (entering && isQuote)
             {
-                insertText("\uFF5C ");
+                this->insertText("\uFF5C ");
             }
 
             // insert new lines, but not when listing is enabled
             if (!entering && isQuote)
             {
-                insertText("\n\uFF5C\n"); // Causes always new lines at the end of a quote
+                this->insertText("\n\uFF5C\n"); // Causes always new lines at the end of a quote
             }
             else if (!entering)
             {
-                insertText("\n\n"); // Causes always new lines at the end of text
+                this->insertText("\n\n"); // Causes always new lines at the end of text
             }
         }
         break;
@@ -816,36 +803,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             text.append("\n");
         }
 
-        // Headings
-        if (headingLevel > 0)
-        {
-            switch (headingLevel)
-            {
-            case 1:
-                insertHeading1(text);
-                break;
-            case 2:
-                insertHeading2(text);
-                break;
-            case 3:
-                insertHeading3(text);
-                break;
-            case 4:
-                insertHeading4(text);
-                break;
-            case 5:
-                insertHeading5(text);
-                break;
-            case 6:
-                insertHeading6(text);
-                break;
-            default:
-                insertHeading5(text); // fallback
-                break;
-            }
-        }
         // URL
-        else if (isLink)
+        if (isLink)
         {
             insertLink(text, linkURL);
             linkURL = "";
@@ -853,19 +812,19 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // Text (with optional inline formatting)
         else
         {
-            insertText(text);
+            this->insertText(text);
         }
     }
     break;
 
     case CMARK_NODE_LINEBREAK:
         // Hard brake
-        insertText("\n");
+        this->insertText("\n");
         break;
 
     case CMARK_NODE_SOFTBREAK:
         // only insert space
-        insertText(" ");
+        this->insertText(" ");
         break;
 
     case CMARK_NODE_CODE:
@@ -936,6 +895,7 @@ void Draw::insertText(const std::string &text)
     }
     if (isSubscript)
     {
+        font.set_size(8000);
         span.append(" rise=\"-6000\"");
     }
     if (isBold)
@@ -951,16 +911,51 @@ void Draw::insertText(const std::string &text)
         foreground = "black";
         background = "#FFFF00";
     }
+    if (headingLevel > 0)
+    {
+        font.set_weight(Pango::WEIGHT_BOLD);
+        switch (headingLevel)
+        {
+        case 1:
+            font.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
+            break;
+        case 2:
+            font.set_size(fontSize * PANGO_SCALE_XX_LARGE);
+            break;
+        case 3:
+            font.set_size(fontSize * PANGO_SCALE_X_LARGE);
+            break;
+        case 4:
+            font.set_size(fontSize * PANGO_SCALE_LARGE);
+            break;
+        case 5:
+            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
+            break;
+        case 6:
+            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
+            foreground = "gray";
+            break;
+        default:
+            break;
+        }
+    }
     if (!foreground.empty())
     {
-        span.append("foreground=\"" + foreground + "\"");
+        span.append(" foreground=\"" + foreground + "\"");
     }
     if (!background.empty())
     {
-        span.append("background=\"" + background + "\"");
+        span.append(" background=\"" + background + "\"");
     }
     span.insert(0, "font_desc=\"" + font.to_string() + "\"");
-    insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
+    if (headingLevel > 0)
+    {
+        insertMarkupTextOnThread("<span " + span + ">" + text + "</span>\n\n");
+    }
+    else
+    {
+        insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
+    }
 }
 
 /**
@@ -995,115 +990,6 @@ void Draw::insertLink(const std::string &text, const std::string &url)
     data->url = url;
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
 }
-
-void Draw::insertHeading1(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading1.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
-void Draw::insertHeading2(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading2.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
-void Draw::insertHeading3(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading3.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
-void Draw::insertHeading4(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading4.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
-void Draw::insertHeading5(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading5.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
-void Draw::insertHeading6(const std::string &text)
-{
-    std::string span = "font_desc=\"" + heading6.to_string() + "\"";
-    if (isQuote)
-    {
-        span.append(" foreground=\"blue\"");
-    }
-    if (isSuperscript)
-    {
-        span.append(" rise=\"6000\"");
-    }
-    if (isSubscript)
-    {
-        span.append(" rise=\"-6000\"");
-    }
-    insertMarkupTextOnThread("\n<span " + span + ">" + text + "</span>\n\n");
-}
-
 
 /******************************************************
  * Helper functions below

@@ -68,12 +68,6 @@ private:
     void insertText(const std::string &text);
     void insertCode(const std::string &code);
     void insertLink(const std::string &text, const std::string &url);
-    void insertHeading1(const std::string &text);
-    void insertHeading2(const std::string &text);
-    void insertHeading3(const std::string &text);
-    void insertHeading4(const std::string &text);
-    void insertHeading5(const std::string &text);
-    void insertHeading6(const std::string &text);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
@@ -109,12 +103,6 @@ private:
     bool hovingOverLink;
 
     Pango::FontDescription defaultFont;
-    Pango::FontDescription heading1;
-    Pango::FontDescription heading2;
-    Pango::FontDescription heading3;
-    Pango::FontDescription heading4;
-    Pango::FontDescription heading5;
-    Pango::FontDescription heading6;
 };
 
 #endif
