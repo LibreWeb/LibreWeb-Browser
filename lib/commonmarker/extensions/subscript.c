@@ -11,15 +11,15 @@ static cmark_node *match(cmark_syntax_extension *self, cmark_parser *parser,
   int left_flanking, right_flanking, punct_before, punct_after, delims;
   char buffer[101] = {0};
 
-  if (character != '~')
+  if (character != '%')
     return NULL;
 
   delims = cmark_inline_parser_scan_delimiters(
-      inline_parser, sizeof(buffer) - 1, '~',
+      inline_parser, sizeof(buffer) - 1, '%',
       &left_flanking,
       &right_flanking, &punct_before, &punct_after);
 
-  memset(buffer, '~', delims);
+  memset(buffer, '%', delims);
   buffer[delims] = 0;
 
   res = cmark_node_new_with_mem(CMARK_NODE_TEXT, parser->mem);
@@ -118,7 +118,7 @@ cmark_syntax_extension *create_subscript_extension(void) {
   cmark_syntax_extension_set_inline_from_delim_func(ext, insert);
 
   cmark_mem *mem = cmark_get_default_mem_allocator();
-  special_chars = cmark_llist_append(mem, special_chars, (void *)'~');
+  special_chars = cmark_llist_append(mem, special_chars, (void *)'%');
   cmark_syntax_extension_set_special_inline_chars(ext, special_chars);
 
   cmark_syntax_extension_set_emphasis(ext, 1);

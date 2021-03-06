@@ -1,8 +1,6 @@
 /**
  * Cmark Subscript inline extension by Melroy van den Berg
- * Usage: ~Subscript~
- * TODO: Is conflicting with highlight, so I need to merge to 2 features into 1 solution.
- * We have the same matching char (~) for both subscript: 1x~ and highlight 2x~
+ * Usage: %Subscript%
  */
 #ifndef CMARK_GFM_SUBSCRIPT_H
 #define CMARK_GFM_SUBSCRIPT_H
