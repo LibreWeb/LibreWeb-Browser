@@ -436,12 +436,12 @@ void Draw::make_sub()
     {
         std::string text = buffer->get_text(start, end);
         buffer->erase_selection();
-        buffer->insert_at_cursor("~" + text + "~");
+        buffer->insert_at_cursor("%" + text + "%");
     }
     else
     {
         int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        buffer->insert_at_cursor("~~");
+        buffer->insert_at_cursor("%%");
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
         buffer->place_cursor(newCursorPos);
     }
