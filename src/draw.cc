@@ -9,6 +9,7 @@
 #include <gdkmm/window.h>
 #include <iostream>
 #include <stdexcept>
+#include <regex>
 
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
@@ -897,12 +898,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 /**
  * Insert markup text - thread safe
  */
-void Draw::insertText(const std::string &text, CodeTypeEnum codeType)
+void Draw::insertText(const std::string &input, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
     std::string span;
     std::string foreground;
     std::string background;
+    const std::string text = this->escapeText(input);
+
     if (isStrikethrough)
     {
         span.append(" strikethrough=\"true\"");
@@ -994,7 +997,8 @@ void Draw::insertText(const std::string &text, CodeTypeEnum codeType)
             std::istringstream iss(text);
             std::string line;
             // Add a quote for each new code line
-            while (getline(iss, line)) {
+            while (getline(iss, line))
+            {
                 insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + line + "</span>\n");
             }
             insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
@@ -1010,11 +1014,11 @@ void Draw::insertText(const std::string &text, CodeTypeEnum codeType)
 /**
  * Insert url link - thread safe
  */
-void Draw::insertLink(const std::string &text, const std::string &url)
+void Draw::insertLink(const std::string &name, const std::string &url)
 {
     DispatchData *data = g_new0(struct DispatchData, 1);
     data->buffer = buffer;
-    data->text = text;
+    data->text = name;
     data->url = url;
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
 }
@@ -1028,6 +1032,15 @@ void Draw::truncateText(int charsTruncated)
     data->buffer = buffer;
     data->charsTruncated = charsTruncated;
     gdk_threads_add_idle((GSourceFunc)truncateTextIdle, data);
+}
+
+/**
+ * Escape input text (eg. ampersand-character)
+ * @return Escaped text
+ */
+std::string const Draw::escapeText(const std::string &input)
+{
+    return std::regex_replace(input, std::regex("&"), "&amp;");
 }
 
 /******************************************************
