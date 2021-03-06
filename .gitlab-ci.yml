@@ -19,12 +19,6 @@ doxygen:
     paths:
       - build/docs/html/
 
-lines_of_code:
-  stage: build
-  image: hhatto/gocloc
-  script:
-    - .
-
 build:
   stage: build
   script: 
