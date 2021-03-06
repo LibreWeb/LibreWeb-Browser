@@ -21,9 +21,9 @@ doxygen:
 
 lines_of_code:
   stage: build
-  image: aldanial/cloc
+  image: hhatto/gocloc
   script:
-    - cloc .
+    - .
 
 build:
   stage: build
