@@ -54,8 +54,8 @@ Draw::Draw(MainWindow &mainWindow)
     set_monospace(true);
     set_app_paintable(true);
     set_pixels_above_lines(1);
-    set_pixels_below_lines(1);
-    // set_pixels_inside_wrap(1);
+    set_pixels_below_lines(2);
+    set_pixels_inside_wrap(2);
     set_wrap_mode(Gtk::WrapMode::WRAP_WORD_CHAR);
 
     // Set cursors
