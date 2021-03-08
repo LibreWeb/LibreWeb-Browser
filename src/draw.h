@@ -16,6 +16,18 @@ class MainWindow;
 struct DispatchData;
 
 /**
+ * \struct UndoRedoData
+ * \brief Data structure for undo/redo text
+ */
+struct UndoRedoData
+{
+    bool isInsert;
+    std::string text;
+    int beginOffset;
+    int endOffset;
+};
+
+/**
  * \class Draw
  * \brief Draw text area (GTK TextView), where the document content will be displayed or used a text editor
  */
@@ -38,11 +50,13 @@ public:
     void newDocument();
     std::string getText();
     void clearText();
+    void undo();
+    void redo();
     void cut();
     void copy();
     void paste();
     void del();
-    void selectAll();
+    void selectAll();    
 
     // Signals editor calls
     void make_heading(int headingLevel);
@@ -58,6 +72,10 @@ public:
     void insert_bullet_list();
     void insert_numbered_list();
     void make_highlight();
+    void begin_user_action();
+    void end_user_action();
+    void on_insert(const Gtk::TextBuffer::iterator &pos, const Glib::ustring &text, int bytes);
+    void on_delete(const Gtk::TextBuffer::iterator &range_start, const Gtk::TextBuffer::iterator &range_end);
 
 protected:
     // Signals
@@ -66,25 +84,6 @@ protected:
     void populate_popup(Gtk::Menu *menu);
 
 private:
-    void enableEdit();
-    void disableEdit();
-    void followLink(Gtk::TextBuffer::iterator &iter);
-    void processNode(cmark_node *node, cmark_event_type ev_type);
-    // Helper functions for inserting text
-    void insertText(const std::string &input, CodeTypeEnum codeType = CodeTypeEnum::NONE);
-    void insertLink(const std::string &name, const std::string &url);
-    void truncateText(int charsTruncated);
-    std::string const escapeText(const std::string &input);
-
-    void insertMarkupTextOnThread(const std::string &text);
-    void clearOnThread();
-    void changeCursor(int x, int y);
-    static gboolean insertTextIdle(struct DispatchData *data);
-    static gboolean insertLinkIdle(struct DispatchData *data);
-    static gboolean truncateTextIdle(struct DispatchData *data);
-    static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
-    static std::string const intToRoman(int num);
-
     MainWindow &mainWindow;
     GtkTextBuffer *buffer;
     bool addViewSourceMenuItem;
@@ -109,8 +108,34 @@ private:
     Glib::RefPtr<Gdk::Cursor> linkCursor;
     Glib::RefPtr<Gdk::Cursor> textCursor;
     bool hovingOverLink;
-
     Pango::FontDescription defaultFont;
+    bool isUserAction;
+
+    std::vector<UndoRedoData> undoPool;
+    std::vector<UndoRedoData> redoPool;
+    sigc::connection beginUserActionSignalHandler;
+    sigc::connection endUserActionSignalHandler;
+    sigc::connection insertTextSignalHandler;
+    sigc::connection deleteTextSignalHandler;
+
+    void enableEdit();
+    void disableEdit();
+    void followLink(Gtk::TextBuffer::iterator &iter);
+    void processNode(cmark_node *node, cmark_event_type ev_type);
+    // Helper functions for inserting text
+    void insertText(const std::string &input, CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertLink(const std::string &name, const std::string &url);
+    void truncateText(int charsTruncated);
+    std::string const escapeText(const std::string &input);
+
+    void insertMarkupTextOnThread(const std::string &text);
+    void clearOnThread();
+    void changeCursor(int x, int y);
+    static gboolean insertTextIdle(struct DispatchData *data);
+    static gboolean insertLinkIdle(struct DispatchData *data);
+    static gboolean truncateTextIdle(struct DispatchData *data);
+    static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
+    static std::string const intToRoman(int num);
 };
 
 #endif

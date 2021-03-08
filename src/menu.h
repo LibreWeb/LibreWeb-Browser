@@ -20,6 +20,8 @@ public:
     sigc::signal<void> save_as;
     sigc::signal<void> publish;
     sigc::signal<void> quit;
+    sigc::signal<void> undo;
+    sigc::signal<void> redo;
     sigc::signal<void> cut;
     sigc::signal<void> copy;
     sigc::signal<void> paste;
@@ -52,6 +54,8 @@ protected:
     Gtk::SeparatorMenuItem m_separator2;
     Gtk::SeparatorMenuItem m_separator3;
     Gtk::SeparatorMenuItem m_separator4;
+    Gtk::SeparatorMenuItem m_separator5;
+    Gtk::SeparatorMenuItem m_separator6;
 
 private:
     Gtk::MenuItem *createMenuItem(const Glib::ustring &label_text);

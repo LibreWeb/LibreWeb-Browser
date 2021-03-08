@@ -1,1 +1,16 @@
-https://www.flaticon.com/packs/text-editor-36?word=text%20editor
+Credits (Downloade):
+
+* https://www.flaticon.com/packs/text-editor-36
+* https://www.flaticon.com/packs/basic-ui-5
+* https://www.flaticon.com/packs/arrows-45/2
+* https://www.flaticon.com/packs/folders-32 (flat)
+* https://www.flaticon.com/packs/folders-20 (filled)
+
+Still wanted (flat & filled icon packs):
+
+    * https://www.flaticon.com/packs/tables-83
+    * https://www.flaticon.com/packs/selection-and-cursors-27
+    * https://www.flaticon.com/packs/basic-ui-28
+    * https://www.flaticon.com/packs/email-6
+    * https://www.flaticon.com/packs/alignment-and-paragraph-5
+    * https://www.flaticon.com/packs/image-files-3
