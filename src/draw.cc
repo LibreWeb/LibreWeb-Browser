@@ -43,7 +43,8 @@ Draw::Draw(MainWindow &mainWindow)
       isOrderedList(false),
       isLink(false),
       hovingOverLink(false),
-      defaultFont(fontFamily)
+      defaultFont(fontFamily),
+      isUserAction(false)
 {
     this->disableEdit();
     set_indent(15);
@@ -222,7 +223,10 @@ void Draw::setViewSourceMenuItem(bool isEnabled)
 
 void Draw::newDocument()
 {
+    this->undoPool.clear();
+    this->redoPool.clear();
     this->clearText();
+
     enableEdit();
     grab_focus(); // Claim focus on text view
 }
@@ -242,12 +246,22 @@ void Draw::enableEdit()
 {
     set_editable(true);
     set_cursor_visible(true);
+    auto buffer = get_buffer();
+    this->beginUserActionSignalHandler = buffer->signal_begin_user_action().connect(sigc::mem_fun(this, &Draw::begin_user_action), false);
+    this->endUserActionSignalHandler = buffer->signal_end_user_action().connect(sigc::mem_fun(this, &Draw::end_user_action), false);
+    this->insertTextSignalHandler = buffer->signal_insert().connect(sigc::mem_fun(this, &Draw::on_insert), false);
+    this->deleteTextSignalHandler = buffer->signal_erase().connect(sigc::mem_fun(this, &Draw::on_delete), false);
 }
 
 void Draw::disableEdit()
 {
     set_editable(false);
     set_cursor_visible(false);
+    // Disconnect signal handles
+    this->beginUserActionSignalHandler.disconnect();
+    this->endUserActionSignalHandler.disconnect();
+    this->insertTextSignalHandler.disconnect();
+    this->deleteTextSignalHandler.disconnect();
 }
 
 /**
@@ -268,47 +282,95 @@ void Draw::followLink(Gtk::TextBuffer::iterator &iter)
     }
 }
 
+/**
+ * Undo action (Ctrl + Z)
+ */
+void Draw::undo()
+{
+    if (get_editable() && (undoPool.size() > 0))
+    {
+        auto undoAction = undoPool.at(undoPool.size() - 1);
+        auto buffer = get_buffer();
+        undoPool.pop_back();
+        if (undoAction.isInsert)
+        {
+            Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.beginOffset);
+            Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_offset(undoAction.endOffset);
+            buffer->erase(startIter, endIter);
+            buffer->place_cursor(buffer->get_iter_at_offset(undoAction.beginOffset));
+        }
+        else
+        {
+            Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.beginOffset);
+            buffer->insert(startIter, undoAction.text);
+            buffer->place_cursor(buffer->get_iter_at_offset(undoAction.endOffset));
+        }
+        redoPool.push_back(undoAction);
+    }
+}
+
+/**
+ * Redo action (Ctrl + Y)
+ */
+void Draw::redo()
+{
+    if (get_editable() && (redoPool.size() > 0))
+    {
+        auto redoAction = redoPool.at(redoPool.size() - 1);
+        auto buffer = get_buffer();
+        redoPool.pop_back();
+        if (redoAction.isInsert)
+        {
+            Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.beginOffset);
+            buffer->insert(startIter, redoAction.text);
+            buffer->place_cursor(buffer->get_iter_at_offset(redoAction.endOffset));
+        }
+        else
+        {
+            Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.beginOffset);
+            Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_offset(redoAction.endOffset);
+            buffer->erase(startIter, endIter);
+            buffer->place_cursor(buffer->get_iter_at_offset(redoAction.beginOffset));
+        }
+        undoPool.push_back(redoAction);
+    }
+}
+
 void Draw::cut()
 {
-    bool isEditable = get_editable();
-    if (isEditable)
+    if (get_editable())
     {
-        auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
-        buffer->cut_clipboard(clipboard);
+        get_buffer()->cut_clipboard(clipboard);
     }
     else
     {
-        auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
-        buffer->copy_clipboard(clipboard);
+        get_buffer()->copy_clipboard(clipboard);
     }
 }
 
 void Draw::copy()
 {
-    auto buffer = get_buffer();
     auto clipboard = get_clipboard("CLIPBOARD");
-    buffer->copy_clipboard(clipboard);
+    get_buffer()->copy_clipboard(clipboard);
 }
 
 void Draw::paste()
 {
-    bool isEditable = get_editable();
-    if (isEditable)
+    if (get_editable())
     {
-        auto buffer = get_buffer();
         auto clipboard = get_clipboard("CLIPBOARD");
-        buffer->paste_clipboard(clipboard);
+        get_buffer()->paste_clipboard(clipboard);
     }
 }
 
 void Draw::del()
 {
-    bool isEditable = get_editable();
-    if (isEditable)
+    if (get_editable())
     {
         auto buffer = get_buffer();
+        buffer->begin_user_action();
         Gtk::TextBuffer::iterator begin, end;
         if (buffer->get_selection_bounds(begin, end))
         {
@@ -319,6 +381,7 @@ void Draw::del()
             ++end;
             buffer->erase(begin, end);
         }
+        buffer->end_user_action();
     }
 }
 
@@ -336,6 +399,7 @@ void Draw::make_heading(int headingLevel)
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     std::string heading = std::string(headingLevel, '#');
     if (buffer->get_selection_bounds(start, end))
     {
@@ -350,12 +414,14 @@ void Draw::make_heading(int headingLevel)
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + headingLevel + 1);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_bold()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -369,12 +435,14 @@ void Draw::make_bold()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_italic()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -388,12 +456,14 @@ void Draw::make_italic()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_strikethrough()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -407,12 +477,14 @@ void Draw::make_strikethrough()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_super()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -426,12 +498,14 @@ void Draw::make_super()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_sub()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -445,12 +519,14 @@ void Draw::make_sub()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_quote()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -466,12 +542,14 @@ void Draw::make_quote()
     {
         buffer->insert_at_cursor("\n> text"); // TODO: only insert new line if there is non before
     }
+    buffer->end_user_action();
 }
 
 void Draw::insert_link()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         int insertOffset = buffer->get_insert()->get_iter().get_offset();
@@ -490,12 +568,14 @@ void Draw::insert_link()
         auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 17);
         buffer->select_range(beginCursorPos, endCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::insert_image()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -510,12 +590,14 @@ void Draw::insert_image()
         auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 20);
         buffer->select_range(beginCursorPos, endCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_code()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -547,12 +629,14 @@ void Draw::make_code()
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
         buffer->place_cursor(newCursorPos);
     }
+    buffer->end_user_action();
 }
 
 void Draw::insert_bullet_list()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -568,12 +652,14 @@ void Draw::insert_bullet_list()
     {
         buffer->insert_at_cursor("\n* ");
     }
+    buffer->end_user_action();
 }
 
 void Draw::insert_numbered_list()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -591,12 +677,14 @@ void Draw::insert_numbered_list()
     {
         buffer->insert_at_cursor("\n1. ");
     }
+    buffer->end_user_action();
 }
 
 void Draw::make_highlight()
 {
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
+    buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
         std::string text = buffer->get_text(start, end);
@@ -609,6 +697,51 @@ void Draw::make_highlight()
         buffer->insert_at_cursor("====");
         auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
         buffer->place_cursor(newCursorPos);
+    }
+    buffer->end_user_action();
+}
+
+void Draw::begin_user_action()
+{
+    this->isUserAction = true;
+}
+
+void Draw::end_user_action()
+{
+    this->isUserAction = false;
+}
+
+/**
+ * Triggered when text gets inserted
+ */
+void Draw::on_insert(const Gtk::TextBuffer::iterator &pos, const Glib::ustring &text, int bytes __attribute__((unused)))
+{
+    if (this->isUserAction)
+    {
+        UndoRedoData undoData = {};
+        undoData.isInsert = true;
+        undoData.beginOffset = pos.get_offset();
+        undoData.endOffset = pos.get_offset() + text.size();
+        undoData.text = text;
+        this->undoPool.push_back(undoData);
+        this->redoPool.clear();
+    }
+}
+
+/**
+ * Triggered when text gets deleted/removed
+ */
+void Draw::on_delete(const Gtk::TextBuffer::iterator &range_start, const Gtk::TextBuffer::iterator &range_end)
+{
+    if (this->isUserAction)
+    {
+        auto text = get_buffer()->get_text(range_start, range_end);
+        UndoRedoData undoData = {};
+        undoData.isInsert = false;
+        undoData.beginOffset = range_start.get_offset();
+        undoData.endOffset = range_end.get_offset();
+        undoData.text = text;
+        this->undoPool.push_back(undoData);
     }
 }
 

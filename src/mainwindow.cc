@@ -19,7 +19,9 @@ MainWindow::MainWindow()
       m_draw_main(*this),
       m_draw_secondary(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
-      m_hboxToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxBrowserToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxStandardEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"), // filled or flat
@@ -36,7 +38,13 @@ MainWindow::MainWindow()
 
     // Connect signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
+    m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
+    m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
+    m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                                               /*!< Menu item for save document as */
+    m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                                               /*!< Menu item for publishing */
     m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
+    m_menu.undo.connect(sigc::mem_fun(m_draw_main, &Draw::undo));                                                    /*!< Menu item for undo text */
+    m_menu.redo.connect(sigc::mem_fun(m_draw_main, &Draw::redo));                                                    /*!< Menu item for redo text */
     m_menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                                                       /*!< Menu item for cut text */
     m_menu.copy.connect(sigc::mem_fun(this, &MainWindow::copy));                                                     /*!< Menu item for copy text */
     m_menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                                                   /*!< Menu item for paste text */
@@ -62,15 +70,22 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_menu, false, false, 0);
 
     // Editor buttons
+    m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open));
+    m_saveButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
+    m_cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
+    m_copyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
+    m_pasteButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
+    m_undoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::undo));
+    m_redoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::redo));
     m_headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
     m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_bold));
     m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_italic));
     m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_strikethrough));
     m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_super));
     m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
-    m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
     m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
     m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+    m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
     m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
@@ -80,51 +95,79 @@ MainWindow::MainWindow()
     {
         // Add icons to the editor buttons
         int iconSize = 16;
-        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("bold.svg"), iconSize, iconSize));
+        m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), iconSize, iconSize));
+        m_openButton.set_tooltip_text("Open document (Ctrl+O)");
+        m_openButton.add(m_openIcon);
+        m_openButton.set_relief(Gtk::RELIEF_NONE);
+        m_saveIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("floppy_disk", "basic"), iconSize, iconSize));
+        m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
+        m_saveButton.add(m_saveIcon);
+        m_saveButton.set_relief(Gtk::RELIEF_NONE);
+        m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), iconSize, iconSize));
+        m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
+        m_cutButton.add(m_cutIcon);
+        m_cutButton.set_relief(Gtk::RELIEF_NONE);
+        m_copyIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("copy", "editor"), iconSize, iconSize));
+        m_copyButton.set_tooltip_text("Copy (Ctrl+C)");
+        m_copyButton.add(m_copyIcon);
+        m_copyButton.set_relief(Gtk::RELIEF_NONE);
+        m_pasteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("clipboard", "editor"), iconSize, iconSize));
+        m_pasteButton.set_tooltip_text("Paste (Ctrl+V)");
+        m_pasteButton.add(m_pasteIcon);
+        m_pasteButton.set_relief(Gtk::RELIEF_NONE);
+        m_undoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("undo", "editor"), iconSize, iconSize));
+        m_undoButton.set_tooltip_text("Undo text (Ctrl+Z)");
+        m_undoButton.add(m_undoIcon);
+        m_undoButton.set_relief(Gtk::RELIEF_NONE);
+        m_redoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("redo", "editor"), iconSize, iconSize));
+        m_redoButton.set_tooltip_text("Redo text (Ctrl+Y)");
+        m_redoButton.add(m_redoIcon);
+        m_redoButton.set_relief(Gtk::RELIEF_NONE);
+        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bold", "editor"), iconSize, iconSize));
         m_boldButton.set_tooltip_text("Add bold text");
         m_boldButton.add(m_boldIcon);
         m_boldButton.set_relief(Gtk::RELIEF_NONE);
-        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("italic.svg"), iconSize, iconSize));
+        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("italic", "editor"), iconSize, iconSize));
         m_italicButton.set_tooltip_text("Add italic text");
         m_italicButton.add(m_italicIcon);
         m_italicButton.set_relief(Gtk::RELIEF_NONE);
-        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("strikethrough.svg"), iconSize, iconSize));
+        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("strikethrough", "editor"), iconSize, iconSize));
         m_strikethroughButton.set_tooltip_text("Add strikethrough text");
         m_strikethroughButton.add(m_strikethroughIcon);
         m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
-        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("superscript.svg"), iconSize, iconSize));
+        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("superscript", "editor"), iconSize, iconSize));
         m_superButton.set_tooltip_text("Add superscript text");
         m_superButton.add(m_superIcon);
         m_superButton.set_relief(Gtk::RELIEF_NONE);
-        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("subscript.svg"), iconSize, iconSize));
+        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("subscript", "editor"), iconSize, iconSize));
         m_subButton.set_tooltip_text("Add subscript text");
         m_subButton.add(m_subIcon);
         m_subButton.set_relief(Gtk::RELIEF_NONE);
-        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("quote.svg"), iconSize, iconSize));
-        m_quoteButton.set_tooltip_text("Insert a quote");
-        m_quoteButton.add(m_quoteIcon);
-        m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("link.svg"), iconSize, iconSize));
+        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("link", "editor"), iconSize, iconSize));
         m_linkButton.set_tooltip_text("Add a link");
         m_linkButton.add(m_linkIcon);
         m_linkButton.set_relief(Gtk::RELIEF_NONE);
-        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("shapes.svg"), iconSize, iconSize));
+        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), iconSize, iconSize));
         m_imageButton.set_tooltip_text("Add a image");
         m_imageButton.add(m_imageIcon);
         m_imageButton.set_relief(Gtk::RELIEF_NONE);
-        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("code.svg"), iconSize, iconSize));
+        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), iconSize, iconSize));
+        m_quoteButton.set_tooltip_text("Insert a quote");
+        m_quoteButton.add(m_quoteIcon);
+        m_quoteButton.set_relief(Gtk::RELIEF_NONE);
+        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("code", "editor"), iconSize, iconSize));
         m_codeButton.set_tooltip_text("Insert code");
         m_codeButton.add(m_codeIcon);
         m_codeButton.set_relief(Gtk::RELIEF_NONE);
-        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("bullet_list.svg"), iconSize, iconSize));
+        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bullet_list", "editor"), iconSize, iconSize));
         m_bulletListButton.set_tooltip_text("Add a bullet list");
         m_bulletListButton.add(m_bulletListIcon);
         m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
-        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("number_list.svg"), iconSize, iconSize));
+        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("number_list", "editor"), iconSize, iconSize));
         m_numberedListButton.set_tooltip_text("Add a numbered list");
         m_numberedListButton.add(m_numberedListIcon);
         m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
-        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImage("highlighter.svg"), iconSize, iconSize));
+        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("highlighter", "editor"), iconSize, iconSize));
         m_highlightButton.set_tooltip_text("Add highlight text");
         m_highlightButton.add(m_hightlightIcon);
         m_highlightButton.set_relief(Gtk::RELIEF_NONE);
@@ -135,6 +178,13 @@ MainWindow::MainWindow()
     }
 
     // Disable focus on editor buttons
+    m_openButton.set_can_focus(false);
+    m_saveButton.set_can_focus(false);
+    m_cutButton.set_can_focus(false);
+    m_copyButton.set_can_focus(false);
+    m_pasteButton.set_can_focus(false);
+    m_undoButton.set_can_focus(false);
+    m_redoButton.set_can_focus(false);
     m_headingsComboBox.set_can_focus(false);
     m_headingsComboBox.set_focus_on_click(false);
     m_boldButton.set_can_focus(false);
@@ -142,9 +192,9 @@ MainWindow::MainWindow()
     m_strikethroughButton.set_can_focus(false);
     m_superButton.set_can_focus(false);
     m_subButton.set_can_focus(false);
-    m_quoteButton.set_can_focus(false);
     m_linkButton.set_can_focus(false);
     m_imageButton.set_can_focus(false);
+    m_quoteButton.set_can_focus(false);
     m_codeButton.set_can_focus(false);
     m_bulletListButton.set_can_focus(false);
     m_numberedListButton.set_can_focus(false);
@@ -173,6 +223,8 @@ MainWindow::MainWindow()
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
+    // TODO: Optionally use either the official GTK icons OR 
+    //       use our built-in icon-themes for back/forward/refresh and home buttons
     m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_backButton.add(m_backIcon);
     m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
@@ -186,31 +238,45 @@ MainWindow::MainWindow()
     m_backButton.set_sensitive(false);
     m_forwardButton.set_sensitive(false);
 
-    // Toolbar
+    // Browser Toolbar
     m_backButton.set_margin_left(6);
-    m_hboxToolbar.pack_start(m_backButton, false, false, 0);
-    m_hboxToolbar.pack_start(m_forwardButton, false, false, 0);
-    m_hboxToolbar.pack_start(m_refreshButton, false, false, 0);
-    m_hboxToolbar.pack_start(m_homeButton, false, false, 0);
-    m_hboxToolbar.pack_start(m_addressBar, true, true, 8);
-    m_vbox.pack_start(m_hboxToolbar, false, false, 6);
+    m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 8);
+    m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
 
-    // Editor bar
+    // Standard editor toolbar
     m_headingsComboBox.set_margin_left(4);
-    m_hboxEditor.pack_start(m_headingsComboBox, false, false, 2);
-    m_hboxEditor.pack_start(m_boldButton, false, false, 2);
-    m_hboxEditor.pack_start(m_italicButton, false, false, 2);
-    m_hboxEditor.pack_start(m_strikethroughButton, false, false, 2);
-    m_hboxEditor.pack_start(m_superButton, false, false, 2);
-    m_hboxEditor.pack_start(m_subButton, false, false, 2);
-    m_hboxEditor.pack_start(m_quoteButton, false, false, 2);
-    m_hboxEditor.pack_start(m_linkButton, false, false, 2);
-    m_hboxEditor.pack_start(m_imageButton, false, false, 2);
-    m_hboxEditor.pack_start(m_codeButton, false, false, 2);
-    m_hboxEditor.pack_start(m_bulletListButton, false, false, 2);
-    m_hboxEditor.pack_start(m_numberedListButton, false, false, 2);
-    m_hboxEditor.pack_start(m_highlightButton, false, false, 2);
-    m_vbox.pack_start(m_hboxEditor, false, false, 6);
+    m_hboxStandardEditorToolbar.pack_start(m_openButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_saveButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_separator1, false, false, 0);
+    m_hboxStandardEditorToolbar.pack_start(m_cutButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_copyButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_pasteButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_separator2, false, false, 0);
+    m_hboxStandardEditorToolbar.pack_start(m_undoButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_redoButton, false, false, 2);
+    m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
+
+    // Formatting toolbar
+    m_headingsComboBox.set_margin_left(4);
+    m_hboxFormattingEditorToolbar.pack_start(m_headingsComboBox, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_boldButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_italicButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_strikethroughButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_superButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_subButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_linkButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_imageButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
+    m_hboxFormattingEditorToolbar.pack_start(m_quoteButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_codeButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_bulletListButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_numberedListButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_highlightButton, false, false, 2);
+    m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
 
     // Browser text main drawing area
     m_scrolledWindowMain.add(m_draw_main);
@@ -239,7 +305,8 @@ MainWindow::MainWindow()
     show_all_children();
     // Hide by default the bottom & editor box & secondary text view
     m_hboxBottom.hide();
-    m_hboxEditor.hide();
+    m_hboxStandardEditorToolbar.hide();
+    m_hboxFormattingEditorToolbar.hide();
     m_scrolledWindowSecondary.hide();
 
     // Grap focus to input field by default
@@ -393,6 +460,26 @@ void MainWindow::new_doc()
     this->enableEdit();
 }
 
+void MainWindow::open()
+{
+    std::cout << "INFO: TODO" << std::endl;
+}
+
+void MainWindow::save()
+{
+    std::cout << "INFO: TODO" << std::endl;
+}
+
+void MainWindow::save_as()
+{
+    std::cout << "INFO: TODO" << std::endl;
+}
+
+void MainWindow::publish()
+{
+    std::cout << "INFO: TODO" << std::endl;
+}
+
 /**
  * Post processing request actions
  */
@@ -494,8 +581,9 @@ void MainWindow::enableEdit()
 {
     // Inform the Draw class that we are creating a new document
     this->m_draw_main.newDocument();
-    // Show editor
-    this->m_hboxEditor.show();
+    // Show editor toolbars
+    this->m_hboxStandardEditorToolbar.show();
+    this->m_hboxFormattingEditorToolbar.show();
     // Enabled secondary text view (on the right)
     this->m_scrolledWindowSecondary.show();
     // Disable "view source" menu item
@@ -508,9 +596,10 @@ void MainWindow::enableEdit()
 
 void MainWindow::disableEdit()
 {
-    if (m_hboxEditor.is_visible())
+    if (m_hboxStandardEditorToolbar.is_visible())
     {
-        this->m_hboxEditor.hide();
+        this->m_hboxStandardEditorToolbar.hide();
+        this->m_hboxFormattingEditorToolbar.hide();
         this->m_scrolledWindowSecondary.hide();
         // Disconnect text changed signal
         this->textChangedSignalHandler.disconnect();
@@ -625,12 +714,18 @@ void MainWindow::openFromDisk()
     }
 }
 
-std::string MainWindow::getIconImage(const std::string &iconFilename)
+/**
+ * Retrieve image path from icon theme location
+ * @param iconName Icon name (.svg is added default)
+ * @param typeofIcon Type of the icon is the sub-folder within the icons directory (eg. "editor", "arrows" or "basic")
+ * @return full path of the icon SVG image
+ */
+std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon)
 {
     // Try absolute path first
     for (std::string data_dir : Glib::get_system_data_dirs())
     {
-        std::vector<std::string> path_builder{data_dir, "libreweb-browser", "images", "icons", m_iconTheme, iconFilename};
+        std::vector<std::string> path_builder{data_dir, "libreweb-browser", "images", "icons", m_iconTheme, typeofIcon, iconName + ".svg"};
         std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
         if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
         {
@@ -640,7 +735,7 @@ std::string MainWindow::getIconImage(const std::string &iconFilename)
 
     // Try local path if the images are not installed (yet)
     // When working directory is in the build/bin folder (relative path)
-    std::string file_path = Glib::build_filename("../../images/icons", m_iconTheme, iconFilename);
+    std::string file_path = Glib::build_filename("../../images/icons", m_iconTheme, typeofIcon, iconName + ".svg");
     if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
     {
         return file_path;

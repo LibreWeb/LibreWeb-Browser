@@ -36,6 +36,10 @@ protected:
     void del();
     void selectAll();
     void new_doc();
+    void open();
+    void save();
+    void save_as();
+    void publish();
     void go_home();
     void address_bar_activate();
     void do_search();
@@ -62,23 +66,31 @@ protected:
     Gtk::SearchBar m_search;
     Gtk::SearchEntry m_searchEntry;
     Gtk::Box m_vbox;
-    Gtk::Box m_hboxToolbar;
-    Gtk::Box m_hboxEditor;
+    Gtk::Box m_hboxBrowserToolbar;
+    Gtk::Box m_hboxStandardEditorToolbar;
+    Gtk::Box m_hboxFormattingEditorToolbar;
     Gtk::Box m_hboxBottom;
     Gtk::Entry m_addressBar;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
+    Gtk::Button m_openButton;
+    Gtk::Button m_saveButton;
+    Gtk::Button m_cutButton;
+    Gtk::Button m_copyButton;
+    Gtk::Button m_pasteButton;
+    Gtk::Button m_undoButton;
+    Gtk::Button m_redoButton;
     Gtk::ComboBoxText m_headingsComboBox;
     Gtk::Button m_boldButton;
     Gtk::Button m_italicButton;
     Gtk::Button m_strikethroughButton;
     Gtk::Button m_superButton;
     Gtk::Button m_subButton;
-    Gtk::Button m_quoteButton;
     Gtk::Button m_linkButton;
     Gtk::Button m_imageButton;
+    Gtk::Button m_quoteButton;
     Gtk::Button m_codeButton;
     Gtk::Button m_bulletListButton;
     Gtk::Button m_numberedListButton;
@@ -87,21 +99,31 @@ protected:
     Gtk::Image m_forwardIcon;
     Gtk::Image m_refreshIcon;
     Gtk::Image m_homeIcon;
+    Gtk::Image m_openIcon;
+    Gtk::Image m_saveIcon;
+    Gtk::Image m_cutIcon;
+    Gtk::Image m_copyIcon;
+    Gtk::Image m_pasteIcon;
+    Gtk::Image m_undoIcon;
+    Gtk::Image m_redoIcon;
     Gtk::Image m_boldIcon;
     Gtk::Image m_italicIcon;
     Gtk::Image m_strikethroughIcon;
     Gtk::Image m_superIcon;
     Gtk::Image m_subIcon;
-    Gtk::Image m_quoteIcon;
-    Gtk::Image m_codeIcon;
     Gtk::Image m_linkIcon;
     Gtk::Image m_imageIcon;
+    Gtk::Image m_quoteIcon;
+    Gtk::Image m_codeIcon;
     Gtk::Image m_bulletListIcon;
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
     Gtk::ScrolledWindow m_scrolledWindowMain;
     Gtk::ScrolledWindow m_scrolledWindowSecondary;
     Gtk::Button m_exitBottomButton;
+    Gtk::SeparatorMenuItem m_separator1;
+    Gtk::SeparatorMenuItem m_separator2;
+    Gtk::SeparatorMenuItem m_separator3;
 
 private:
     std::string m_appName;
@@ -121,7 +143,7 @@ private:
     void processRequest(const std::string &path);
     void fetchFromIPFS();
     void openFromDisk();
-    std::string getIconImage(const std::string &iconFilename);
+    std::string getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon);
 };
 
 #endif
