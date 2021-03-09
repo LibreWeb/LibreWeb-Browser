@@ -810,7 +810,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             // Replace last quote '|'-sign with a normal blank line
             this->truncateText(2);
-            this->insertText("\n");
+            this->insertMarkupTextOnThread("\n");
         }
         break;
 
@@ -833,7 +833,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             orderedListLevel = 0;
             isOrderedList = false;
             if (!entering)
-                this->insertText("\n");
+                this->insertMarkupTextOnThread("\n");
         }
         else if (listLevel > 0)
         {
@@ -912,6 +912,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         }
         else
         {
+            // Insert line break after heading
+            this->insertMarkupTextOnThread("\n\n");
             headingLevel = 0; // reset
         }
         break;
@@ -942,7 +944,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // For listings only insert a single new line
         if (!entering && (listLevel > 0))
         {
-            this->insertText("\n");
+            this->insertMarkupTextOnThread("\n");
         }
         // Dealing with paragraphs in quotes
         else if (entering && isQuote)
@@ -956,7 +958,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // Normal paragraph, just blank line
         else if (!entering)
         {
-            this->insertText("\n\n");
+            this->insertMarkupTextOnThread("\n\n");
         }
         break;
 
@@ -979,12 +981,12 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_LINEBREAK:
         // Hard brake
-        this->insertText("\n");
+        this->insertMarkupTextOnThread("\n");
         break;
 
     case CMARK_NODE_SOFTBREAK:
         // only insert space
-        this->insertText(" ");
+        this->insertMarkupTextOnThread(" ");
         break;
 
     case CMARK_NODE_CODE:
@@ -1120,17 +1122,7 @@ void Draw::insertText(const std::string &input, const std::string &url, CodeType
     {
         insertLink(text, url, font.to_string());
     }
-    // Insert heading
-    else if (headingLevel > 0)
-    {
-        // Special case for headings within quote
-        if (isQuote)
-            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
-        // Insert headings the normal way (with break line)
-        else
-            insertMarkupTextOnThread("<span " + span + ">" + text + "</span>\n\n");
-    }
-    // Insert text
+    // Insert text/heading
     else
     {
         // Special case for code blocks within quote
@@ -1145,7 +1137,11 @@ void Draw::insertText(const std::string &input, const std::string &url, CodeType
             }
             insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
         }
-        // Just insert text the normal way
+        // Special case for heading within quote
+        else if ((headingLevel > 0) && isQuote) {
+             insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
+        }
+        // Just insert text/heading the normal way
         else
         {
             insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
