@@ -126,6 +126,7 @@ protected:
     Gtk::SeparatorMenuItem m_separator1;
     Gtk::SeparatorMenuItem m_separator2;
     Gtk::SeparatorMenuItem m_separator3;
+    Gtk::SeparatorMenuItem m_separator4;
 
 private:
     std::string m_appName;

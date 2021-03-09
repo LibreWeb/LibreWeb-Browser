@@ -275,9 +275,10 @@ MainWindow::MainWindow()
     m_hboxFormattingEditorToolbar.pack_start(m_strikethroughButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_superButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_subButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
     m_hboxFormattingEditorToolbar.pack_start(m_linkButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_imageButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
+    m_hboxFormattingEditorToolbar.pack_start(m_separator4, false, false, 0);
     m_hboxFormattingEditorToolbar.pack_start(m_quoteButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_codeButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_bulletListButton, false, false, 2);
