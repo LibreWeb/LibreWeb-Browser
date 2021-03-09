@@ -184,6 +184,7 @@ void Draw::showStartPage()
     this->headingLevel = 1;
     this->insertText("Welcome to the Decentralized Web (DWeb)");
     this->headingLevel = 0;
+    this->insertMarkupTextOnThread("\n\n");
     this->insertText("You can surf the web as intended via LibreWeb, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
 The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
 This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
