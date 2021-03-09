@@ -21,6 +21,8 @@ struct DispatchData
     std::string url;
     // For removing text
     int charsTruncated;
+    // Optional URL formatting
+    std::string urlFont;
 };
 
 Draw::Draw(MainWindow &mainWindow)
@@ -186,7 +188,7 @@ void Draw::showStartPage()
 The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
 This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
     this->insertText("See an example page hosted on IPFS: ");
-    this->insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq");
+    this->insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", defaultFont.to_string());
 }
 
 /**
@@ -918,7 +920,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     {
         std::string code = cmark_node_get_literal(node);
         std::string newline = (isQuote) ? "" : "\n";
-        this->insertText(code + newline, CodeTypeEnum::CODE_BLOCK);
+        this->insertText(code + newline, "", CodeTypeEnum::CODE_BLOCK);
     }
     break;
 
@@ -964,7 +966,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // URL
         if (isLink)
         {
-            this->insertLink(text, linkURL);
+            this->insertText(text, linkURL);
             linkURL = "";
         }
         // Text (with optional inline formatting)
@@ -988,7 +990,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_CODE:
     {
         std::string code = cmark_node_get_literal(node);
-        this->insertText(code, CodeTypeEnum::INLINE_CODE);
+        this->insertText(code, "", CodeTypeEnum::INLINE_CODE);
     }
     break;
 
@@ -1031,7 +1033,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 /**
  * Insert markup text - thread safe
  */
-void Draw::insertText(const std::string &input, CodeTypeEnum codeType)
+void Draw::insertText(const std::string &input, const std::string &url, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
     std::string span;
@@ -1113,7 +1115,13 @@ void Draw::insertText(const std::string &input, CodeTypeEnum codeType)
     }
     span.insert(0, "font_desc=\"" + font.to_string() + "\"");
 
-    if (headingLevel > 0)
+    // Insert URL
+    if (!url.empty())
+    {
+        insertLink(text, url, font.to_string());
+    }
+    // Insert heading
+    else if (headingLevel > 0)
     {
         // Special case for headings within quote
         if (isQuote)
@@ -1122,6 +1130,7 @@ void Draw::insertText(const std::string &input, CodeTypeEnum codeType)
         else
             insertMarkupTextOnThread("<span " + span + ">" + text + "</span>\n\n");
     }
+    // Insert text
     else
     {
         // Special case for code blocks within quote
@@ -1147,12 +1156,13 @@ void Draw::insertText(const std::string &input, CodeTypeEnum codeType)
 /**
  * Insert url link - thread safe
  */
-void Draw::insertLink(const std::string &name, const std::string &url)
+void Draw::insertLink(const std::string &name, const std::string &url, const std::string &urlFont)
 {
     DispatchData *data = g_new0(struct DispatchData, 1);
     data->buffer = buffer;
     data->text = name;
     data->url = url;
+    data->urlFont = urlFont;
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
 }
 
@@ -1253,6 +1263,7 @@ gboolean Draw::insertLinkIdle(struct DispatchData *data)
     GtkTextTag *tag;
     gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
     tag = gtk_text_buffer_create_tag(data->buffer, NULL,
+                                     "font", data->urlFont.c_str(),
                                      "foreground", "#569cd6",
                                      "underline", PANGO_UNDERLINE_SINGLE,
                                      NULL);
