@@ -77,6 +77,7 @@ protected:
     Gtk::Button m_homeButton;
     Gtk::Button m_openButton;
     Gtk::Button m_saveButton;
+    Gtk::Button m_publishButton;
     Gtk::Button m_cutButton;
     Gtk::Button m_copyButton;
     Gtk::Button m_pasteButton;
@@ -101,6 +102,7 @@ protected:
     Gtk::Image m_homeIcon;
     Gtk::Image m_openIcon;
     Gtk::Image m_saveIcon;
+    Gtk::Image m_publishIcon;
     Gtk::Image m_cutIcon;
     Gtk::Image m_copyIcon;
     Gtk::Image m_pasteIcon;

@@ -72,6 +72,7 @@ MainWindow::MainWindow()
     // Editor buttons
     m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open));
     m_saveButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
+    m_publishButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::publish));
     m_cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
     m_copyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
     m_pasteButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
@@ -103,6 +104,10 @@ MainWindow::MainWindow()
         m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
         m_saveButton.add(m_saveIcon);
         m_saveButton.set_relief(Gtk::RELIEF_NONE);
+        m_publishIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("upload", "basic"), iconSize, iconSize));
+        m_publishButton.set_tooltip_text("Publish document... (Ctrl+P)");
+        m_publishButton.add(m_publishIcon);
+        m_publishButton.set_relief(Gtk::RELIEF_NONE);
         m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), iconSize, iconSize));
         m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
         m_cutButton.add(m_cutIcon);
@@ -180,6 +185,7 @@ MainWindow::MainWindow()
     // Disable focus on editor buttons
     m_openButton.set_can_focus(false);
     m_saveButton.set_can_focus(false);
+    m_publishButton.set_can_focus(false);
     m_cutButton.set_can_focus(false);
     m_copyButton.set_can_focus(false);
     m_pasteButton.set_can_focus(false);
@@ -251,6 +257,7 @@ MainWindow::MainWindow()
     m_headingsComboBox.set_margin_left(4);
     m_hboxStandardEditorToolbar.pack_start(m_openButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_saveButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_publishButton, false, false, 2);    
     m_hboxStandardEditorToolbar.pack_start(m_separator1, false, false, 0);
     m_hboxStandardEditorToolbar.pack_start(m_cutButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_copyButton, false, false, 2);
