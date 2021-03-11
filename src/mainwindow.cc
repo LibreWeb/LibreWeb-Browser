@@ -251,6 +251,11 @@ MainWindow::MainWindow()
     m_forwardButton.add(m_forwardIcon);
     m_refreshButton.add(m_refreshIcon);
     m_homeButton.add(m_homeIcon);
+    // Add tooltips to the toolbar buttons
+    m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
+    m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
+    m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
+    m_homeButton.set_tooltip_text("Home page (Alt+Home)");
 
     // Disable back/forward button on start-up
     m_backButton.set_sensitive(false);
