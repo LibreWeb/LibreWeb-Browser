@@ -544,7 +544,27 @@ void MainWindow::go_home()
  */
 void MainWindow::do_search()
 {
-    std::cout << "Search for: " << m_searchEntry.get_text() << std::endl;
+    // Forward search, find and select
+    std::string text = m_searchEntry.get_text();
+    auto buffer = m_draw_main.get_buffer();
+    Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
+    Gtk::TextBuffer::iterator start, end;
+    if (iter.forward_search(text, Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY, start, end))
+    {
+        buffer->select_range(end, start);
+        m_draw_main.scroll_to(start);
+    }
+    else
+    {
+        buffer->place_cursor(buffer->begin());
+        // Try another search directly from the top
+        Gtk::TextBuffer::iterator secondIter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
+        if (secondIter.forward_search(text, Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY, start, end))
+        {
+            buffer->select_range(end, start);
+            m_draw_main.scroll_to(start);
+        }
+    }
 }
 
 /**
