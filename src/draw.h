@@ -123,10 +123,10 @@ private:
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text
-    void insertText(const std::string &input, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
-    void insertLink(const std::string &name, const std::string &url, const std::string &urlFont = "");
+    void insertText(std::string text, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertLink(const std::string &text, const std::string &url, const std::string &urlFont = "");
     void truncateText(int charsTruncated);
-    std::string const escapeText(const std::string &input);
+    void escapeText(std::string &string);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();

@@ -172,6 +172,7 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
     this->headingLevel = 1;
     this->insertText(message);
     this->headingLevel = 0;
+    this->insertMarkupTextOnThread("\n\n");
     this->insertText(detailed_info);
 }
 
@@ -1036,27 +1037,30 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 /**
  * Insert markup text - thread safe
  */
-void Draw::insertText(const std::string &input, const std::string &url, CodeTypeEnum codeType)
+void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
     std::string span;
+    span.reserve(80);
     std::string foreground;
     std::string background;
-    const std::string text = this->escapeText(input);
+
+    // Use by reference to replace the string
+    this->escapeText(text);
 
     if (isStrikethrough)
     {
-        span.append(" strikethrough=\"true\"");
+        span.append("strikethrough=\"true\" ");
     }
     if (isSuperscript)
     {
         font.set_size(8000);
-        span.append(" rise=\"6000\"");
+        span.append("rise=\"6000\" ");
     }
     if (isSubscript)
     {
         font.set_size(8000);
-        span.append(" rise=\"-6000\"");
+        span.append("rise=\"-6000\" ");
     }
     if (isBold)
     {
@@ -1110,18 +1114,18 @@ void Draw::insertText(const std::string &input, const std::string &url, CodeType
     }
     if (!foreground.empty())
     {
-        span.append(" foreground=\"" + foreground + "\"");
+        span.append("foreground=\"" + foreground + "\" ");
     }
     if (!background.empty())
     {
-        span.append(" background=\"" + background + "\"");
+        span.append("background=\"" + background + "\" ");
     }
-    span.insert(0, "font_desc=\"" + font.to_string() + "\"");
+    span.append("font_desc=\"" + font.to_string() + "\"");
 
     // Insert URL
     if (!url.empty())
     {
-        insertLink(text, url, font.to_string());
+        this->insertLink(text, url, font.to_string());
     }
     // Insert text/heading
     else
@@ -1153,11 +1157,11 @@ void Draw::insertText(const std::string &input, const std::string &url, CodeType
 /**
  * Insert url link - thread safe
  */
-void Draw::insertLink(const std::string &name, const std::string &url, const std::string &urlFont)
+void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
 {
     DispatchData *data = g_new0(struct DispatchData, 1);
     data->buffer = buffer;
-    data->text = name;
+    data->text = text;
     data->url = url;
     data->urlFont = urlFont;
     gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
@@ -1176,11 +1180,19 @@ void Draw::truncateText(int charsTruncated)
 
 /**
  * Escape input text (eg. ampersand-character)
- * @return Escaped text
+ * @param[in/out] string
  */
-std::string const Draw::escapeText(const std::string &input)
+void Draw::escapeText(std::string &string)
 {
-    return std::regex_replace(input, std::regex("&"), "&amp;");
+    std::string buffer;
+    buffer.reserve(string.size() + 5);
+    for(size_t pos = 0; pos != string.size(); ++pos) {
+        switch(string[pos]) {
+            case '&':  buffer.append("&amp;");       break;
+            default:   buffer.append(&string[pos], 1); break;
+        }
+    }
+    string.swap(buffer);
 }
 
 /******************************************************
