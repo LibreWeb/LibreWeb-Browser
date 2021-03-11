@@ -24,7 +24,9 @@ MainWindow::MainWindow()
       m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_appName("LibreWeb Browser"),
-      m_iconTheme("flat"), // filled or flat
+      m_iconTheme("flat"),             // filled or flat
+      m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
+      m_iconSize(16),
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
@@ -95,84 +97,83 @@ MainWindow::MainWindow()
     try
     {
         // Add icons to the editor buttons
-        int iconSize = 16;
-        m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), iconSize, iconSize));
+        m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), m_iconSize, m_iconSize));
         m_openButton.set_tooltip_text("Open document (Ctrl+O)");
         m_openButton.add(m_openIcon);
         m_openButton.set_relief(Gtk::RELIEF_NONE);
-        m_saveIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("floppy_disk", "basic"), iconSize, iconSize));
+        m_saveIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("floppy_disk", "basic"), m_iconSize, m_iconSize));
         m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
         m_saveButton.add(m_saveIcon);
         m_saveButton.set_relief(Gtk::RELIEF_NONE);
-        m_publishIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("upload", "basic"), iconSize, iconSize));
+        m_publishIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("upload", "basic"), m_iconSize, m_iconSize));
         m_publishButton.set_tooltip_text("Publish document... (Ctrl+P)");
         m_publishButton.add(m_publishIcon);
         m_publishButton.set_relief(Gtk::RELIEF_NONE);
-        m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), iconSize, iconSize));
+        m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), m_iconSize, m_iconSize));
         m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
         m_cutButton.add(m_cutIcon);
         m_cutButton.set_relief(Gtk::RELIEF_NONE);
-        m_copyIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("copy", "editor"), iconSize, iconSize));
+        m_copyIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("copy", "editor"), m_iconSize, m_iconSize));
         m_copyButton.set_tooltip_text("Copy (Ctrl+C)");
         m_copyButton.add(m_copyIcon);
         m_copyButton.set_relief(Gtk::RELIEF_NONE);
-        m_pasteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("clipboard", "editor"), iconSize, iconSize));
+        m_pasteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("clipboard", "editor"), m_iconSize, m_iconSize));
         m_pasteButton.set_tooltip_text("Paste (Ctrl+V)");
         m_pasteButton.add(m_pasteIcon);
         m_pasteButton.set_relief(Gtk::RELIEF_NONE);
-        m_undoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("undo", "editor"), iconSize, iconSize));
+        m_undoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("undo", "editor"), m_iconSize, m_iconSize));
         m_undoButton.set_tooltip_text("Undo text (Ctrl+Z)");
         m_undoButton.add(m_undoIcon);
         m_undoButton.set_relief(Gtk::RELIEF_NONE);
-        m_redoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("redo", "editor"), iconSize, iconSize));
+        m_redoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("redo", "editor"), m_iconSize, m_iconSize));
         m_redoButton.set_tooltip_text("Redo text (Ctrl+Y)");
         m_redoButton.add(m_redoIcon);
         m_redoButton.set_relief(Gtk::RELIEF_NONE);
-        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bold", "editor"), iconSize, iconSize));
+        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bold", "editor"), m_iconSize, m_iconSize));
         m_boldButton.set_tooltip_text("Add bold text");
         m_boldButton.add(m_boldIcon);
         m_boldButton.set_relief(Gtk::RELIEF_NONE);
-        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("italic", "editor"), iconSize, iconSize));
+        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("italic", "editor"), m_iconSize, m_iconSize));
         m_italicButton.set_tooltip_text("Add italic text");
         m_italicButton.add(m_italicIcon);
         m_italicButton.set_relief(Gtk::RELIEF_NONE);
-        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("strikethrough", "editor"), iconSize, iconSize));
+        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("strikethrough", "editor"), m_iconSize, m_iconSize));
         m_strikethroughButton.set_tooltip_text("Add strikethrough text");
         m_strikethroughButton.add(m_strikethroughIcon);
         m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
-        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("superscript", "editor"), iconSize, iconSize));
+        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("superscript", "editor"), m_iconSize, m_iconSize));
         m_superButton.set_tooltip_text("Add superscript text");
         m_superButton.add(m_superIcon);
         m_superButton.set_relief(Gtk::RELIEF_NONE);
-        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("subscript", "editor"), iconSize, iconSize));
+        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("subscript", "editor"), m_iconSize, m_iconSize));
         m_subButton.set_tooltip_text("Add subscript text");
         m_subButton.add(m_subIcon);
         m_subButton.set_relief(Gtk::RELIEF_NONE);
-        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("link", "editor"), iconSize, iconSize));
+        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("link", "editor"), m_iconSize, m_iconSize));
         m_linkButton.set_tooltip_text("Add a link");
         m_linkButton.add(m_linkIcon);
         m_linkButton.set_relief(Gtk::RELIEF_NONE);
-        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), iconSize, iconSize));
+        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), m_iconSize, m_iconSize));
         m_imageButton.set_tooltip_text("Add a image");
         m_imageButton.add(m_imageIcon);
         m_imageButton.set_relief(Gtk::RELIEF_NONE);
-        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), iconSize, iconSize));
+        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), m_iconSize, m_iconSize));
         m_quoteButton.set_tooltip_text("Insert a quote");
         m_quoteButton.add(m_quoteIcon);
         m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("code", "editor"), iconSize, iconSize));
+        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("code", "editor"), m_iconSize, m_iconSize));
         m_codeButton.set_tooltip_text("Insert code");
         m_codeButton.add(m_codeIcon);
         m_codeButton.set_relief(Gtk::RELIEF_NONE);
-        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bullet_list", "editor"), iconSize, iconSize));
+        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bullet_list", "editor"), m_iconSize, m_iconSize));
         m_bulletListButton.set_tooltip_text("Add a bullet list");
         m_bulletListButton.add(m_bulletListIcon);
         m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
-        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("number_list", "editor"), iconSize, iconSize));
+        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("number_list", "editor"), m_iconSize, m_iconSize));
         m_numberedListButton.set_tooltip_text("Add a numbered list");
         m_numberedListButton.add(m_numberedListIcon);
         m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
-        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("highlighter", "editor"), iconSize, iconSize));
+        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("highlighter", "editor"), m_iconSize, m_iconSize));
         m_highlightButton.set_tooltip_text("Add highlight text");
         m_highlightButton.add(m_hightlightIcon);
         m_highlightButton.set_relief(Gtk::RELIEF_NONE);
@@ -229,15 +230,23 @@ MainWindow::MainWindow()
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
-    // TODO: Optionally use either the official GTK icons OR
-    //       use our built-in icon-themes for back/forward/refresh and home buttons
-    m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    if (m_useCurrentGTKIconTheme)
+    {
+        m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+    }
+    else
+    {
+        m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
+        m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
+        m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_2", "arrows"), m_iconSize, m_iconSize));
+        m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
+    }
     m_backButton.add(m_backIcon);
-    m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_forwardButton.add(m_forwardIcon);
-    m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_refreshButton.add(m_refreshIcon);
-    m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_homeButton.add(m_homeIcon);
 
     // Disable back/forward button on start-up

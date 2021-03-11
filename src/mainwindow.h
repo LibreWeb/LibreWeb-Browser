@@ -131,6 +131,8 @@ protected:
 private:
     std::string m_appName;
     std::string m_iconTheme;
+    bool m_useCurrentGTKIconTheme;
+    int m_iconSize;
     File m_file;
     std::thread *m_requestThread;
     std::string requestPath;
