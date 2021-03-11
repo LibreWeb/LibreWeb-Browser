@@ -229,7 +229,7 @@ MainWindow::MainWindow()
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
-    // TODO: Optionally use either the official GTK icons OR 
+    // TODO: Optionally use either the official GTK icons OR
     //       use our built-in icon-themes for back/forward/refresh and home buttons
     m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     m_backButton.add(m_backIcon);
@@ -257,7 +257,7 @@ MainWindow::MainWindow()
     m_headingsComboBox.set_margin_left(4);
     m_hboxStandardEditorToolbar.pack_start(m_openButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_saveButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_publishButton, false, false, 2);    
+    m_hboxStandardEditorToolbar.pack_start(m_publishButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_separator1, false, false, 0);
     m_hboxStandardEditorToolbar.pack_start(m_cutButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_copyButton, false, false, 2);
