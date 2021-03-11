@@ -23,6 +23,7 @@ MainWindow::MainWindow()
       m_hboxStandardEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_searchMatchCase("Match _Case", true),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -206,6 +207,8 @@ MainWindow::MainWindow()
     m_bulletListButton.set_can_focus(false);
     m_numberedListButton.set_can_focus(false);
     m_highlightButton.set_can_focus(false);
+    // And match case button
+    m_searchMatchCase.set_can_focus(false);
 
     // Populate the heading comboboxtext
     m_headingsComboBox.append("", "Select Heading");
@@ -311,6 +314,7 @@ MainWindow::MainWindow()
     m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
     m_hboxBottom.pack_start(m_exitBottomButton, false, false, 10);
     m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
+    m_hboxBottom.pack_start(m_searchMatchCase, false, false, 10);
 
     m_paned.pack1(m_scrolledWindowMain, true, false);
     m_paned.pack2(m_scrolledWindowSecondary, false, true);
@@ -437,14 +441,22 @@ void MainWindow::del()
     else if (m_addressBar.has_focus())
     {
         int start, end;
-        m_addressBar.get_selection_bounds(start, end);
-        m_addressBar.delete_text(start, end);
+        if(m_addressBar.get_selection_bounds(start, end)) {
+            m_addressBar.delete_text(start, end);
+        } else {
+            ++end;
+            m_addressBar.delete_text(start, end);
+        }
     }
     else if (m_searchEntry.has_focus())
     {
         int start, end;
-        m_searchEntry.get_selection_bounds(start, end);
-        m_searchEntry.delete_text(start, end);
+        if(m_searchEntry.get_selection_bounds(start, end)) {
+            m_searchEntry.delete_text(start, end);
+        } else {
+            ++end;
+            m_searchEntry.delete_text(start, end);
+        }
     }
 }
 
@@ -549,7 +561,12 @@ void MainWindow::do_search()
     auto buffer = m_draw_main.get_buffer();
     Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
     Gtk::TextBuffer::iterator start, end;
-    if (iter.forward_search(text, Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY, start, end))
+    bool matchCase = m_searchMatchCase.get_active();
+    Gtk::TextSearchFlags flags = Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY;
+    if (!matchCase) {
+        flags |= Gtk::TextSearchFlags::TEXT_SEARCH_CASE_INSENSITIVE;
+    }
+    if (iter.forward_search(text, flags, start, end))
     {
         buffer->select_range(end, start);
         m_draw_main.scroll_to(start);
@@ -559,7 +576,7 @@ void MainWindow::do_search()
         buffer->place_cursor(buffer->begin());
         // Try another search directly from the top
         Gtk::TextBuffer::iterator secondIter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
-        if (secondIter.forward_search(text, Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY, start, end))
+        if (secondIter.forward_search(text, flags, start, end))
         {
             buffer->select_range(end, start);
             m_draw_main.scroll_to(start);

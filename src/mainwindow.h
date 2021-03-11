@@ -6,6 +6,7 @@
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
+#include <gtkmm/togglebutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
@@ -71,6 +72,7 @@ protected:
     Gtk::Box m_hboxFormattingEditorToolbar;
     Gtk::Box m_hboxBottom;
     Gtk::Entry m_addressBar;
+    Gtk::ToggleButton m_searchMatchCase;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
