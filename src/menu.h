@@ -28,6 +28,7 @@ public:
     sigc::signal<void> del;
     sigc::signal<void> select_all;
     sigc::signal<void> find;
+    sigc::signal<void> replace;
     sigc::signal<void> back;
     sigc::signal<void> forward;
     sigc::signal<void> reload;

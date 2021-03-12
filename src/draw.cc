@@ -1046,7 +1046,7 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
     std::string background;
 
     // Use by reference to replace the string
-    this->escapeText(text);
+    this->encodeText(text);
 
     if (isStrikethrough)
     {
@@ -1143,8 +1143,9 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
             insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
         }
         // Special case for heading within quote
-        else if ((headingLevel > 0) && isQuote) {
-             insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
+        else if ((headingLevel > 0) && isQuote)
+        {
+            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
         }
         // Just insert text/heading the normal way
         else
@@ -1179,17 +1180,23 @@ void Draw::truncateText(int charsTruncated)
 }
 
 /**
- * Escape input text (eg. ampersand-character)
+ * Encode text string (eg. ampersand-character)
  * @param[in/out] string
  */
-void Draw::escapeText(std::string &string)
+void Draw::encodeText(std::string &string)
 {
     std::string buffer;
     buffer.reserve(string.size() + 5);
-    for(size_t pos = 0; pos != string.size(); ++pos) {
-        switch(string[pos]) {
-            case '&':  buffer.append("&amp;");       break;
-            default:   buffer.append(&string[pos], 1); break;
+    for (size_t pos = 0; pos != string.size(); ++pos)
+    {
+        switch (string[pos])
+        {
+        case '&':
+            buffer.append("&amp;");
+            break;
+        default:
+            buffer.append(&string[pos], 1);
+            break;
         }
     }
     string.swap(buffer);

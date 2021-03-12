@@ -126,7 +126,7 @@ private:
     void insertText(std::string text, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
     void insertLink(const std::string &text, const std::string &url, const std::string &urlFont = "");
     void truncateText(int charsTruncated);
-    void escapeText(std::string &string);
+    void encodeText(std::string &string);
 
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();

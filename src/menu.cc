@@ -51,6 +51,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto findMenuItem = createMenuItem("_Find");
     findMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_F, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     findMenuItem->signal_activate().connect(find);
+    auto replaceMenuItem = createMenuItem("_Replace");
+    replaceMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_H, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    replaceMenuItem->signal_activate().connect(replace);
 
     // View sub-menu
     backMenuItem = createMenuItem("_Previous Page");
@@ -94,6 +97,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     m_editSubmenu.append(*selectAllMenuItem);
     m_editSubmenu.append(m_separator5);
     m_editSubmenu.append(*findMenuItem);
+    m_editSubmenu.append(*replaceMenuItem);    
     m_viewSubmenu.append(*backMenuItem);
     m_viewSubmenu.append(*forwardMenuItem);
     m_viewSubmenu.append(*reloadMenuItem);
