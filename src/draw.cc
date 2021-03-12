@@ -1057,7 +1057,8 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
         font.set_size(8000);
         span.append("rise=\"6000\" ");
     }
-    if (isSubscript)
+    // You can not have superscript & subscript applied together
+    else if (isSubscript)
     {
         font.set_size(8000);
         span.append("rise=\"-6000\" ");
