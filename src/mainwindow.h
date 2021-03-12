@@ -43,8 +43,9 @@ protected:
     void publish();
     void go_home();
     void address_bar_activate();
-    void do_search();
-    void show_search();
+    void on_search();
+    void on_replace();
+    void show_search(bool replace);
     void back();
     void forward();
     void refresh();
@@ -65,7 +66,9 @@ protected:
     About m_about;
     Gtk::HPaned m_paned;
     Gtk::SearchBar m_search;
+    Gtk::SearchBar m_searchReplace;
     Gtk::SearchEntry m_searchEntry;
+    Gtk::Entry m_searchReplaceEntry;
     Gtk::Box m_vbox;
     Gtk::Box m_hboxBrowserToolbar;
     Gtk::Box m_hboxStandardEditorToolbar;

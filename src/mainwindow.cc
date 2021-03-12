@@ -53,7 +53,8 @@ MainWindow::MainWindow()
     m_menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                                                   /*!< Menu item for paste text */
     m_menu.del.connect(sigc::mem_fun(this, &MainWindow::del));                                                       /*!< Menu item for deleting selected text */
     m_menu.select_all.connect(sigc::mem_fun(this, &MainWindow::selectAll));                                          /*!< Menu item for selecting all text */
-    m_menu.find.connect(sigc::mem_fun(this, &MainWindow::show_search));                                              /*!< Menu item for finding text */
+    m_menu.find.connect(sigc::bind(sigc::mem_fun(this, &MainWindow::show_search), false));                           /*!< Menu item for finding text */
+    m_menu.replace.connect(sigc::bind(sigc::mem_fun(this, &MainWindow::show_search), true));                         /*!< Menu item for replacing text */
     m_menu.back.connect(sigc::mem_fun(this, &MainWindow::back));                                                     /*!< Menu item for previous page */
     m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                                               /*!< Menu item for next page */
     m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refresh));                                                /*!< Menu item for reloading the page */
@@ -68,7 +69,8 @@ MainWindow::MainWindow()
     m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
-    m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::do_search));                            /*!< Execute the text search */
+    m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));                            /*!< Execute the text search */
+    m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));                    /*!< Execute the text replace */
 
     m_vbox.pack_start(m_menu, false, false, 0);
 
@@ -314,11 +316,13 @@ MainWindow::MainWindow()
 
     // Bottom Search bar
     m_search.connect_entry(m_searchEntry);
+    m_searchReplace.connect_entry(m_searchReplaceEntry);
     m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);
     m_exitBottomButton.set_label("\u2716");
     m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
     m_hboxBottom.pack_start(m_exitBottomButton, false, false, 10);
     m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
+    m_hboxBottom.pack_start(m_searchReplaceEntry, false, false, 10);
     m_hboxBottom.pack_start(m_searchMatchCase, false, false, 10);
 
     m_paned.pack1(m_scrolledWindowMain, true, false);
@@ -329,8 +333,9 @@ MainWindow::MainWindow()
 
     add(m_vbox);
     show_all_children();
-    // Hide by default the bottom & editor box & secondary text view
+    // Hide by default the bottom box + replace entry, editor box & secondary text view
     m_hboxBottom.hide();
+    m_searchReplaceEntry.hide();
     m_hboxStandardEditorToolbar.hide();
     m_hboxFormattingEditorToolbar.hide();
     m_scrolledWindowSecondary.hide();
@@ -391,6 +396,10 @@ void MainWindow::cut()
     {
         m_searchEntry.cut_clipboard();
     }
+    else if (m_searchReplaceEntry.has_focus())
+    {
+        m_searchReplaceEntry.cut_clipboard();
+    }
 }
 
 void MainWindow::copy()
@@ -410,6 +419,10 @@ void MainWindow::copy()
     else if (m_searchEntry.has_focus())
     {
         m_searchEntry.copy_clipboard();
+    }
+    else if (m_searchReplaceEntry.has_focus())
+    {
+        m_searchReplaceEntry.copy_clipboard();
     }
 }
 
@@ -431,6 +444,10 @@ void MainWindow::paste()
     {
         m_searchEntry.paste_clipboard();
     }
+    else if (m_searchReplaceEntry.has_focus())
+    {
+        m_searchReplaceEntry.paste_clipboard();
+    }
 }
 
 void MainWindow::del()
@@ -446,9 +463,12 @@ void MainWindow::del()
     else if (m_addressBar.has_focus())
     {
         int start, end;
-        if(m_addressBar.get_selection_bounds(start, end)) {
+        if (m_addressBar.get_selection_bounds(start, end))
+        {
             m_addressBar.delete_text(start, end);
-        } else {
+        }
+        else
+        {
             ++end;
             m_addressBar.delete_text(start, end);
         }
@@ -456,11 +476,27 @@ void MainWindow::del()
     else if (m_searchEntry.has_focus())
     {
         int start, end;
-        if(m_searchEntry.get_selection_bounds(start, end)) {
+        if (m_searchEntry.get_selection_bounds(start, end))
+        {
             m_searchEntry.delete_text(start, end);
-        } else {
+        }
+        else
+        {
             ++end;
             m_searchEntry.delete_text(start, end);
+        }
+    }
+    else if (m_searchReplaceEntry.has_focus())
+    {
+        int start, end;
+        if (m_searchReplaceEntry.get_selection_bounds(start, end))
+        {
+            m_searchReplaceEntry.delete_text(start, end);
+        }
+        else
+        {
+            ++end;
+            m_searchReplaceEntry.delete_text(start, end);
         }
     }
 }
@@ -482,6 +518,10 @@ void MainWindow::selectAll()
     else if (m_searchEntry.has_focus())
     {
         m_searchEntry.select_region(0, -1);
+    }
+    else if (m_searchReplaceEntry.has_focus())
+    {
+        m_searchReplaceEntry.select_region(0, -1);
     }
 }
 
@@ -559,7 +599,7 @@ void MainWindow::go_home()
 /**
  * Trigger when pressed enter in the search entry
  */
-void MainWindow::do_search()
+void MainWindow::on_search()
 {
     // Forward search, find and select
     std::string text = m_searchEntry.get_text();
@@ -568,7 +608,8 @@ void MainWindow::do_search()
     Gtk::TextBuffer::iterator start, end;
     bool matchCase = m_searchMatchCase.get_active();
     Gtk::TextSearchFlags flags = Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY;
-    if (!matchCase) {
+    if (!matchCase)
+    {
         flags |= Gtk::TextSearchFlags::TEXT_SEARCH_CASE_INSENSITIVE;
     }
     if (iter.forward_search(text, flags, start, end))
@@ -590,7 +631,30 @@ void MainWindow::do_search()
 }
 
 /**
- * Trigger when pressed enter in the address bar
+ * Trigger when user pressed enter in the replace entry
+ */
+void MainWindow::on_replace()
+{
+    if (m_draw_main.get_editable())
+    {
+        auto buffer = m_draw_main.get_buffer();
+        Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
+        Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_mark(buffer->get_mark("selection_bound"));
+        if (startIter != endIter)
+        {
+            // replace
+            std::string replace = m_searchReplaceEntry.get_text();
+            buffer->begin_user_action();
+            buffer->erase(startIter, endIter);
+            buffer->insert_at_cursor(replace);
+            buffer->end_user_action();
+        }
+        this->on_search();
+    }
+}
+
+/**
+ * Triggers when pressed enter in the address bar
  */
 void MainWindow::address_bar_activate()
 {
@@ -599,17 +663,49 @@ void MainWindow::address_bar_activate()
     m_draw_main.grab_focus();
 }
 
-void MainWindow::show_search()
+/**
+ * Triggers when user tries to search or replace text
+ */
+void MainWindow::show_search(bool replace)
 {
-    if (m_hboxBottom.is_visible())
+    if (m_hboxBottom.is_visible() && m_searchReplaceEntry.is_visible())
     {
-        m_hboxBottom.hide();
-        m_addressBar.grab_focus();
+        if (replace)
+        {
+            m_hboxBottom.hide();
+            m_addressBar.grab_focus();
+            m_searchReplaceEntry.hide();
+        }
+        else
+        {
+            m_searchReplaceEntry.hide();
+        }
+    }
+    else if (m_hboxBottom.is_visible())
+    {
+        if (replace)
+        {
+            m_searchReplaceEntry.show();
+        }
+        else
+        {
+            m_hboxBottom.hide();
+            m_addressBar.grab_focus();
+            m_searchReplaceEntry.hide();
+        }
     }
     else
     {
         m_hboxBottom.show();
         m_searchEntry.grab_focus();
+        if (replace)
+        {
+            m_searchReplaceEntry.show();
+        }
+        else
+        {
+            m_searchReplaceEntry.hide();
+        }
     }
 }
 
