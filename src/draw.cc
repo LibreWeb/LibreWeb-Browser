@@ -539,7 +539,7 @@ void Draw::make_quote()
         std::string line;
         while (std::getline(iss, line))
         {
-            buffer->insert_at_cursor(">" + line + "\n");
+            buffer->insert_at_cursor("> " + line + "\n");
         }
     }
     else
