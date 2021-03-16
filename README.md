@@ -1,6 +1,6 @@
 # LibreWeb Browser
 
-[![Join the chat at https://gitter.im/LibreWeb/Browser](https://badges.gitter.im/LibreWeb/Browser.svg)](https://gitter.im/LibreWeb/Browser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+<!-- Add badge: ![Matrix](https://img.shields.io/matrix/libreweb:matrix.melroy.org) -->
 
 Decentralized Web-Browser; a revolution of the WWW.
 
