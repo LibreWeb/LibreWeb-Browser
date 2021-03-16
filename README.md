@@ -1,5 +1,7 @@
 # LibreWeb Browser
 
+[![Join the chat at https://gitter.im/LibreWeb/Browser](https://badges.gitter.im/LibreWeb/Browser.svg)](https://gitter.im/LibreWeb/Browser?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Decentralized Web-Browser; a revolution of the WWW.
 
 What would you do different; if you could **reinvent** The Internet in 21st century? With all the knowledge and new technologies available today.
