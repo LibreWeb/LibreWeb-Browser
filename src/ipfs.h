@@ -12,6 +12,7 @@ class IPFS
 public:
     static int startIPFSDaemon();
 private:
+    static bool shouldKillRunningProcess();
     static std::string findIPFSBinary();
 };
 #endif

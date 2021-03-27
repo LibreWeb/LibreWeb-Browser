@@ -5,6 +5,8 @@
 #include <limits.h>
 #include <iostream>
 #include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 
@@ -18,11 +20,15 @@ namespace n_fs = ::std::filesystem;
 
 int IPFS::startIPFSDaemon()
 {
-    // Be sure to kill any running IPFS daemons
-    int res = std::system("killall -q ipfs");
-    if (res != 0)
+    // Kill any running IPFS daemons if needed
+    if (IPFS::shouldKillRunningProcess())
     {
-        // ignore
+        std::cout << "INFO: Already running ipfs process will be terminated." << std::endl;
+        int res = std::system("killall -w -q ipfs");
+        if (res != 0)
+        {
+            // ignore
+        }
     }
 
     // Find the IPFS binary
@@ -47,6 +53,44 @@ int IPFS::startIPFSDaemon()
         std::cerr << "Error: IPFS Daemon is not found. IPFS will not work!" << std::endl;
         return -1;
     }
+}
+
+bool IPFS::shouldKillRunningProcess()
+{
+    FILE *cmd_pipe = popen("pidof -s ipfs", "r");
+    if (cmd_pipe != NULL)
+    {
+        char pidbuf[512];
+        memset(pidbuf, 0, sizeof(pidbuf));
+        if (fgets(pidbuf, 512, cmd_pipe) == NULL)
+        {
+            //ignore
+        }
+        pclose(cmd_pipe);
+
+        if (strlen(pidbuf) > 0)
+        {
+            pid_t pid = strtoul(pidbuf, NULL, 10);
+            char pathbuf[1024];
+            memset(pathbuf, 0, sizeof(pathbuf));
+            std::string path = "/proc/" + std::to_string(pid) + "/exe";
+            if (readlink(path.c_str(), pathbuf, sizeof(pathbuf) - 1) > 0)
+            {
+                // TODO: Compare version or file path location
+                char beginPath[28] = "/usr/share/libreweb-browser";
+                // If the begin path does not path (!= 0), return true,
+                // meaning the process will be killed.
+                return (strncmp(pathbuf, beginPath, strlen(beginPath)) != 0);
+            }
+        }
+        else
+        {
+            // No running IPFS process
+            return false;
+        }
+    }
+    // Something went wrong, fallback is to kill (better safe then sorry)
+    return true;
 }
 
 std::string IPFS::findIPFSBinary()
