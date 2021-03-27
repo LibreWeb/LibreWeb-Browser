@@ -12,10 +12,6 @@ namespace n_fs = ::std::experimental::filesystem;
 namespace n_fs = ::std::filesystem;
 #endif
 
-File::File()
-{
-}
-
 /**
  * Get file from disk
  * \param path File path

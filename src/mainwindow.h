@@ -14,10 +14,10 @@
 #include <gtkmm/paned.h>
 #include <thread>
 #include "menu.h"
-#include "file.h"
 #include "about.h"
 #include "source-code-dialog.h"
 #include "draw.h"
+#include "ipfs.h"
 
 /**
  * \class MainWindow
@@ -80,6 +80,7 @@ protected:
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
+    Gtk::Button m_statusButton;
     Gtk::Button m_openButton;
     Gtk::Button m_saveButton;
     Gtk::Button m_publishButton;
@@ -105,6 +106,8 @@ protected:
     Gtk::Image m_forwardIcon;
     Gtk::Image m_refreshIcon;
     Gtk::Image m_homeIcon;
+    Gtk::Image m_statusOfflineIcon;
+    Gtk::Image m_statusOnlineIcon;
     Gtk::Image m_openIcon;
     Gtk::Image m_saveIcon;
     Gtk::Image m_publishIcon;
@@ -138,7 +141,6 @@ private:
     std::string m_iconTheme;
     bool m_useCurrentGTKIconTheme;
     int m_iconSize;
-    File m_file;
     std::thread *m_requestThread;
     std::string requestPath;
     std::string finalRequestPath;
@@ -146,6 +148,7 @@ private:
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
     sigc::connection textChangedSignalHandler;
+    IPFS ipfs;
 
     void enableEdit();
     void disableEdit();

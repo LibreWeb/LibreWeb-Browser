@@ -2,6 +2,7 @@
 
 #include "md-parser.h"
 #include "menu.h"
+#include "file.h"
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
 #include <giomm/file.h>
@@ -27,12 +28,13 @@ MainWindow::MainWindow()
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
-      m_iconSize(16),
+      m_iconSize(18),
       m_requestThread(nullptr),
       requestPath(""),
       finalRequestPath(""),
       currentContent(""),
-      currentHistoryIndex(0)
+      currentHistoryIndex(0),
+      ipfs("localhost", 5001) // Connect to IPFS daemon
 {
     set_title(m_appName);
     set_default_size(1000, 800);
@@ -233,6 +235,7 @@ MainWindow::MainWindow()
     m_forwardButton.set_relief(Gtk::RELIEF_NONE);
     m_refreshButton.set_relief(Gtk::RELIEF_NONE);
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
+    m_statusButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
     if (m_useCurrentGTKIconTheme)
@@ -241,6 +244,8 @@ MainWindow::MainWindow()
         m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_statusOfflineIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_statusOnlineIcon.set_from_icon_name("network-wired", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     }
     else
     {
@@ -248,16 +253,20 @@ MainWindow::MainWindow()
         m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
         m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_2", "arrows"), m_iconSize, m_iconSize));
         m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
+        m_statusOfflineIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize));
+        m_statusOnlineIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize));
     }
     m_backButton.add(m_backIcon);
     m_forwardButton.add(m_forwardIcon);
     m_refreshButton.add(m_refreshIcon);
     m_homeButton.add(m_homeIcon);
+    m_statusButton.add(m_statusOfflineIcon);
     // Add tooltips to the toolbar buttons
     m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
     m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
     m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
     m_homeButton.set_tooltip_text("Home page (Alt+Home)");
+    m_statusButton.set_tooltip_text("IPFS Network Status");
 
     // Disable back/forward button on start-up
     m_backButton.set_sensitive(false);
@@ -269,7 +278,8 @@ MainWindow::MainWindow()
     m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 8);
+    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);
+    m_hboxBrowserToolbar.pack_start(m_statusButton, false, false, 0);
     m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
 
     // Standard editor toolbar
@@ -821,7 +831,7 @@ void MainWindow::fetchFromIPFS()
     //  Since otherwise this may block the UI if it takes too long!
     try
     {
-        currentContent = m_file.fetch(finalRequestPath);
+        currentContent = File::fetch(finalRequestPath);
         cmark_node *doc = Parser::parseContent(currentContent);
         m_draw_main.processDocument(doc);
         cmark_node_free(doc);
@@ -836,15 +846,15 @@ void MainWindow::fetchFromIPFS()
             errorMessage.erase(0, errorMessage.find(':') + 2);
             auto content = nlohmann::json::parse(errorMessage);
             std::string message = content.value("Message", "");
-            m_draw_main.showMessage("Page not found!", message);
+            m_draw_main.showMessage("🎂 We're having trouble finding this site.", "Message: " + message + ".\n\nYou could try to reload.");
         }
         else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
         {
-            m_draw_main.showMessage("Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
+            m_draw_main.showMessage("⌛ Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
         }
         else
         {
-            m_draw_main.showMessage("Something went wrong", "Error message: " + std::string(error.what()));
+            m_draw_main.showMessage("❌ Something went wrong", "Error message: " + std::string(error.what()));
         }
     }
 }
@@ -857,7 +867,7 @@ void MainWindow::openFromDisk()
 {
     try
     {
-        currentContent = m_file.read(finalRequestPath);
+        currentContent = File::read(finalRequestPath);
         cmark_node *doc = Parser::parseContent(currentContent);
         m_draw_main.processDocument(doc);
         cmark_node_free(doc);
