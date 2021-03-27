@@ -21,7 +21,7 @@ namespace n_fs = ::std::filesystem;
 /**
  * \brief IPFS Contructor, connect to IPFS
  */
-IPFS::IPFS(std::string host, int port) : client(host, port, "6s") {}
+IPFS::IPFS(const std::string &host, int port) : client(host, port, "6s") {}
 
 std::size_t IPFS::getPeers()
 {

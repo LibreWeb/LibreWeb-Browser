@@ -11,7 +11,7 @@
 class IPFS
 {
 public:
-    explicit IPFS(std::string host, int port);
+    explicit IPFS(const std::string &host, int port);
 
     static int startIPFSDaemon();
     std::size_t getPeers();
