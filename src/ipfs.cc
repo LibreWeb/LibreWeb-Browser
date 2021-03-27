@@ -23,7 +23,11 @@ namespace n_fs = ::std::filesystem;
  */
 IPFS::IPFS(const std::string &host, int port) : client(host, port, "6s") {}
 
-std::size_t IPFS::getPeers()
+/**
+ * \brief Get the number of IPFS peers
+ * \return number of peers
+ */
+std::size_t IPFS::getNrPeers()
 {
     try
     {
@@ -36,6 +40,29 @@ std::size_t IPFS::getPeers()
         // ignore connection issues
     }
     return 0;
+}
+
+/**
+ * \brief Get the number of IPFS peers
+ * \return Map with bandwidth information (with keys: 'in' and 'out')
+ */
+std::map<std::string, float> IPFS::getBandwidthRates()
+{
+    std::map<std::string, float> bandwidthRates;
+    try
+    {
+        ipfs::Json bandwidth_info;
+        client.StatsBw(&bandwidth_info);
+        float in = bandwidth_info["RateIn"];
+        float out = bandwidth_info["RateOut"];
+        bandwidthRates.insert(std::pair<std::string, float>("in", in));
+        bandwidthRates.insert(std::pair<std::string, float>("out", out));
+    }
+    catch (const std::runtime_error &error)
+    {
+        // ignore connection issues
+    }
+    return bandwidthRates;
 }
 
 /**

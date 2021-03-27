@@ -26,6 +26,7 @@ MainWindow::MainWindow()
       m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_searchMatchCase("Match _Case", true),
+      m_statusPopover(m_statusButton),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -42,8 +43,15 @@ MainWindow::MainWindow()
     set_position(Gtk::WIN_POS_CENTER);
     add_accel_group(accelGroup);
 
+    m_statusPopover.set_position(Gtk::POS_BOTTOM);
+    m_statusPopover.set_size_request(200, 80);
+    m_statusPopover.add(m_statusLabel);
+
+    m_statusLabel.set_text("Network is still starting..."); // fallback text
+    m_statusPopover.show_all_children();
+
     // Timeouts
-    this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connect_status), 3000);
+    this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
 
     // Connect signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
@@ -75,6 +83,7 @@ MainWindow::MainWindow()
     m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
+    m_statusButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_status));                          /*!< Button for IPFS status */
     m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));                            /*!< Execute the text search */
     m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));                    /*!< Execute the text replace */
 
@@ -361,7 +370,7 @@ MainWindow::MainWindow()
 
     // First time manually trigger the status update once,
     // timer will do the updates later
-    this->update_connect_status();
+    this->update_connection_status();
 
 #ifdef NDEBUG
     // Show start page by default
@@ -398,11 +407,10 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
 /**
  * \brief Timeout slot: Update the IPFS connection status every x seconds
  */
-bool MainWindow::update_connect_status()
+bool MainWindow::update_connection_status()
 {
-    std::size_t peers = ipfs.getPeers();
-    // TODO: Catch the pixbuf images, instead of reading from disk every time
-    if (peers > 0)
+    std::size_t nrPeers = ipfs.getNrPeers();
+    if (nrPeers > 0)
     {
         if (m_useCurrentGTKIconTheme)
         {
@@ -412,6 +420,15 @@ bool MainWindow::update_connect_status()
         {
             m_statusIcon.set(m_statusOnlineIcon);
         }
+        std::map<std::string, float> rates = ipfs.getBandwidthRates();
+        char buf[32];
+        std::string in = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
+        std::string out = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("out") / 1000.0));
+
+        // And also update text
+        m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
+                               "\nRate in: " + in + " kB/s" +
+                               "\nRate out: " +  out + " kB/s");
     }
     else
     {
@@ -423,6 +440,7 @@ bool MainWindow::update_connect_status()
         {
             m_statusIcon.set(m_statusOfflineIcon);
         }
+        m_statusLabel.set_text("Disconnected!");
     }
 
     // Keep going (do not disconnect yet)
@@ -648,6 +666,11 @@ void MainWindow::go_home()
     this->m_addressBar.set_text("");
     this->disableEdit();
     m_draw_main.showStartPage();
+}
+
+void MainWindow::show_status()
+{
+    this->m_statusPopover.popup();
 }
 
 /**

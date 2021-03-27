@@ -14,7 +14,8 @@ public:
     explicit IPFS(const std::string &host, int port);
 
     static int startIPFSDaemon();
-    std::size_t getPeers();
+    std::size_t getNrPeers();
+    std::map<std::string, float> getBandwidthRates();
 private:
     ipfs::Client client;
 

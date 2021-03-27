@@ -1,6 +1,12 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include "menu.h"
+#include "about.h"
+#include "source-code-dialog.h"
+#include "draw.h"
+#include "ipfs.h"
+
 #include <gtkmm/window.h>
 #include <gtkmm/box.h>
 #include <gtkmm/menubar.h>
@@ -8,16 +14,12 @@
 #include <gtkmm/button.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/comboboxtext.h>
+#include <gtkmm/popover.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
 #include <gtkmm/paned.h>
 #include <thread>
-#include "menu.h"
-#include "about.h"
-#include "source-code-dialog.h"
-#include "draw.h"
-#include "ipfs.h"
 
 /**
  * \class MainWindow
@@ -31,7 +33,7 @@ public:
 
 protected:
     // Signal handlers
-    bool update_connect_status();
+    bool update_connection_status();
     void cut();
     void copy();
     void paste();
@@ -43,6 +45,7 @@ protected:
     void save_as();
     void publish();
     void go_home();
+    void show_status();
     void address_bar_activate();
     void on_search();
     void on_replace();
@@ -130,6 +133,8 @@ protected:
     Gtk::Image m_bulletListIcon;
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
+    Gtk::Popover m_statusPopover;
+    Gtk::Label m_statusLabel;
     Gtk::ScrolledWindow m_scrolledWindowMain;
     Gtk::ScrolledWindow m_scrolledWindowSecondary;
     Gtk::Button m_exitBottomButton;
