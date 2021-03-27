@@ -8,6 +8,7 @@
 #include <giomm/file.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
+#include <glibmm/main.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
@@ -40,6 +41,9 @@ MainWindow::MainWindow()
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
     add_accel_group(accelGroup);
+
+    // Timeouts
+    this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connect_status), 3000);
 
     // Connect signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
@@ -238,14 +242,16 @@ MainWindow::MainWindow()
     m_statusButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
+    m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
+    m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
+
     if (m_useCurrentGTKIconTheme)
     {
         m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_statusOfflineIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_statusOnlineIcon.set_from_icon_name("network-wired", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
     }
     else
     {
@@ -253,14 +259,14 @@ MainWindow::MainWindow()
         m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
         m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_2", "arrows"), m_iconSize, m_iconSize));
         m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
-        m_statusOfflineIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize));
-        m_statusOnlineIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize));
+        m_statusIcon.set(m_statusOfflineIcon); // fall-back
     }
     m_backButton.add(m_backIcon);
     m_forwardButton.add(m_forwardIcon);
     m_refreshButton.add(m_refreshIcon);
     m_homeButton.add(m_homeIcon);
-    m_statusButton.add(m_statusOfflineIcon);
+    m_statusButton.add(m_statusIcon);
+
     // Add tooltips to the toolbar buttons
     m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
     m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
@@ -353,6 +359,10 @@ MainWindow::MainWindow()
     // Grap focus to input field by default
     m_addressBar.grab_focus();
 
+    // First time manually trigger the status update once,
+    // timer will do the updates later
+    this->update_connect_status();
+
 #ifdef NDEBUG
     // Show start page by default
     go_home();
@@ -383,6 +393,40 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
         this->postDoRequest(path, setAddressBar, isHistoryRequest);
     }
+}
+
+/**
+ * \brief Timeout slot: Update the IPFS connection status every x seconds
+ */
+bool MainWindow::update_connect_status()
+{
+    std::size_t peers = ipfs.getPeers();
+    // TODO: Catch the pixbuf images, instead of reading from disk every time
+    if (peers > 0)
+    {
+        if (m_useCurrentGTKIconTheme)
+        {
+            m_statusIcon.set_from_icon_name("network-wired", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        }
+        else
+        {
+            m_statusIcon.set(m_statusOnlineIcon);
+        }
+    }
+    else
+    {
+        if (m_useCurrentGTKIconTheme)
+        {
+            m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        }
+        else
+        {
+            m_statusIcon.set(m_statusOfflineIcon);
+        }
+    }
+
+    // Keep going (do not disconnect yet)
+    return true;
 }
 
 /***

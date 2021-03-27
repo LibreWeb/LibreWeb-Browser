@@ -31,6 +31,7 @@ public:
 
 protected:
     // Signal handlers
+    bool update_connect_status();
     void cut();
     void copy();
     void paste();
@@ -106,8 +107,9 @@ protected:
     Gtk::Image m_forwardIcon;
     Gtk::Image m_refreshIcon;
     Gtk::Image m_homeIcon;
-    Gtk::Image m_statusOfflineIcon;
-    Gtk::Image m_statusOnlineIcon;
+    Gtk::Image m_statusIcon;
+    Glib::RefPtr<Gdk::Pixbuf> m_statusOfflineIcon;
+    Glib::RefPtr<Gdk::Pixbuf> m_statusOnlineIcon;
     Gtk::Image m_openIcon;
     Gtk::Image m_saveIcon;
     Gtk::Image m_publishIcon;
@@ -148,6 +150,7 @@ private:
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
     sigc::connection textChangedSignalHandler;
+    sigc::connection statusTimerHandler;
     IPFS ipfs;
 
     void enableEdit();
