@@ -183,7 +183,7 @@ void Draw::showStartPage()
     this->clearOnThread();
 
     this->headingLevel = 1;
-    this->insertText("Welcome to the Decentralized Web (DWeb)");
+    this->insertText("🚀🌍 Welcome to the Decentralized Web (DWeb)");
     this->headingLevel = 0;
     this->insertMarkupTextOnThread("\n\n");
     this->insertText("You can surf the web as intended via LibreWeb, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
