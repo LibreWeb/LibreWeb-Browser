@@ -8,7 +8,7 @@ What would you do different; if you could **reinvent** The Internet in 21st cent
 
 I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
 
-*Note:* Project is still in Alpha phase!
+*Note:* Project is still in development!
 
 ## Download
 
@@ -18,6 +18,10 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 ![Browser Screenshot](./misc/browser_screenshot.png)  
 ![Browser Markdown Editor](./misc/browser_screenshot_2.png)
+
+## Documentation
+
+Visit the [dedicated documentation site](https://docs.libreweb.org) for user documentation.
 
 ## Ideas/Features
 
@@ -57,10 +61,10 @@ For the build you need at least:
 * GCC 9 or higher (GCC 8 should also work, but not adviced. Package: `build-essential`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
-* GTK & Cairo & Pango (including C++ bindings):
+* GTK & Pango (including C++ bindings):
   * Package: `libgtkmm-3.0-dev` under Debian based distros
 
-### Documentation
+### Developer Docs
 
 See latest [Developer Docs](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
 
