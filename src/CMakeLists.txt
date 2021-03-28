@@ -143,7 +143,7 @@ target_link_directories(${PROJECT_TARGET} PRIVATE
 target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} nlohmann_json::nlohmann_json)
 
 # Install browser binary
-install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)
+install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
 
 # Install & compile GTK schema file
 install(FILES ${SCHEMA_FILE} DESTINATION ${GSETTINGS_DIR})

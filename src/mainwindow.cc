@@ -860,6 +860,9 @@ bool MainWindow::isInstalled()
     memset(pathbuf, 0, sizeof(pathbuf));
     if (readlink("/proc/self/exe", pathbuf, sizeof(pathbuf) - 1) > 0)
     {
+        std::cout << "Current dir: " << pathbuf << std::endl;
+
+        std::cout << "Prefix dir: " << INSTALL_PREFIX << std::endl;
         // If current binary path starts with the install prefix, it's installed
         return (strncmp(pathbuf, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
     }
