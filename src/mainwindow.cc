@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "project_config.h"
 #include "md-parser.h"
 #include "menu.h"
 #include "file.h"
@@ -10,14 +11,21 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <glibmm/miscutils.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+/**
+ * For info: NDEBUG variable be used for debugging purpose, example:
+ *  #ifdef NDEBUG
+ *  #endif
+*/
 MainWindow::MainWindow()
-    : accelGroup(Gtk::AccelGroup::create()),
-      m_menu(accelGroup),
+    : m_accelGroup(Gtk::AccelGroup::create()),
+      m_settings(),
+      m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
@@ -41,7 +49,20 @@ MainWindow::MainWindow()
     set_title(m_appName);
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
-    add_accel_group(accelGroup);
+    add_accel_group(m_accelGroup);
+
+    // Change schema directory when browser is not installed
+    if (!this->isInstalled())
+    {
+        std::string schemaDir = std::string(BINARY_DIR) + "/gsettings";
+        std::cout << "INFO: Use settings from: " << schemaDir << std::endl;
+        Glib::setenv("GSETTINGS_SCHEMA_DIR", schemaDir);
+    }
+    // Load schema settings file
+    m_settings = Gio::Settings::create("org.libreweb.browser");
+    set_default_size(m_settings->get_int("width"), m_settings->get_int("height"));
+    if (m_settings->get_boolean("maximized"))
+        this->maximize();
 
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
     m_statusPopover.set_size_request(200, 80);
@@ -53,7 +74,10 @@ MainWindow::MainWindow()
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
 
-    // Connect signals
+    // Window signals
+    this->signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
+
+    // Menu & toolbar signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
@@ -372,13 +396,14 @@ MainWindow::MainWindow()
     // timer will do the updates later
     this->update_connection_status();
 
-#ifdef NDEBUG
-    // Show start page by default
-    go_home();
-#else
-    // Load test.md file in debug
-    doRequest("file://../../test.md", true);
-#endif
+    // Show homepage if debugging is disabled
+    #ifdef NDEBUG
+        go_home();
+    #else
+        std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
+        // Load test file when developing
+        doRequest("file://../../test.md", true);
+    #endif
 }
 
 /**
@@ -405,6 +430,20 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
 }
 
 /**
+ * \brief Called when Window is closed
+ */
+bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
+{
+    // Save the schema settings
+    m_settings->set_int("width", this->get_width());
+    m_settings->set_int("height", this->get_height());
+    m_settings->set_boolean("maximized", this->is_maximized());
+    // Fullscreen will be availible with gtkmm-4.0
+    //m_settings->set_boolean("fullscreen", this->is_fullscreen());
+    return false;
+}
+
+/**
  * \brief Timeout slot: Update the IPFS connection status every x seconds
  */
 bool MainWindow::update_connection_status()
@@ -428,7 +467,7 @@ bool MainWindow::update_connection_status()
         // And also update text
         m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
                                "\nRate in: " + in + " kB/s" +
-                               "\nRate out: " +  out + " kB/s");
+                               "\nRate out: " + out + " kB/s");
     }
     else
     {
@@ -807,6 +846,25 @@ void MainWindow::forward()
 void MainWindow::refresh()
 {
     doRequest();
+}
+
+/**
+ * \brief Determing if browser is installed from current binary path, at runtime
+ * \return true if the current running process is installed (to the installed prefix path)
+ */
+bool MainWindow::isInstalled()
+{
+    char pathbuf[1024];
+    memset(pathbuf, 0, sizeof(pathbuf));
+    if (readlink("/proc/self/exe", pathbuf, sizeof(pathbuf) - 1) > 0)
+    {
+        // If current binary path starts with the install prefix, it's installed
+        return (strncmp(pathbuf, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
+    }
+    else
+    {
+        return true; // fallback; always installed
+    }
 }
 
 void MainWindow::enableEdit()

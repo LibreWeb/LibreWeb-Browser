@@ -8,7 +8,7 @@ What would you do different; if you could **reinvent** The Internet in 21st cent
 
 I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET, and more.
 
-*Note:* Project is still in Alpha phase!
+*Note:* Project is still in development!
 
 ## Download
 
@@ -18,6 +18,10 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 ![Browser Screenshot](./misc/browser_screenshot.png)  
 ![Browser Markdown Editor](./misc/browser_screenshot_2.png)
+
+## Documentation
+
+Visit the [dedicated documentation site](https://docs.libreweb.org) for user documentation.
 
 ## Ideas/Features
 
@@ -40,11 +44,11 @@ The current success criteria:
 
 ## Developers
 
-Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
+Decentralized Browser is written C++ together with some [libraries](/lib). It's using the [cmark-gfm](https://github.com/github/cmark-gfm) library for example, which is used for CommonMark (markdown) parsing.
 
-Browser is using GTK 3 as UI library including Pango & Cairo for text drawing and manipulation.
+We're using markdown as the source-code of the content/site. No HTML and JavaScript anymore, content is king after all.
 
-For now we will use markdown as the source of the site. No HTML and JavaScript anymore, content is king after all.
+LibreWeb Browser is using [Gnome GTK3](https://developer.gnome.org/gtk3/stable/) as UI framework.
 
 ### Development Environment
 
@@ -57,10 +61,10 @@ For the build you need at least:
 * GCC 9 or higher (GCC 8 should also work, but not adviced. Package: `build-essential`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
-* GTK & Cairo & Pango (including C++ bindings):
+* GTK & Pango (including C++ bindings):
   * Package: `libgtkmm-3.0-dev` under Debian based distros
 
-### Documentation
+### Developer Docs
 
 See latest [Developer Docs](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
 

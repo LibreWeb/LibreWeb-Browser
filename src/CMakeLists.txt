@@ -18,11 +18,11 @@ set(PROJECT_TARGET libreweb-browser)
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
+# Find required dependencies
 find_package(Threads REQUIRED)
-
 find_package(PkgConfig REQUIRED)
-pkg_check_modules(GTKMM gtkmm-3.0)
-pkg_check_modules(CAIRO cairomm-1.0)
+pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
 
 add_definitions(${GTKMM_CFLAGS_OTHER})
 
@@ -39,8 +39,39 @@ if(NOT json_POPULATED)
   add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
 
+# Generate Project version header file
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/project_config.h)
 
+ # Find the GLib path for schema installation
+ execute_process(
+    COMMAND
+        ${PKG_CONFIG_EXECUTABLE}
+        glib-2.0
+        --variable prefix
+    OUTPUT_VARIABLE
+        _glib_prefix
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+set(GSETTINGS_DIR "${_glib_prefix}/share/glib-2.0/schemas/" CACHE INTERNAL "")
+
+# Fetch path for schema compiler from pkg-config
+execute_process(
+    COMMAND
+        ${PKG_CONFIG_EXECUTABLE}
+        gio-2.0
+        --variable
+        glib_compile_schemas
+    OUTPUT_VARIABLE
+        _glib_compile_schemas
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# Set glib schema compiler command
+set(glib_schema_compiler ${_glib_compile_schemas} CACHE INTERNAL "")
+
+set(SCHEMA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/org.libreweb.browser.gschema.xml)
+
+# Source code
 set(HEADERS
     about.h
     file.h
@@ -51,7 +82,6 @@ set(HEADERS
     draw.h
     source-code-dialog.h
 )
-
 set(SOURCES 
   main.cc
   about.cc
@@ -66,6 +96,21 @@ set(SOURCES
 )
 
 add_executable(${PROJECT_TARGET} ${SOURCES})
+
+# Copy gschema.xml file to build directory
+set(SCHEMA_DIR ${CMAKE_CURRENT_BINARY_DIR}/gsettings)
+add_custom_command(
+    TARGET ${PROJECT_TARGET} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${SCHEMA_FILE}
+            ${SCHEMA_DIR}/org.libreweb.browser.gschema.xml
+)
+
+add_custom_command(
+    TARGET ${PROJECT_TARGET} POST_BUILD
+    COMMAND ${glib_schema_compiler} ${SCHEMA_DIR}
+    COMMENT "Compiling schemas in folder: ${SCHEMA_DIR}"
+)
 
 # Add fallback for std filesystem in older GCC versions
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -88,15 +133,18 @@ target_include_directories(${PROJECT_TARGET} PRIVATE
     ${CMAKE_BINARY_DIR}
     ${CMAKE_EXTENSIONS_BINARY_DIR}
     ${GTKMM_INCLUDE_DIRS}
-    ${CAIRO_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/lib/ipfs-http-client/include
-  )
+)
 
 target_link_directories(${PROJECT_TARGET} PRIVATE
   ${GTKMM_LIBRARY_DIRS}
-  ${CAIRO_LIBRARY_DIRS}
 )
 
-target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} ${CAIRO_LIBRARIES} nlohmann_json::nlohmann_json)
+target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} nlohmann_json::nlohmann_json)
 
-install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION "bin" COMPONENT applications)
+# Install browser binary
+install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
+
+# Install & compile GTK schema file
+install(FILES ${SCHEMA_FILE} DESTINATION ${GSETTINGS_DIR})
+install(CODE "execute_process (COMMAND ${glib_schema_compiler} ${GSETTINGS_DIR})")
