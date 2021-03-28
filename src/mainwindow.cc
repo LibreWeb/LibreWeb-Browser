@@ -54,7 +54,9 @@ MainWindow::MainWindow()
     // Change schema directory when browser is not installed
     if (!this->isInstalled())
     {
-        Glib::setenv("GSETTINGS_SCHEMA_DIR", "/media/melroy/Data/Projects/browser/build/src/gsettings", true);
+        std::string schemaDir = std::string(BINARY_DIR) + "/gsettings";
+        std::cout << "INFO: Use settings from: " << schemaDir << std::endl;
+        Glib::setenv("GSETTINGS_SCHEMA_DIR", schemaDir);
     }
     // Load schema settings file
     m_settings = Gio::Settings::create("org.libreweb.browser");
@@ -394,18 +396,14 @@ MainWindow::MainWindow()
     // timer will do the updates later
     this->update_connection_status();
 
-    if (this->isInstalled())
-    {
-        std::cout << "INFO: App installed!" << std::endl;
-        // Show homepage
+    // Show homepage if debugging is disabled
+    #ifdef NDEBUG
         go_home();
-    }
-    else
-    {
-        std::cout << "INFO: App NOT installed.." << std::endl;
+    #else
+        std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
         // Load test file when developing
         doRequest("file://../../test.md", true);
-    }
+    #endif
 }
 
 /**
@@ -851,8 +849,8 @@ void MainWindow::refresh()
 }
 
 /**
- * \brief Determing run-time if the application is installed or running from build
- * \return true if the current running process is installed (to the install prefix path)
+ * \brief Determing if browser is installed from current binary path, at runtime
+ * \return true if the current running process is installed (to the installed prefix path)
  */
 bool MainWindow::isInstalled()
 {
@@ -860,15 +858,12 @@ bool MainWindow::isInstalled()
     memset(pathbuf, 0, sizeof(pathbuf));
     if (readlink("/proc/self/exe", pathbuf, sizeof(pathbuf) - 1) > 0)
     {
-        std::cout << "Current dir: " << pathbuf << std::endl;
-
-        std::cout << "Prefix dir: " << INSTALL_PREFIX << std::endl;
         // If current binary path starts with the install prefix, it's installed
         return (strncmp(pathbuf, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
     }
     else
     {
-        return true; // fallback
+        return true; // fallback; always installed
     }
 }
 
