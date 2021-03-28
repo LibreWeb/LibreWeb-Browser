@@ -1,0 +1,8 @@
+LibreWeb Browser is a fully decentralized free software and open-source Web Browser. 
+Allowing users to easily browse and host new content on the decentralized web. Build on top of IPFS.
+
+Decentralization comes with many benefits like resilient to censorship and no single point of failure.
+
+I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll and ARPANET.
+
+Please read the documentation at https://docs.libreweb.org.

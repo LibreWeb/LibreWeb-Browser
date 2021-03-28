@@ -40,11 +40,11 @@ The current success criteria:
 
 ## Developers
 
-Decentralized Browser written in C++20 with C libraries. And using the [cmark-gfm](https://github.com/github/cmark-gfm) library, used for CommonMark (markdown) parsing.
+Decentralized Browser is written C++ together with some [libraries](/lib). It's using the [cmark-gfm](https://github.com/github/cmark-gfm) library for example, which is used for CommonMark (markdown) parsing.
 
-Browser is using GTK 3 as UI library including Pango & Cairo for text drawing and manipulation.
+We're using markdown as the source-code of the content/site. No HTML and JavaScript anymore, content is king after all.
 
-For now we will use markdown as the source of the site. No HTML and JavaScript anymore, content is king after all.
+LibreWeb Browser is using [Gnome GTK3](https://developer.gnome.org/gtk3/stable/) as UI framework.
 
 ### Development Environment
 
