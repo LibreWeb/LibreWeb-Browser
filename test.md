@@ -1,8 +1,13 @@
-Hello *World*, What a **happy** day!
-blabla.  
-[test](ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq)
 
-==Highlight== as well as ~~strikethrough~~ this is also a very very long line without any breaks, checking how line wrapping is behaving.
+# This is just an example page
+
+We will show some some features below.
+
+The text can markup as *italic* or **bold** without any issues! You can also insert [links](ipfs://Qmbc8EFdUDPQmFuAAkKGQv4FgXrDJuUW2p96LQhzXimiDL).
+
+You can watch the source-code via right mouse click -> View Source, or in the View menu of LibreWeb Browser.
+
+Why not support ==highlight== and ~~strikethrough~~ text as well out-of-the-box?😇 Sure, we can also write very long long lines without enters to check how line wrapping is behaving.
 
 # Heading 1
 
@@ -11,7 +16,7 @@ blabla.
 ### Heading 3
 
 ***New*** paragraph.  
-New line.
+New soft line break.
 
 * list 1
 * list 2
@@ -23,14 +28,18 @@ New line.
 1. first
 2. second
 3. third
-    1. 1st
-    2. 2nd
-    3. grappig
-    4. he
+    1. sub-numbering
+    2. within an
+    3. already numbered
+    4. list
 4. four
 
-Extra text.
+Some basic math:
+
+a^2^ + b^2^ = c^2^
 
 ----------
 
-Dit is een nieuwe test.
+> I could either watch it happen or be a part of it. 🤓
+
+ ~ Elon Musk

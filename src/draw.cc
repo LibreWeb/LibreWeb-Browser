@@ -190,7 +190,7 @@ void Draw::showStartPage()
 The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
 This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
     this->insertText("See an example page hosted on IPFS: ");
-    this->insertLink("Click here for the example", "ipfs://QmQzhn6hEfbYdCfwzYFsSt3eWpubVKA1dNqsgUwci5vHwq", defaultFont.to_string());
+    this->insertLink("Click here for the example page", "ipfs://QmcuUv9QXR86vXvSAQPkRJfi5kJwtTtu1NftNaWWVNftSd", defaultFont.to_string());
 }
 
 /**
