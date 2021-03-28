@@ -1,11 +1,11 @@
 
 # This is just an example page
 
-We will show some some features below.
+We will show some of the features below.
 
-The text can markup as *italic* or **bold** without any issues! You can also insert [links](ipfs://Qmbc8EFdUDPQmFuAAkKGQv4FgXrDJuUW2p96LQhzXimiDL).
+We can markup text as *italic* or **bold** without any issues! You can also inserts [links](ipfs://Qmbc8EFdUDPQmFuAAkKGQv4FgXrDJuUW2p96LQhzXimiDL).
 
-You can watch the source-code via right mouse click -> View Source, or in the View menu of LibreWeb Browser.
+You can watch the source-code via right mouse click -> "View Source", or in the View menu of LibreWeb Browser.
 
 Why not support ==highlight== and ~~strikethrough~~ text as well out-of-the-box?😇 Sure, we can also write very long long lines without enters to check how line wrapping is behaving.
 
