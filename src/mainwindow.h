@@ -161,6 +161,7 @@ private:
     sigc::connection statusTimerHandler;
     IPFS ipfs;
 
+    bool isInstalled();
     void enableEdit();
     void disableEdit();
     void postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest);

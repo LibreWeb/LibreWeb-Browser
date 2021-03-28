@@ -1,5 +1,6 @@
 #include "mainwindow.h"
 
+#include "project_config.h"
 #include "md-parser.h"
 #include "menu.h"
 #include "file.h"
@@ -16,6 +17,11 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 
+/**
+ * For info: NDEBUG variable be used for debugging purpose, example:
+ *  #ifdef NDEBUG
+ *  #endif
+*/
 MainWindow::MainWindow()
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
@@ -45,15 +51,16 @@ MainWindow::MainWindow()
     set_position(Gtk::WIN_POS_CENTER);
     add_accel_group(m_accelGroup);
 
-    // if(app is not installed/DEBUG?)
-    Glib::setenv("GSETTINGS_SCHEMA_DIR", "/media/melroy/Data/Projects/browser/build/src/gsettings", true);
+    // Change schema directory when browser is not installed
+    if (!this->isInstalled())
+    {
+        Glib::setenv("GSETTINGS_SCHEMA_DIR", "/media/melroy/Data/Projects/browser/build/src/gsettings", true);
+    }
+    // Load schema settings file
     m_settings = Gio::Settings::create("org.libreweb.browser");
-
-    m_settings->set_int("width", this->get_width());
-    m_settings->set_int("height", this->get_height());
-    m_settings->set_boolean("is-maximized", this->is_maximized());
-    // Fullscreen will be availible with gtkmm-4.0
-    //m_settings->set_boolean("is-fullscreen", this->is_fullscreen());
+    set_default_size(m_settings->get_int("width"), m_settings->get_int("height"));
+    if (m_settings->get_boolean("maximized"))
+        this->maximize();
 
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
     m_statusPopover.set_size_request(200, 80);
@@ -387,13 +394,18 @@ MainWindow::MainWindow()
     // timer will do the updates later
     this->update_connection_status();
 
-#ifdef NDEBUG
-    // Show start page by default
-    go_home();
-#else
-    // Load test.md file in debug
-    doRequest("file://../../test.md", true);
-#endif
+    if (this->isInstalled())
+    {
+        std::cout << "INFO: App installed!" << std::endl;
+        // Show homepage
+        go_home();
+    }
+    else
+    {
+        std::cout << "INFO: App NOT installed.." << std::endl;
+        // Load test file when developing
+        doRequest("file://../../test.md", true);
+    }
 }
 
 /**
@@ -422,9 +434,14 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
 /**
  * \brief Called when Window is closed
  */
-bool MainWindow::delete_window(GdkEventAny* any_event)
+bool MainWindow::delete_window(GdkEventAny *any_event)
 {
-    std::cout << "Yes.." << std::endl;
+    // Save the schema settings
+    m_settings->set_int("width", this->get_width());
+    m_settings->set_int("height", this->get_height());
+    m_settings->set_boolean("maximized", this->is_maximized());
+    // Fullscreen will be availible with gtkmm-4.0
+    //m_settings->set_boolean("fullscreen", this->is_fullscreen());
     return false;
 }
 
@@ -452,7 +469,7 @@ bool MainWindow::update_connection_status()
         // And also update text
         m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
                                "\nRate in: " + in + " kB/s" +
-                               "\nRate out: " +  out + " kB/s");
+                               "\nRate out: " + out + " kB/s");
     }
     else
     {
@@ -831,6 +848,25 @@ void MainWindow::forward()
 void MainWindow::refresh()
 {
     doRequest();
+}
+
+/**
+ * \brief Determing run-time if the application is installed or running from build
+ * \return true if the current running process is installed (to the install prefix path)
+ */
+bool MainWindow::isInstalled()
+{
+    char pathbuf[1024];
+    memset(pathbuf, 0, sizeof(pathbuf));
+    if (readlink("/proc/self/exe", pathbuf, sizeof(pathbuf) - 1) > 0)
+    {
+        // If current binary path starts with the install prefix, it's installed
+        return (strncmp(pathbuf, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
+    }
+    else
+    {
+        return true; // fallback
+    }
 }
 
 void MainWindow::enableEdit()

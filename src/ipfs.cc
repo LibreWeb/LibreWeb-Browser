@@ -127,12 +127,12 @@ bool IPFS::shouldKillRunningProcess()
             std::string path = "/proc/" + std::to_string(pid) + "/exe";
             if (readlink(path.c_str(), pathbuf, sizeof(pathbuf) - 1) > 0)
             {
-                // TODO: Compare version or file path location
-                char beginPath[28] = "/usr/share/libreweb-browser";
+                char beginPath[] = "/usr/share/libreweb-browser";
                 // If the begin path does not path (!= 0), return true,
                 // meaning the process will be killed.
                 return (strncmp(pathbuf, beginPath, strlen(beginPath)) != 0);
             }
+            // TODO: Compare IPFS version as well, maybe?
         }
         else
         {
