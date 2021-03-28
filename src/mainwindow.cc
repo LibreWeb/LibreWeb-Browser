@@ -434,7 +434,7 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
 /**
  * \brief Called when Window is closed
  */
-bool MainWindow::delete_window(GdkEventAny *any_event)
+bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
 {
     // Save the schema settings
     m_settings->set_int("width", this->get_width());
