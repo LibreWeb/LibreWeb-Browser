@@ -19,6 +19,7 @@
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
 #include <gtkmm/paned.h>
+#include <giomm/settings.h>
 #include <thread>
 
 /**
@@ -33,6 +34,7 @@ public:
 
 protected:
     // Signal handlers
+    bool delete_window(GdkEventAny* any_event);
     bool update_connection_status();
     void cut();
     void copy();
@@ -60,7 +62,8 @@ protected:
     void show_source_code_dialog();
     void get_heading();
 
-    Glib::RefPtr<Gtk::AccelGroup> accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
+    Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
+    Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
 
     // Child widgets
     Menu m_menu;

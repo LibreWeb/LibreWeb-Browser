@@ -10,14 +10,16 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <glibmm/miscutils.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
 
 MainWindow::MainWindow()
-    : accelGroup(Gtk::AccelGroup::create()),
-      m_menu(accelGroup),
+    : m_accelGroup(Gtk::AccelGroup::create()),
+      m_settings(),
+      m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
@@ -41,7 +43,17 @@ MainWindow::MainWindow()
     set_title(m_appName);
     set_default_size(1000, 800);
     set_position(Gtk::WIN_POS_CENTER);
-    add_accel_group(accelGroup);
+    add_accel_group(m_accelGroup);
+
+    // if(app is not installed/DEBUG?)
+    Glib::setenv("GSETTINGS_SCHEMA_DIR", "/media/melroy/Data/Projects/browser/build/src/gsettings", true);
+    m_settings = Gio::Settings::create("org.libreweb.browser");
+
+    m_settings->set_int("width", this->get_width());
+    m_settings->set_int("height", this->get_height());
+    m_settings->set_boolean("is-maximized", this->is_maximized());
+    // Fullscreen will be availible with gtkmm-4.0
+    //m_settings->set_boolean("is-fullscreen", this->is_fullscreen());
 
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
     m_statusPopover.set_size_request(200, 80);
@@ -53,7 +65,10 @@ MainWindow::MainWindow()
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
 
-    // Connect signals
+    // Window signals
+    this->signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
+
+    // Menu & toolbar signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
@@ -402,6 +417,15 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
         this->postDoRequest(path, setAddressBar, isHistoryRequest);
     }
+}
+
+/**
+ * \brief Called when Window is closed
+ */
+bool MainWindow::delete_window(GdkEventAny* any_event)
+{
+    std::cout << "Yes.." << std::endl;
+    return false;
 }
 
 /**
