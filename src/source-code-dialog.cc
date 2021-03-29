@@ -23,7 +23,7 @@ SourceCodeDialog::SourceCodeDialog() : accelGroup(Gtk::AccelGroup::create())
 SourceCodeDialog::~SourceCodeDialog() {}
 
 /**
- * Set multi-line code source
+ * \brief Set multi-line code source
  * \param[in] text Source code text
  */
 void SourceCodeDialog::setText(const std::string &text)
@@ -32,6 +32,9 @@ void SourceCodeDialog::setText(const std::string &text)
     buffer->set_text(text);
 }
 
+/**
+ * \brief Hide the code source dialog
+ */
 void SourceCodeDialog::hide_dialog(__attribute__((unused)) int response)
 {
     hide();
