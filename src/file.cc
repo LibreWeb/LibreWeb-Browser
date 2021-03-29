@@ -16,7 +16,8 @@ namespace n_fs = ::std::filesystem;
 /**
  * \brief Read file from disk
  * \param path File path location to read the file from
- * \throw std::runtime_error exception when file is not found (or not a regular file)
+ * \throw std::runtime_error exception when file is not found (or not a regular file),
+ *        or std::ios_base::failure when file can't be read
  * \return Contents as string
  */
 std::string const File::read(const std::string &path)
@@ -41,7 +42,7 @@ std::string const File::read(const std::string &path)
  * \brief Write file to disk
  * \param path File path location for storing the file
  * \param content Content that needs to be written to file
- * \throw std::ifstream::failure or std::ios_base::failure when file can't be open or can't be read/written
+ * \throw std::ios_base::failure when file can't be written to
  */
 void File::write(const std::string &path, const std::string &content)
 {
