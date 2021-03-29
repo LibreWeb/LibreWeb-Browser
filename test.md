@@ -1,4 +1,3 @@
-
 # This is just an example page
 
 We will show some of the features below.

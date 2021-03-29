@@ -19,7 +19,8 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto saveAsMenuItem = createMenuItem("Save _As...");
     saveAsMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_S, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     saveAsMenuItem->signal_activate().connect(save_as);
-    auto publishMenuItem = createMenuItem("_Publish...");
+    publishMenuItem = createMenuItem("_Publish...");
+    publishMenuItem->set_sensitive(false); // disable
     publishMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_P, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     publishMenuItem->signal_activate().connect(publish);
     auto quitMenuItem = createMenuItem("_Quit");
@@ -130,6 +131,11 @@ void Menu::setBackMenuSensitive(bool sensitive)
 void Menu::setForwardMenuSensitive(bool sensitive)
 {
     forwardMenuItem->set_sensitive(sensitive);
+}
+
+void Menu::setPublishMenuSensitive(bool sensitive)
+{
+    publishMenuItem->set_sensitive(sensitive);
 }
 
 /**

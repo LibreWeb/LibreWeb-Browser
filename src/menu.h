@@ -40,6 +40,7 @@ public:
     virtual ~Menu();
     void setBackMenuSensitive(bool sensitive);
     void setForwardMenuSensitive(bool sensitive);
+    void setPublishMenuSensitive(bool sensitive);
 
 protected:
     // Child widgets
@@ -62,5 +63,6 @@ private:
     Gtk::MenuItem *createMenuItem(const Glib::ustring &label_text);
     Gtk::MenuItem *backMenuItem;
     Gtk::MenuItem *forwardMenuItem;
+    Gtk::MenuItem *publishMenuItem;
 };
 #endif

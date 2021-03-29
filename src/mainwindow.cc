@@ -10,18 +10,15 @@
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
+#include <glibmm/convert.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glibmm/miscutils.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
+#include <fstream>
 #include <nlohmann/json.hpp>
 
-/**
- * For info: NDEBUG variable be used for debugging purpose, example:
- *  #ifdef NDEBUG
- *  #endif
-*/
 MainWindow::MainWindow()
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
@@ -43,6 +40,7 @@ MainWindow::MainWindow()
       requestPath(""),
       finalRequestPath(""),
       currentContent(""),
+      currentFileSavedPath(""),
       currentHistoryIndex(0),
       ipfs("localhost", 5001) // Connect to IPFS daemon
 {
@@ -307,7 +305,7 @@ MainWindow::MainWindow()
     m_homeButton.set_tooltip_text("Home page (Alt+Home)");
     m_statusButton.set_tooltip_text("IPFS Network Status");
 
-    // Disable back/forward button on start-up
+    // Disable back/forward buttons on start-up
     m_backButton.set_sensitive(false);
     m_forwardButton.set_sensitive(false);
 
@@ -396,14 +394,14 @@ MainWindow::MainWindow()
     // timer will do the updates later
     this->update_connection_status();
 
-    // Show homepage if debugging is disabled
-    #ifdef NDEBUG
-        go_home();
-    #else
-        std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
-        // Load test file when developing
-        doRequest("file://../../test.md", true);
-    #endif
+// Show homepage if debugging is disabled
+#ifdef NDEBUG
+    go_home();
+#else
+    std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
+    // Load test file when developing
+    doRequest("file://../../test.md", true);
+#endif
 }
 
 /**
@@ -647,17 +645,141 @@ void MainWindow::new_doc()
 
 void MainWindow::open()
 {
-    std::cout << "INFO: TODO" << std::endl;
+    auto dialog = new Gtk::FileChooserDialog("Open", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    dialog->set_transient_for(*this);
+    dialog->set_modal(true);
+    dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_dialog_response), dialog));
+    dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
+    dialog->add_button("_Open", Gtk::ResponseType::RESPONSE_OK);
+
+    // Add filters, so that only certain file types can be selected:
+    auto filter_markdown = Gtk::FileFilter::create();
+    filter_markdown->set_name("Markdown files (.md)");
+    filter_markdown->add_mime_type("text/markdown");
+    dialog->add_filter(filter_markdown);
+
+    auto filter_any = Gtk::FileFilter::create();
+    filter_any->set_name("Any files");
+    filter_any->add_pattern("*");
+    dialog->add_filter(filter_any);
+
+    dialog->show();
+}
+
+void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
+{
+    switch (response_id)
+    {
+    case Gtk::ResponseType::RESPONSE_OK:
+    {
+        auto filename = dialog->get_file()->get_path();
+        std::cout << "TODO. File selected: " << filename << std::endl;
+        break;
+    }
+    case Gtk::ResponseType::RESPONSE_CANCEL:
+    {
+        break;
+    }
+    default:
+    {
+        std::cerr << "ERROR: Unexpected button clicked." << std::endl;
+        break;
+    }
+    }
+    delete dialog;
 }
 
 void MainWindow::save()
 {
-    std::cout << "INFO: TODO" << std::endl;
+    if (currentFileSavedPath.empty())
+    {
+        this->save_as();
+    }
+    else
+    {
+        if (this->isEditorEnabled())
+        {
+            try
+            {
+                File::write(currentFileSavedPath, this->currentContent);
+            }
+            catch (std::ios_base::failure &e)
+            {
+                std::cerr << "ERROR: Could not write file: " << currentFileSavedPath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+            }
+        }
+        else
+        {
+            std::cerr << "ERROR: Saving while \"file saved path\" is filled and editor is disabled should not happen!?" << std::endl;
+        }
+    }
 }
 
 void MainWindow::save_as()
 {
-    std::cout << "INFO: TODO" << std::endl;
+    auto dialog = new Gtk::FileChooserDialog("Save", Gtk::FILE_CHOOSER_ACTION_SAVE);
+    dialog->set_transient_for(*this);
+    dialog->set_modal(true);
+    dialog->set_do_overwrite_confirmation(true);
+    dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_save_as_dialog_response), dialog));
+    dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
+    dialog->add_button("_Save", Gtk::ResponseType::RESPONSE_OK);
+
+    // Add filters, so that only certain file types can be selected:
+    auto filter_markdown = Gtk::FileFilter::create();
+    filter_markdown->set_name("Markdown files (.md)");
+    filter_markdown->add_mime_type("text/markdown");
+    dialog->add_filter(filter_markdown);
+
+    auto filter_any = Gtk::FileFilter::create();
+    filter_any->set_name("Any files");
+    filter_any->add_pattern("*");
+    dialog->add_filter(filter_any);
+
+    // If user is saving as an existing file, set the current uri path
+    if (!this->currentFileSavedPath.empty())
+    {
+        dialog->set_uri(Glib::filename_to_uri(currentFileSavedPath));
+    }
+    dialog->show();
+}
+
+void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
+{
+    switch (response_id)
+    {
+    case Gtk::ResponseType::RESPONSE_OK:
+    {
+        auto filePath = dialog->get_file()->get_path();
+        if (!filePath.ends_with(".md"))
+            filePath.append(".md");
+
+        // Save current content to file path
+        try
+        {
+            File::write(filePath, this->currentContent);
+
+            // Set/update the current file saved path variable (used for the 'save' feature)
+            if (this->isEditorEnabled())
+                this->currentFileSavedPath = filePath;
+        }
+        catch (std::ios_base::failure &e)
+        {
+            std::cerr << "ERROR: Could not write file: " << filePath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+        }
+        break;
+    }
+    case Gtk::ResponseType::RESPONSE_CANCEL:
+    {
+        break;
+    }
+    default:
+    {
+        std::cerr << "ERROR: Unexpected button clicked." << std::endl;
+        break;
+    }
+    }
+    delete dialog;
 }
 
 void MainWindow::publish()
@@ -880,13 +1002,15 @@ void MainWindow::enableEdit()
     this->m_draw_main.setViewSourceMenuItem(false);
     // Connect changed signal
     this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
+    // Enable publish button in menu
+    m_menu.setPublishMenuSensitive(true);
     // Set new title
     set_title("Untitled * - " + m_appName);
 }
 
 void MainWindow::disableEdit()
 {
-    if (m_hboxStandardEditorToolbar.is_visible())
+    if (this->isEditorEnabled())
     {
         this->m_hboxStandardEditorToolbar.hide();
         this->m_hboxFormattingEditorToolbar.hide();
@@ -896,9 +1020,22 @@ void MainWindow::disableEdit()
         // Show "view source" menu item again
         this->m_draw_main.setViewSourceMenuItem(true);
         this->m_draw_secondary.clearText();
+        // Disable publish button in menu
+        this->m_menu.setPublishMenuSensitive(false);
+        // Empty current file saved path
+        this->currentFileSavedPath = "";
         // Restore title
         set_title(m_appName);
     }
+}
+
+/**
+ * \brief Check if editor is enabled
+ * \return true if enabled, otherwise false
+ */
+bool MainWindow::isEditorEnabled()
+{
+    return m_hboxStandardEditorToolbar.is_visible();
 }
 
 /**
@@ -997,6 +1134,10 @@ void MainWindow::openFromDisk()
         m_draw_main.processDocument(doc);
         cmark_node_free(doc);
     }
+    catch (const std::ios_base::failure &e)
+    {
+        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+    }
     catch (const std::runtime_error &error)
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
@@ -1039,10 +1180,11 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
 void MainWindow::editor_changed_text()
 {
     // Retrieve text from text editor
-    std::string text = m_draw_main.getText();
+    currentContent = m_draw_main.getText();
     // Parse the markdown contents
-    cmark_node *doc = Parser::parseContent(text);
-    /*std::string md = Parser::renderMarkdown(doc);
+    cmark_node *doc = Parser::parseContent(currentContent);
+    /* Can be enabled to show the markdown format in terminal:
+    std::string md = Parser::renderMarkdown(doc);
     std::cout << "Markdown:\n" << md << std::endl;*/
 
     // Show the document as a preview on the right side text-view panel

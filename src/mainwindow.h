@@ -15,6 +15,7 @@
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
+#include <gtkmm/filechooserdialog.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
@@ -43,8 +44,10 @@ protected:
     void selectAll();
     void new_doc();
     void open();
+    void on_open_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void save();
     void save_as();
+    void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void publish();
     void go_home();
     void show_status();
@@ -155,6 +158,7 @@ private:
     std::string requestPath;
     std::string finalRequestPath;
     std::string currentContent;
+    std::string currentFileSavedPath;
     std::size_t currentHistoryIndex;
     std::vector<std::string> history;
     sigc::connection textChangedSignalHandler;
@@ -164,6 +168,7 @@ private:
     bool isInstalled();
     void enableEdit();
     void disableEdit();
+    bool isEditorEnabled();
     void postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest);
     void processRequest(const std::string &path);
     void fetchFromIPFS();

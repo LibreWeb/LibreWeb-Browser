@@ -10,7 +10,9 @@
 class File
 {
 public:
-    static std::string const read(const std::string &path);  /*!< Read file from disk */
-    static std::string const fetch(const std::string &path); /*!< Fetch file from IPFS network */
+    static std::string const read(const std::string &path);
+    static void write(const std::string &path, const std::string &content);
+    static std::string const fetch(const std::string &path);
+    static std::string const publish(const std::string &filename, const std::string &content);
 };
 #endif
