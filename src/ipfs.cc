@@ -106,6 +106,10 @@ int IPFS::startIPFSDaemon()
     }
 }
 
+/**
+ * \brief Determine if the app needs to kill any running IPFS process
+ * \return true if it needs to be terminated, otherwise false
+ */
 bool IPFS::shouldKillRunningProcess()
 {
     FILE *cmd_pipe = popen("pidof -s ipfs", "r");
@@ -144,6 +148,10 @@ bool IPFS::shouldKillRunningProcess()
     return true;
 }
 
+/**
+ * \brief Try to find the binary location of ipfs (IPFS go server)
+ * \return full path to the ipfs binary, empty string when not found
+ */
 std::string IPFS::findIPFSBinary()
 {
     // Try absolute path first

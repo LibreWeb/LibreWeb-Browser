@@ -14,10 +14,10 @@ namespace n_fs = ::std::filesystem;
 #endif
 
 /**
- * Get file from disk
- * \param path File path
+ * \brief Read file from disk
+ * \param path File path location to read the file from
  * \throw std::runtime_error exception when file is not found (or not a regular file)
- * \return AST model of markdown file (cmark_node)
+ * \return Contents as string
  */
 std::string const File::read(const std::string &path)
 {
@@ -38,7 +38,7 @@ std::string const File::read(const std::string &path)
 }
 
 /**
- * Write file to disk
+ * \brief Write file to disk
  * \param path File path location for storing the file
  * \param content Content that needs to be written to file
  * \throw std::ifstream::failure or std::ios_base::failure when file can't be open or can't be read/written
@@ -52,10 +52,10 @@ void File::write(const std::string &path, const std::string &content)
 }
 
 /**
- * Fetch file from IFPS network (create a new client connection for thread safety)
+ * \brief Fetch file from IFPS network (create a new client connection for thread safety)
  * \param path File path
  * \throw runtime error when something goes wrong
- * \return AST model of markdown file (cmark_node)
+ * \return content as string
  */
 std::string const File::fetch(const std::string &path)
 {
@@ -66,7 +66,7 @@ std::string const File::fetch(const std::string &path)
 }
 
 /**
- * Publish file to IPFS network (does *not* need to be thead-safe, but is thread-safe nevertheless now)
+ * \brief Publish file to IPFS network (does *not* need to be thead-safe, but is thread-safe nevertheless now)
  * \param filename Filename that gets stored in IPFS
  * \param content Content that needs to be written to the IPFS network
  * \return IPFS content-addressed identifier (CID)
