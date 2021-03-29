@@ -49,6 +49,7 @@ public:
     void setViewSourceMenuItem(bool isEnabled);
     void newDocument();
     std::string getText();
+    void setText(const std::string &content);
     void clearText();
     void undo();
     void redo();
@@ -122,8 +123,9 @@ private:
     void disableEdit();
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
-    // Helper functions for inserting text
+    // Helper functions for inserting text (thread-safe)
     void insertText(std::string text, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertPlainText(const std::string &content);
     void insertLink(const std::string &text, const std::string &url, const std::string &urlFont = "");
     void truncateText(int charsTruncated);
     void encodeText(std::string &string);
@@ -132,6 +134,7 @@ private:
     void clearOnThread();
     void changeCursor(int x, int y);
     static gboolean insertTextIdle(struct DispatchData *data);
+    static gboolean insertPlainTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean truncateTextIdle(struct DispatchData *data);
     static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);

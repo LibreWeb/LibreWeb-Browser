@@ -13,6 +13,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto openMenuItem = createMenuItem("_Open...");
     openMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_O, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     openMenuItem->signal_activate().connect(open);
+    auto openEditMenuItem = createMenuItem("Open and _Edit...");
+    openEditMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_E, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    openEditMenuItem->signal_activate().connect(open_edit);
     auto saveMenuitem = createMenuItem("_Save");
     saveMenuitem->add_accelerator("activate", accelgroup, GDK_KEY_S, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     saveMenuitem->signal_activate().connect(save);
@@ -81,29 +84,31 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     // Add items to sub-menus
     m_fileSubmenu.append(*newDocumentMenuItem);
     m_fileSubmenu.append(*openMenuItem);
+    m_fileSubmenu.append(*openEditMenuItem);
+    m_fileSubmenu.append(m_separator1);
     m_fileSubmenu.append(*saveMenuitem);
     m_fileSubmenu.append(*saveAsMenuItem);
-    m_fileSubmenu.append(m_separator1);
-    m_fileSubmenu.append(*publishMenuItem);
     m_fileSubmenu.append(m_separator2);
+    m_fileSubmenu.append(*publishMenuItem);
+    m_fileSubmenu.append(m_separator3);
     m_fileSubmenu.append(*quitMenuItem);
     m_editSubmenu.append(*undoMenuItem);
     m_editSubmenu.append(*redoMenuItem);
-    m_editSubmenu.append(m_separator3);
+    m_editSubmenu.append(m_separator4);
     m_editSubmenu.append(*cutMenuItem);
     m_editSubmenu.append(*copyMenuItem);
     m_editSubmenu.append(*pasteMenuItem);
     m_editSubmenu.append(*deleteMenuItem);
-    m_editSubmenu.append(m_separator4);
-    m_editSubmenu.append(*selectAllMenuItem);
     m_editSubmenu.append(m_separator5);
+    m_editSubmenu.append(*selectAllMenuItem);
+    m_editSubmenu.append(m_separator6);
     m_editSubmenu.append(*findMenuItem);
     m_editSubmenu.append(*replaceMenuItem);    
     m_viewSubmenu.append(*backMenuItem);
     m_viewSubmenu.append(*forwardMenuItem);
     m_viewSubmenu.append(*reloadMenuItem);
     m_viewSubmenu.append(*homePageMenuItem);
-    m_viewSubmenu.append(m_separator6);
+    m_viewSubmenu.append(m_separator7);
     m_viewSubmenu.append(*sourceCodeMenuItem);
     m_helpSubmenu.append(*aboutMenuItem);
 

@@ -31,7 +31,7 @@ class MainWindow : public Gtk::Window
 {
 public:
     MainWindow();
-    void doRequest(const std::string &path = std::string(), bool setAddressBar = false, bool isHistoryRequest = false);
+    void doRequest(const std::string &path = std::string(), bool isSetAddressBar = true, bool isHistoryRequest = false, bool isDisableEditor = true, bool isParseContent = true);
 
 protected:
     // Signal handlers
@@ -44,7 +44,9 @@ protected:
     void selectAll();
     void new_doc();
     void open();
+    void open_and_edit();
     void on_open_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
+    void on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);    
     void save();
     void save_as();
     void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
@@ -169,10 +171,10 @@ private:
     void enableEdit();
     void disableEdit();
     bool isEditorEnabled();
-    void postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest);
-    void processRequest(const std::string &path);
-    void fetchFromIPFS();
-    void openFromDisk();
+    void postDoRequest(const std::string &path, bool isSetAddressBar, bool isHistoryRequest, bool isDisableEditor);
+    void processRequest(const std::string &path, bool isParseContent);
+    void fetchFromIPFS(bool isParseContent);
+    void openFromDisk(bool isParseContent);
     std::string getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon);
 };
 

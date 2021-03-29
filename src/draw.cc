@@ -163,6 +163,11 @@ void Draw::populate_popup(Gtk::Menu *menu)
     }
 }
 
+/**
+ * \brief Show a message on screen
+ * \param message Headliner
+ * \param detailed_info Additional text info
+ */
 void Draw::showMessage(const std::string &message, const std::string &detailed_info)
 {
     if (get_editable())
@@ -176,6 +181,9 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
     this->insertText(detailed_info);
 }
 
+/**
+ * \brief Draw homepage
+ */
 void Draw::showStartPage()
 {
     if (get_editable())
@@ -194,7 +202,8 @@ This browser has even a built-in editor. Check it out in the menu: File->New Doc
 }
 
 /**
- * Process AST document (markdown format) and draw the text in the GTK TextView
+ * \brief Process AST document (markdown format) and draw the text in the GTK TextView
+ * \param root_node Markdown AST tree that will be displayed on screen
  */
 void Draw::processDocument(cmark_node *root_node)
 {
@@ -225,6 +234,9 @@ void Draw::setViewSourceMenuItem(bool isEnabled)
     this->addViewSourceMenuItem = isEnabled;
 }
 
+/**
+ * \brief Prepare for new document
+ */
 void Draw::newDocument()
 {
     this->undoPool.clear();
@@ -235,55 +247,33 @@ void Draw::newDocument()
     grab_focus(); // Claim focus on text view
 }
 
+/**
+ * \brief Retrieve the current text buffer (not thread-safe)
+ */
 std::string Draw::getText()
 {
     return get_buffer().get()->get_text();
 }
 
+/**
+ * \brief Set text in text buffer (for example plain text) - thead-safe
+ * \param content Content string that needs to be set as buffer text
+ */
+void Draw::setText(const std::string &content)
+{
+    DispatchData *data = g_new0(struct DispatchData, 1);
+    data->buffer = buffer;
+    data->text = content;
+    gdk_threads_add_idle((GSourceFunc)insertPlainTextIdle, data);
+}
+
+/**
+ * \brief Clear all text on the screen
+ */
 void Draw::clearText()
 {
     auto buffer = get_buffer();
     buffer->erase(buffer->begin(), buffer->end());
-}
-
-void Draw::enableEdit()
-{
-    set_editable(true);
-    set_cursor_visible(true);
-    auto buffer = get_buffer();
-    this->beginUserActionSignalHandler = buffer->signal_begin_user_action().connect(sigc::mem_fun(this, &Draw::begin_user_action), false);
-    this->endUserActionSignalHandler = buffer->signal_end_user_action().connect(sigc::mem_fun(this, &Draw::end_user_action), false);
-    this->insertTextSignalHandler = buffer->signal_insert().connect(sigc::mem_fun(this, &Draw::on_insert), false);
-    this->deleteTextSignalHandler = buffer->signal_erase().connect(sigc::mem_fun(this, &Draw::on_delete), false);
-}
-
-void Draw::disableEdit()
-{
-    set_editable(false);
-    set_cursor_visible(false);
-    // Disconnect signal handles
-    this->beginUserActionSignalHandler.disconnect();
-    this->endUserActionSignalHandler.disconnect();
-    this->insertTextSignalHandler.disconnect();
-    this->deleteTextSignalHandler.disconnect();
-}
-
-/**
- * Search for links
- */
-void Draw::followLink(Gtk::TextBuffer::iterator &iter)
-{
-    auto tags = iter.get_tags();
-    for (auto const &tag : tags)
-    {
-        char *url = static_cast<char *>(tag->get_data("url"));
-        if (url != 0 && (strlen(url) > 0))
-        {
-            // Get the URL
-            mainWindow.doRequest(url, true);
-            break;
-        }
-    }
 }
 
 /**
@@ -753,6 +743,47 @@ void Draw::on_delete(const Gtk::TextBuffer::iterator &range_start, const Gtk::Te
  * Private methods
  ************************************************/
 
+void Draw::enableEdit()
+{
+    set_editable(true);
+    set_cursor_visible(true);
+    auto buffer = get_buffer();
+    this->beginUserActionSignalHandler = buffer->signal_begin_user_action().connect(sigc::mem_fun(this, &Draw::begin_user_action), false);
+    this->endUserActionSignalHandler = buffer->signal_end_user_action().connect(sigc::mem_fun(this, &Draw::end_user_action), false);
+    this->insertTextSignalHandler = buffer->signal_insert().connect(sigc::mem_fun(this, &Draw::on_insert), false);
+    this->deleteTextSignalHandler = buffer->signal_erase().connect(sigc::mem_fun(this, &Draw::on_delete), false);
+}
+
+void Draw::disableEdit()
+{
+    set_editable(false);
+    set_cursor_visible(false);
+    // Disconnect signal handles
+    this->beginUserActionSignalHandler.disconnect();
+    this->endUserActionSignalHandler.disconnect();
+    this->insertTextSignalHandler.disconnect();
+    this->deleteTextSignalHandler.disconnect();
+}
+
+
+/**
+ * Search for links
+ */
+void Draw::followLink(Gtk::TextBuffer::iterator &iter)
+{
+    auto tags = iter.get_tags();
+    for (auto const &tag : tags)
+    {
+        char *url = static_cast<char *>(tag->get_data("url"));
+        if (url != 0 && (strlen(url) > 0))
+        {
+            // Get the URL
+            mainWindow.doRequest(url, true);
+            break;
+        }
+    }
+}
+
 /**
  * Process and parse each node in the AST
  */
@@ -1157,6 +1188,14 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
 }
 
 /**
+ * Insert plain text - thread safe
+ */
+void Draw::insertPlainText(const std::string &content)
+{
+
+}
+
+/**
  * Insert url link - thread safe
  */
 void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
@@ -1226,7 +1265,8 @@ void Draw::clearOnThread()
     gdk_threads_add_idle((GSourceFunc)clearBufferIdle, buffer);
 }
 
-/* Looks at all tags covering the position (x, y) in the text view,
+/**
+ *  Looks at all tags covering the position (x, y) in the text view,
  * and if one of them is a link, change the cursor to the "hands" cursor
  * typically used by web browsers.
  */
@@ -1260,7 +1300,7 @@ void Draw::changeCursor(int x, int y)
 }
 
 /**
- * Insert text on Idle Call function
+ * Insert markup text on Idle call function
  */
 gboolean Draw::insertTextIdle(struct DispatchData *data)
 {
@@ -1272,7 +1312,18 @@ gboolean Draw::insertTextIdle(struct DispatchData *data)
 }
 
 /**
- * Insert link url on Idle Call function
+ * Insert plain text on Idle call function
+ */
+gboolean Draw::insertPlainTextIdle(struct DispatchData *data)
+{
+    GtkTextIter end_iter;
+    gtk_text_buffer_set_text(data->buffer, data->text.c_str(), -1);
+    g_free(data);
+    return FALSE;
+}
+
+/**
+ * Insert link url on Idle call function
  */
 gboolean Draw::insertLinkIdle(struct DispatchData *data)
 {

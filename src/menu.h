@@ -16,6 +16,7 @@ class Menu : public Gtk::MenuBar
 public:
     sigc::signal<void> new_doc;
     sigc::signal<void> open;
+    sigc::signal<void> open_edit;
     sigc::signal<void> save;
     sigc::signal<void> save_as;
     sigc::signal<void> publish;
@@ -58,6 +59,7 @@ protected:
     Gtk::SeparatorMenuItem m_separator4;
     Gtk::SeparatorMenuItem m_separator5;
     Gtk::SeparatorMenuItem m_separator6;
+    Gtk::SeparatorMenuItem m_separator7;
 
 private:
     Gtk::MenuItem *createMenuItem(const Glib::ustring &label_text);

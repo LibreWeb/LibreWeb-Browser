@@ -78,6 +78,7 @@ MainWindow::MainWindow()
     // Menu & toolbar signals
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
+    m_menu.open_edit.connect(sigc::mem_fun(this, &MainWindow::open_and_edit));                                       /*!< Menu item for opening & editing existing document */
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
     m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                                               /*!< Menu item for save document as */
     m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                                               /*!< Menu item for publishing */
@@ -112,7 +113,7 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_menu, false, false, 0);
 
     // Editor buttons
-    m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open));
+    m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
     m_saveButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
     m_publishButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::publish));
     m_cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
@@ -400,14 +401,19 @@ MainWindow::MainWindow()
 #else
     std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
     // Load test file when developing
-    doRequest("file://../../test.md", true);
+    doRequest("file://../../test.md");
 #endif
 }
 
 /**
  * Fetch document from disk or IPFS, using threading
+ * \param path File path that needs to be opened (either from disk or IPFS network)
+ * \param isSetAddressBar If true change update the address bar with the file path (default: true)
+ * \param isHistoryRequest Set to true if this is an history request call: back/forward (default: false)
+ * \param isDisableEditor If true the editor will be disabled if needed (default: true)
+ * \param isParseContext If true the content received will be parsed and displayed as markdown syntax (default: true), set to false if you want to editor the content
  */
-void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest)
+void MainWindow::doRequest(const std::string &path, bool isSetAddressBar, bool isHistoryRequest, bool isDisableEditor, bool isParseContent)
 {
     if (m_requestThread)
     {
@@ -422,8 +428,8 @@ void MainWindow::doRequest(const std::string &path, bool setAddressBar, bool isH
 
     if (m_requestThread == nullptr)
     {
-        m_requestThread = new std::thread(&MainWindow::processRequest, this, path);
-        this->postDoRequest(path, setAddressBar, isHistoryRequest);
+        m_requestThread = new std::thread(&MainWindow::processRequest, this, path, isParseContent);
+        this->postDoRequest(path, isSetAddressBar, isHistoryRequest, isDisableEditor);
     }
 }
 
@@ -639,8 +645,16 @@ void MainWindow::selectAll()
  */
 void MainWindow::new_doc()
 {
+    // Clear content & requestPath
+    currentContent = "";
+    requestPath = "";
+
     // Enable editing mode
     this->enableEdit();
+    // Change address bar
+    this->m_addressBar.set_text("file://unsaved");
+    // Set new title
+    this->set_title("Untitled * - " + m_appName);
 }
 
 void MainWindow::open()
@@ -666,14 +680,41 @@ void MainWindow::open()
     dialog->show();
 }
 
+void MainWindow::open_and_edit()
+{
+    auto dialog = new Gtk::FileChooserDialog("Open & Edit", Gtk::FILE_CHOOSER_ACTION_OPEN);
+    dialog->set_transient_for(*this);
+    dialog->set_modal(true);
+    dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_edit_dialog_response), dialog));
+    dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
+    dialog->add_button("_Open", Gtk::ResponseType::RESPONSE_OK);
+
+    // Add filters, so that only certain file types can be selected:
+    auto filter_markdown = Gtk::FileFilter::create();
+    filter_markdown->set_name("Markdown files (.md)");
+    filter_markdown->add_mime_type("text/markdown");
+    dialog->add_filter(filter_markdown);
+
+    auto filter_any = Gtk::FileFilter::create();
+    filter_any->set_name("Any files");
+    filter_any->add_pattern("*");
+    dialog->add_filter(filter_any);
+
+    dialog->show();
+}
+
 void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
     {
     case Gtk::ResponseType::RESPONSE_OK:
     {
-        auto filename = dialog->get_file()->get_path();
-        std::cout << "TODO. File selected: " << filename << std::endl;
+        auto filePath = dialog->get_file()->get_path();
+        // Open file, set address bar & disable editor if needed
+        doRequest("file://" + filePath);
+
+        // Set new title
+        this->set_title("openings.md - " + m_appName);
         break;
     }
     case Gtk::ResponseType::RESPONSE_CANCEL:
@@ -682,7 +723,43 @@ void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog
     }
     default:
     {
-        std::cerr << "ERROR: Unexpected button clicked." << std::endl;
+        std::cerr << "WARN: Unexpected button clicked." << std::endl;
+        break;
+    }
+    }
+    delete dialog;
+}
+
+void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
+{
+    switch (response_id)
+    {
+    case Gtk::ResponseType::RESPONSE_OK:
+    {
+        auto filePath = dialog->get_file()->get_path();
+        std::string path = "file://" + filePath;
+        // Open file and set address bar, but do not parse the content or the disable editor
+        doRequest(path, true, false, false, false);
+
+        // Enable editor if needed
+        if (!this->isEditorEnabled())
+            this->enableEdit();
+
+        // Change address bar
+        this->m_addressBar.set_text(path);
+        // Set new title
+        this->set_title("open_edit.md - " + m_appName);
+        // Set current file path for saving feature
+        this->currentFileSavedPath = filePath;
+        break;
+    }
+    case Gtk::ResponseType::RESPONSE_CANCEL:
+    {
+        break;
+    }
+    default:
+    {
+        std::cerr << "WARN: Unexpected button clicked." << std::endl;
         break;
     }
     }
@@ -739,7 +816,14 @@ void MainWindow::save_as()
     // If user is saving as an existing file, set the current uri path
     if (!this->currentFileSavedPath.empty())
     {
-        dialog->set_uri(Glib::filename_to_uri(currentFileSavedPath));
+        try
+        {
+            dialog->set_uri(Glib::filename_to_uri(currentFileSavedPath));
+        }
+        catch (Glib::Error &e)
+        {
+            std::cerr << "ERROR: Incorrect filename most likely. Error: " << e.what() << ". Error Code: " << e.code() << std::endl;
+        }
     }
     dialog->show();
 }
@@ -758,10 +842,14 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
         try
         {
             File::write(filePath, this->currentContent);
-
-            // Set/update the current file saved path variable (used for the 'save' feature)
+            // Only if editor mode is enabled
             if (this->isEditorEnabled())
+            {
+                // Set/update the current file saved path variable (used for the 'save' feature)
                 this->currentFileSavedPath = filePath;
+                // And also update the address bar with the current file path
+                this->m_addressBar.set_text("file://" + filePath);
+            }
         }
         catch (std::ios_base::failure &e)
         {
@@ -788,14 +876,19 @@ void MainWindow::publish()
 }
 
 /**
- * Post processing request actions
+ * \brief Post-processing request actions
+ * \param path File path (on disk or IPFS) that needs to be processed
+ * \param isSetAddressBar If true change update the address bar with the file path
+ * \param isHistoryRequest Set to true if this is an history request call: back/forward
+ * \param isDisableEditor If true the editor will be disabled if needed
  */
-void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool isHistoryRequest)
+void MainWindow::postDoRequest(const std::string &path, bool isSetAddressBar, bool isHistoryRequest, bool isDisableEditor)
 {
-    if (setAddressBar)
+    if (isSetAddressBar)
         m_addressBar.set_text(path);
 
-    this->disableEdit();
+    if (isDisableEditor && isEditorEnabled())
+        this->disableEdit();
 
     // Do not insert history back/forward calls into the history (again)
     if (!isHistoryRequest)
@@ -819,16 +912,17 @@ void MainWindow::postDoRequest(const std::string &path, bool setAddressBar, bool
     m_menu.setForwardMenuSensitive(currentHistoryIndex < history.size() - 1);
 }
 
+/**
+ * \brief Show homepage
+ */
 void MainWindow::go_home()
 {
-    this->requestPath = "";
-    this->finalRequestPath = "";
-    this->currentContent = "";
-    this->m_addressBar.set_text("");
-    this->disableEdit();
-    m_draw_main.showStartPage();
+    doRequest("about:home", true, false, true);
 }
 
+/**
+ * \brief Show IFFS status popup
+ */
 void MainWindow::show_status()
 {
     this->m_statusPopover.popup();
@@ -896,7 +990,7 @@ void MainWindow::on_replace()
  */
 void MainWindow::address_bar_activate()
 {
-    doRequest(m_addressBar.get_text());
+    doRequest(m_addressBar.get_text(), false);
     // When user actually entered the address bar, focus on the main draw
     m_draw_main.grab_focus();
 }
@@ -967,7 +1061,9 @@ void MainWindow::forward()
 
 void MainWindow::refresh()
 {
-    doRequest();
+    // Only allow refresh if editor is disabled (doesn't make sense otherwise to refresh)
+    if (!this->isEditorEnabled())
+        doRequest("", false, false, false); /*!< Reload existing file, don't need to update the address bar, don't disable the editor */
 }
 
 /**
@@ -991,6 +1087,8 @@ bool MainWindow::isInstalled()
 
 void MainWindow::enableEdit()
 {
+    // Reset the current content
+
     // Inform the Draw class that we are creating a new document
     this->m_draw_main.newDocument();
     // Show editor toolbars
@@ -1003,9 +1101,7 @@ void MainWindow::enableEdit()
     // Connect changed signal
     this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
     // Enable publish button in menu
-    m_menu.setPublishMenuSensitive(true);
-    // Set new title
-    set_title("Untitled * - " + m_appName);
+    this->m_menu.setPublishMenuSensitive(true);
 }
 
 void MainWindow::disableEdit()
@@ -1035,24 +1131,37 @@ void MainWindow::disableEdit()
  */
 bool MainWindow::isEditorEnabled()
 {
+    // TODO: maybe use: return this->m_draw_main.get_editable();
     return m_hboxStandardEditorToolbar.is_visible();
 }
 
 /**
- * Get the file from disk or IPFS network, from the provided path,
+ * \brief Get the file from disk or IPFS network, from the provided path,
  * parse the content, and display the document
+ * \param path File path that needs to be fetched (from disk or IPFS network)
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS network), 
+ * set to false if you want to edit the content
  */
-void MainWindow::processRequest(const std::string &path)
+void MainWindow::processRequest(const std::string &path, bool isParseContent)
 {
     currentContent = "";
+    // Do not update the requestPath when path is empty,
+    // this is used for refreshing the page
     if (!path.empty())
     {
         requestPath = path;
     }
+
     if (requestPath.empty())
     {
         std::cerr << "Info: Empty request path." << std::endl;
     }
+    // Handle homepage
+    else if (requestPath.compare("about:home") == 0)
+    {
+        m_draw_main.showStartPage();
+    }
+    // Handle disk or IPFS file paths
     else
     {
         // Check if CID
@@ -1060,43 +1169,48 @@ void MainWindow::processRequest(const std::string &path)
         {
             finalRequestPath = requestPath;
             finalRequestPath.erase(0, 7);
-            fetchFromIPFS();
+            fetchFromIPFS(isParseContent);
         }
         else if ((requestPath.length() == 46) && (requestPath.rfind("Qm", 0) == 0))
         {
             // CIDv0
             finalRequestPath = requestPath;
-            fetchFromIPFS();
+            fetchFromIPFS(isParseContent);
         }
         else if (requestPath.rfind("file://", 0) == 0)
         {
             finalRequestPath = requestPath;
             finalRequestPath.erase(0, 7);
-            openFromDisk();
+            openFromDisk(isParseContent);
         }
         else
         {
             // IPFS as fallback / CIDv1
             finalRequestPath = requestPath;
-            fetchFromIPFS();
+            fetchFromIPFS(isParseContent);
         }
     }
 }
 
 /**
- * Helper method for processRequest(),
- * Display markdown file from IPFS network.
+ * \brief Helper method for processRequest(), display markdown file from IPFS network. 
+ * Runs in a seperate thread.
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS network), 
+ * set to false if you want to edit the content
  */
-void MainWindow::fetchFromIPFS()
+void MainWindow::fetchFromIPFS(bool isParseContent)
 {
-    // TODO: Execute the code in a seperate thread/process?
-    //  Since otherwise this may block the UI if it takes too long!
     try
     {
         currentContent = File::fetch(finalRequestPath);
-        cmark_node *doc = Parser::parseContent(currentContent);
-        m_draw_main.processDocument(doc);
-        cmark_node_free(doc);
+        if (isParseContent) {
+            cmark_node *doc = Parser::parseContent(currentContent);
+            m_draw_main.processDocument(doc);
+            cmark_node_free(doc);
+        } else {
+            // directly set the plain content
+            m_draw_main.setText(currentContent);
+        }
     }
     catch (const std::runtime_error &error)
     {
@@ -1122,17 +1236,24 @@ void MainWindow::fetchFromIPFS()
 }
 
 /**
- * Helper method for processRequest(),
- * Display markdown file from disk.
+ * \brief Helper method for processRequest(), display markdown file from disk.
+ * Runs in a seperate thread.
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS network), 
+ * set to false if you want to edit the content
  */
-void MainWindow::openFromDisk()
+void MainWindow::openFromDisk(bool isParseContent)
 {
     try
     {
         currentContent = File::read(finalRequestPath);
-        cmark_node *doc = Parser::parseContent(currentContent);
-        m_draw_main.processDocument(doc);
-        cmark_node_free(doc);
+        if (isParseContent) {
+            cmark_node *doc = Parser::parseContent(currentContent);
+            m_draw_main.processDocument(doc);
+            cmark_node_free(doc);
+        } else {
+            // directly set the plain content
+            m_draw_main.setText(currentContent);
+        }
     }
     catch (const std::ios_base::failure &e)
     {
