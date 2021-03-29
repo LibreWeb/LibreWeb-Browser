@@ -714,7 +714,8 @@ void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog
         doRequest("file://" + filePath);
 
         // Set new title
-        this->set_title("openings.md - " + m_appName);
+        std::string fileName = File::getFilename(filePath);
+        this->set_title(fileName + " - " + m_appName);
         break;
     }
     case Gtk::ResponseType::RESPONSE_CANCEL:
@@ -748,7 +749,8 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
         // Change address bar
         this->m_addressBar.set_text(path);
         // Set new title
-        this->set_title("open_edit.md - " + m_appName);
+        std::string fileName = File::getFilename(filePath);
+        this->set_title(fileName + " - " + m_appName);
         // Set current file path for saving feature
         this->currentFileSavedPath = filePath;
         break;
@@ -849,6 +851,9 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
                 this->currentFileSavedPath = filePath;
                 // And also update the address bar with the current file path
                 this->m_addressBar.set_text("file://" + filePath);
+                // Set title
+                std::string fileName = File::getFilename(filePath);
+                this->set_title(fileName + " - " + m_appName);
             }
         }
         catch (std::ios_base::failure &e)

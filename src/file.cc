@@ -77,3 +77,13 @@ std::string const File::publish(const std::string &filename, const std::string &
     // TODO: Publish file to IPFS
     return "CID";
 }
+
+/**
+ * \brief Retrieve filename from file path
+ * \param path Full path 
+ * \return filename
+ */
+std::string const File::getFilename(const std::string &path)
+{
+    return n_fs::path(path).filename();
+}

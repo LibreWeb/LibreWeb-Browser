@@ -13,7 +13,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto openMenuItem = createMenuItem("_Open...");
     openMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_O, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     openMenuItem->signal_activate().connect(open);
-    auto openEditMenuItem = createMenuItem("Open and _Edit...");
+    auto openEditMenuItem = createMenuItem("Open & _Edit...");
     openEditMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_E, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     openEditMenuItem->signal_activate().connect(open_edit);
     auto saveMenuitem = createMenuItem("_Save");

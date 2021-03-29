@@ -14,5 +14,6 @@ public:
     static void write(const std::string &path, const std::string &content);
     static std::string const fetch(const std::string &path);
     static std::string const publish(const std::string &filename, const std::string &content);
+    static std::string const getFilename(const std::string &path);
 };
 #endif
