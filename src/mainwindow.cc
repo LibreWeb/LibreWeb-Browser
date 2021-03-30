@@ -79,6 +79,7 @@ MainWindow::MainWindow()
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
     m_menu.open_edit.connect(sigc::mem_fun(this, &MainWindow::open_and_edit));                                       /*!< Menu item for opening & editing existing document */
+    m_menu.edit.connect(sigc::mem_fun(this, &MainWindow::edit));                                                     /*!< Menu item for editing current open document */
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
     m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                                               /*!< Menu item for save document as */
     m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                                               /*!< Menu item for publishing */
@@ -641,7 +642,7 @@ void MainWindow::selectAll()
 }
 
 /**
- * Trigger/creating a new document
+ * \brief Trigger when user selected 'new document' from menu item
  */
 void MainWindow::new_doc()
 {
@@ -657,6 +658,9 @@ void MainWindow::new_doc()
     this->set_title("Untitled * - " + m_appName);
 }
 
+/**
+ * \brief Triggered when user selected 'open...' from menu item / toolbar
+ */
 void MainWindow::open()
 {
     auto dialog = new Gtk::FileChooserDialog("Open", Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -680,6 +684,9 @@ void MainWindow::open()
     dialog->show();
 }
 
+/**
+ * \brief Triggered when user selected 'open & edit...' from menu item
+ */
 void MainWindow::open_and_edit()
 {
     auto dialog = new Gtk::FileChooserDialog("Open & Edit", Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -703,6 +710,9 @@ void MainWindow::open_and_edit()
     dialog->show();
 }
 
+/**
+ * \brief Signal response when 'open' dialog is closed
+ */
 void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
@@ -731,6 +741,9 @@ void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog
     delete dialog;
 }
 
+/**
+ * \brief Signal response when 'open & edit' dialog is closed
+ */
 void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
@@ -768,6 +781,17 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
     delete dialog;
 }
 
+/**
+ * \brief Triggered when user selected 'edit' from menu item
+ */
+void MainWindow::edit()
+{
+    
+}
+
+/**
+ * \brief Triggered when user selected 'save' from menu item / toolbar
+ */
 void MainWindow::save()
 {
     if (currentFileSavedPath.empty())
@@ -794,6 +818,9 @@ void MainWindow::save()
     }
 }
 
+/**
+ * \brief Triggered when 'save as..' menu item is selected or the user saves the file for the first time via 'save'
+ */
 void MainWindow::save_as()
 {
     auto dialog = new Gtk::FileChooserDialog("Save", Gtk::FILE_CHOOSER_ACTION_SAVE);
@@ -830,6 +857,9 @@ void MainWindow::save_as()
     dialog->show();
 }
 
+/**
+ * \brief Signal response when 'save as' dialog is closed
+ */
 void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
@@ -875,6 +905,9 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
     delete dialog;
 }
 
+/**
+ * \brief Triggered when user selected the 'Publish...' menu item or publish button in the toolbar
+ */
 void MainWindow::publish()
 {
     std::cout << "INFO: TODO" << std::endl;
@@ -1210,11 +1243,14 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
     try
     {
         currentContent = File::fetch(finalRequestPath);
-        if (isParseContent) {
+        if (isParseContent)
+        {
             cmark_node *doc = Parser::parseContent(currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
-        } else {
+        }
+        else
+        {
             // directly set the plain content
             m_draw_main.setText(currentContent);
         }
@@ -1253,11 +1289,14 @@ void MainWindow::openFromDisk(bool isParseContent)
     try
     {
         currentContent = File::read(finalRequestPath);
-        if (isParseContent) {
+        if (isParseContent)
+        {
             cmark_node *doc = Parser::parseContent(currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
-        } else {
+        }
+        else
+        {
             // directly set the plain content
             m_draw_main.setText(currentContent);
         }

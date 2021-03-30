@@ -47,6 +47,7 @@ protected:
     void open_and_edit();
     void on_open_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);    
+    void edit();
     void save();
     void save_as();
     void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
