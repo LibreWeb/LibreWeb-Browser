@@ -1248,7 +1248,7 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
 {
     try
     {
-        currentContent = File::fetch(finalRequestPath);
+        currentContent = IPFS::fetch(finalRequestPath);
         if (isParseContent)
         {
             cmark_node *doc = Parser::parseContent(currentContent);

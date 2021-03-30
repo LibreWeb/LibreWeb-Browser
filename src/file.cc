@@ -2,8 +2,6 @@
 #include <ipfs/client.h>
 #include <stdexcept>
 #include <fstream>
-#include <sstream>
-#include <iostream>
 
 #ifdef LEGACY_CXX
 #include <experimental/filesystem>
@@ -50,20 +48,6 @@ void File::write(const std::string &path, const std::string &content)
     file.open(path.c_str());
     file << content;
     file.close();
-}
-
-/**
- * \brief Fetch file from IFPS network (create a new client object each time - which is thread safe)
- * \param path File path
- * \throw runtime error when something goes wrong
- * \return content as string
- */
-std::string const File::fetch(const std::string &path)
-{
-    ipfs::Client client("localhost", 5001, "6s");
-    std::stringstream contents;
-    client.FilesGet(path, &contents);
-    return contents.str();
 }
 
 /**

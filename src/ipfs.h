@@ -14,6 +14,7 @@ public:
     explicit IPFS(const std::string &host, int port);
     std::size_t getNrPeers();
     std::map<std::string, float> getBandwidthRates();
+    static std::string const fetch(const std::string &path);
     std::string const publish(const std::string &filename, const std::string &content);
 
 private:

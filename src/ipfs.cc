@@ -1,4 +1,5 @@
 #include "ipfs.h"
+#include <sstream>
 
 /**
  * \brief IPFS Contructor, connect to IPFS
@@ -45,6 +46,20 @@ std::map<std::string, float> IPFS::getBandwidthRates()
         // ignore connection issues
     }
     return bandwidthRates;
+}
+
+/**
+ * \brief Fetch file from IFPS network (create a new client object each time - which is thread safe), static method
+ * \param path File path
+ * \throw runtime error when something goes wrong
+ * \return content as string
+ */
+std::string const IPFS::fetch(const std::string &path)
+{
+    ipfs::Client client("localhost", 5001, "6s");
+    std::stringstream contents;
+    client.FilesGet(path, &contents);
+    return contents.str();
 }
 
 /**

@@ -1,12 +1,9 @@
 #include "ipfs-process.h"
-#include <cstdlib>
 #include <unistd.h>
 #include <fcntl.h>
 #include <limits.h>
 #include <iostream>
 #include <string.h>
-#include <stdio.h>
-#include <unistd.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 
