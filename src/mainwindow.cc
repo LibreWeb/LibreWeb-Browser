@@ -1092,8 +1092,6 @@ bool MainWindow::isInstalled()
 
 void MainWindow::enableEdit()
 {
-    // Reset the current content
-
     // Inform the Draw class that we are creating a new document
     this->m_draw_main.newDocument();
     // Show editor toolbars
@@ -1105,8 +1103,10 @@ void MainWindow::enableEdit()
     this->m_draw_main.setViewSourceMenuItem(false);
     // Connect changed signal
     this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
-    // Enable publish button in menu
+    // Enable publish menu item
     this->m_menu.setPublishMenuSensitive(true);
+    // Disable edit menu item (you are already editing)
+    this->m_menu.setEditMenuSensitive(false);
 }
 
 void MainWindow::disableEdit()
@@ -1121,8 +1121,10 @@ void MainWindow::disableEdit()
         // Show "view source" menu item again
         this->m_draw_main.setViewSourceMenuItem(true);
         this->m_draw_secondary.clearText();
-        // Disable publish button in menu
+        // Disable publish menu item
         this->m_menu.setPublishMenuSensitive(false);
+        // Enable edit menu item
+        this->m_menu.setEditMenuSensitive(true);
         // Empty current file saved path
         this->currentFileSavedPath = "";
         // Restore title

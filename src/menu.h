@@ -17,6 +17,7 @@ public:
     sigc::signal<void> new_doc;
     sigc::signal<void> open;
     sigc::signal<void> open_edit;
+    sigc::signal<void> edit;
     sigc::signal<void> save;
     sigc::signal<void> save_as;
     sigc::signal<void> publish;
@@ -42,6 +43,7 @@ public:
     void setBackMenuSensitive(bool sensitive);
     void setForwardMenuSensitive(bool sensitive);
     void setPublishMenuSensitive(bool sensitive);
+    void setEditMenuSensitive(bool sensitive);
 
 protected:
     // Child widgets
@@ -66,5 +68,6 @@ private:
     Gtk::MenuItem *backMenuItem;
     Gtk::MenuItem *forwardMenuItem;
     Gtk::MenuItem *publishMenuItem;
+    Gtk::MenuItem *editMenuItem;
 };
 #endif

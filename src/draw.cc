@@ -1188,14 +1188,6 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
 }
 
 /**
- * Insert plain text - thread safe
- */
-void Draw::insertPlainText(const std::string &content)
-{
-
-}
-
-/**
  * Insert url link - thread safe
  */
 void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
@@ -1316,7 +1308,6 @@ gboolean Draw::insertTextIdle(struct DispatchData *data)
  */
 gboolean Draw::insertPlainTextIdle(struct DispatchData *data)
 {
-    GtkTextIter end_iter;
     gtk_text_buffer_set_text(data->buffer, data->text.c_str(), -1);
     g_free(data);
     return FALSE;
