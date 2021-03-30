@@ -916,6 +916,7 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
 void MainWindow::publish()
 {
     std::cout << "INFO: TODO" << std::endl;
+    this->currentContent;
 }
 
 /**

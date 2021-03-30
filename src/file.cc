@@ -53,7 +53,7 @@ void File::write(const std::string &path, const std::string &content)
 }
 
 /**
- * \brief Fetch file from IFPS network (create a new client connection for thread safety)
+ * \brief Fetch file from IFPS network (create a new client object each time - which is thread safe)
  * \param path File path
  * \throw runtime error when something goes wrong
  * \return content as string
@@ -64,18 +64,6 @@ std::string const File::fetch(const std::string &path)
     std::stringstream contents;
     client.FilesGet(path, &contents);
     return contents.str();
-}
-
-/**
- * \brief Publish file to IPFS network (does *not* need to be thead-safe, but is thread-safe nevertheless now)
- * \param filename Filename that gets stored in IPFS
- * \param content Content that needs to be written to the IPFS network
- * \return IPFS content-addressed identifier (CID)
- */
-std::string const File::publish(const std::string &filename, const std::string &content)
-{
-    // TODO: Publish file to IPFS
-    return "CID";
 }
 
 /**

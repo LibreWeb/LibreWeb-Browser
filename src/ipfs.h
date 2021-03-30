@@ -6,20 +6,17 @@
 
 /**
  * \class IPFS
- * \brief Helper class to start/stop IPFS deamon and other IPFS calls
+ * \brief Start IPFS connection and contain IPFS related calls
  */
 class IPFS
 {
 public:
     explicit IPFS(const std::string &host, int port);
-
-    static int startIPFSDaemon();
     std::size_t getNrPeers();
     std::map<std::string, float> getBandwidthRates();
+    std::string const publish(const std::string &filename, const std::string &content);
+
 private:
     ipfs::Client client;
-
-    static bool shouldKillRunningProcess();
-    static std::string findIPFSBinary();
 };
 #endif
