@@ -790,6 +790,8 @@ void MainWindow::edit()
         this->enableEdit();
 
     m_draw_main.setText(this->currentContent);
+    // Set title
+    this->set_title("Untitled * - " + m_appName);
 }
 
 /**
