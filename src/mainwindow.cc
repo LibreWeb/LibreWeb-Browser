@@ -750,14 +750,14 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
     {
     case Gtk::ResponseType::RESPONSE_OK:
     {
+        // Enable editor if needed
+        if (!this->isEditorEnabled())
+            this->enableEdit();
+
         auto filePath = dialog->get_file()->get_path();
         std::string path = "file://" + filePath;
         // Open file and set address bar, but do not parse the content or the disable editor
         doRequest(path, true, false, false, false);
-
-        // Enable editor if needed
-        if (!this->isEditorEnabled())
-            this->enableEdit();
 
         // Change address bar
         this->m_addressBar.set_text(path);
@@ -786,7 +786,10 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
  */
 void MainWindow::edit()
 {
-    
+    if (!this->isEditorEnabled())
+        this->enableEdit();
+
+    m_draw_main.setText(this->currentContent);
 }
 
 /**

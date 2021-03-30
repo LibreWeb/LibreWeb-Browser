@@ -58,7 +58,7 @@ I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CM
 
 For the build you need at least:
 
-* GCC 9 or higher (GCC 8 should also work, but not adviced. Package: `build-essential`)
+* GCC 9 or higher (`build-essential`, `g++-9`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
 * GTK & Pango (including C++ bindings):
