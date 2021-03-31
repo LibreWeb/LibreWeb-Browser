@@ -63,32 +63,24 @@ std::string const IPFS::fetch(const std::string &path)
 }
 
 /**
- * \brief Publish file to IPFS network (not thread-safe)
- * \param filename Filename that gets stored in IPFS
+ * \brief Add a file to IPFS network (not thread-safe)
+ * \param path File path where the file could be stored in IPFS (like puting a file inside a directory within IPFS)
  * \param content Content that needs to be written to the IPFS network
+ * \throw std::runtime_error when there is a connection-time/something goes wrong while trying to get the file
  * \return IPFS content-addressed identifier (CID) hash
  */
-std::string const IPFS::publish(const std::string &filename, const std::string &content)
+std::string const IPFS::add(const std::string &path, const std::string &content)
 {
-    try
+    ipfs::Json result;
+    // Publish a single file
+    client.FilesAdd({{path, ipfs::http::FileUpload::Type::kFileContents, content}}, &result);
+    if (result.is_array())
     {
-        ipfs::Json result;
-        // Publish a single file
-        ipfs::http::FileUpload file = {filename, ipfs::http::FileUpload::Type::kFileContents, content};
-        client.FilesAdd({file}, &result);
-        if (result.is_array())
+        for (const auto &files : result.items())
         {
-            for (const auto &files : result.items())
-            {
-                return files.value()["hash"];
-            }
+            return files.value()["hash"];
         }
-        // something is wrong, fallback
-        return "";
     }
-    catch (const std::runtime_error &error)
-    {
-        // ignore connection issues
-    }
-    return ""; // empty string, something went wrong
+    // something is wrong, fallback
+    return "";
 }

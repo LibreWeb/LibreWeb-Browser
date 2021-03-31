@@ -15,7 +15,7 @@ public:
     std::size_t getNrPeers();
     std::map<std::string, float> getBandwidthRates();
     static std::string const fetch(const std::string &path);
-    std::string const publish(const std::string &filename, const std::string &content);
+    std::string const add(const std::string &path, const std::string &content);
 
 private:
     ipfs::Client client;

@@ -86,7 +86,7 @@ bool IPFSProcess::shouldKillRunningProcess()
                 // meaning the process will be killed.
                 return (strncmp(pathbuf, beginPath, strlen(beginPath)) != 0);
             }
-            // TODO: Compare IPFS version as well, maybe?
+            // TODO: Compare IPFS version as well (via: "ipfs version" command), maybe?
         }
         else
         {

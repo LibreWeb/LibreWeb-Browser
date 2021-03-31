@@ -917,22 +917,54 @@ void MainWindow::publish()
 {
     // TODO: If the currentContent is empty, give a warning about 'Are you sure you want to publish an empty document?'
 
-    std::string filename = "new_file.md";
+    std::string path = "new_file.md";
     // Retrieve filename from saved file (if present)
-    if (!currentFileSavedPath.empty()) {
-        filename = File::getFilename(this->currentFileSavedPath);
-    } else {
-        // TODO: Ask for filename if it wasn't saved yet, but user pressed publish directly
+    if (!currentFileSavedPath.empty())
+    {
+        path = currentFileSavedPath;
     }
-    // TODO: Inventigate: should we run this within a seperate thread? Is that necessary?
-    // Publish content to IPFS!
-    std::string cid = ipfs.publish(filename, this->currentContent);
+    else
+    {
+        // TODO: path is not defined yet. however, this may change anyway once we try to build more complex websites,
+        // needing to use directory structures.
+    }
+    // TODO:  should we run this within a seperate thread? Looks fine until now without threading.
 
-    // TODO: Give pop-up or some other indication the data is stored in IPFS...
-    if (!cid.empty()) {
-        std::cout << "INFO: File is published successfully on IPFS! With hash: " << cid << std::endl;
-    } else {
-        std::cerr << "ERROR: File could not be published on IPFS." << std::endl;
+    // Add content to IPFS!
+    try {
+        std::string cid = ipfs.add(path, this->currentContent);
+        // TODO: Give pop-up or some other indication the data is stored in IPFS...
+        if (!cid.empty())
+        {
+            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
+            m_contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:\n\nipfs://" + cid);
+            m_contentPublishedDialog->set_modal(true);
+            // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+            m_contentPublishedDialog->signal_response().connect(
+                sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+            m_contentPublishedDialog->show();
+        }
+        else
+        {
+            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File failed to be added added to IPFS", false,
+                                                                Gtk::MESSAGE_ERROR));
+            m_contentPublishedDialog->set_modal(true);
+            // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+            m_contentPublishedDialog->signal_response().connect(
+                sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+            m_contentPublishedDialog->show();
+        }
+    }
+    catch (const std::runtime_error &error)
+    {
+        m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false,
+                                                            Gtk::MESSAGE_ERROR));
+        m_contentPublishedDialog->set_secondary_text("Error message: " + std::string(error.what()));
+        m_contentPublishedDialog->set_modal(true);
+        // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+        m_contentPublishedDialog->signal_response().connect(
+            sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+        m_contentPublishedDialog->show();
     }
 }
 
@@ -1324,14 +1356,15 @@ void MainWindow::openFromDisk(bool isParseContent)
             m_draw_main.setText(currentContent);
         }
     }
-    catch (const std::ios_base::failure &e)
+    catch (const std::ios_base::failure &error)
     {
-        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << error.what() << ".\nError code: " << error.code() << std::endl;
+        m_draw_main.showMessage("🎂 Could not read file", "Message: " + std::string(error.what()));
     }
     catch (const std::runtime_error &error)
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
-        m_draw_main.showMessage("Page not found!", "Error message: " + std::string(error.what()));
+        m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
 }
 

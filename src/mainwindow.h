@@ -16,6 +16,7 @@
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/filechooserdialog.h>
+#include <gtkmm/messagedialog.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
@@ -144,6 +145,7 @@ protected:
     Gtk::Image m_hightlightIcon;
     Gtk::Popover m_statusPopover;
     Gtk::Label m_statusLabel;
+    std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
     Gtk::ScrolledWindow m_scrolledWindowSecondary;
     Gtk::Button m_exitBottomButton;
