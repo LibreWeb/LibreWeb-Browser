@@ -915,8 +915,25 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
  */
 void MainWindow::publish()
 {
-    std::cout << "INFO: TODO" << std::endl;
-    this->currentContent;
+    // TODO: If the currentContent is empty, give a warning about 'Are you sure you want to publish an empty document?'
+
+    std::string filename = "new_file.md";
+    // Retrieve filename from saved file (if present)
+    if (!currentFileSavedPath.empty()) {
+        filename = File::getFilename(this->currentFileSavedPath);
+    } else {
+        // TODO: Ask for filename if it wasn't saved yet, but user pressed publish directly
+    }
+    // TODO: Inventigate: should we run this within a seperate thread? Is that necessary?
+    // Publish content to IPFS!
+    std::string cid = ipfs.publish(filename, this->currentContent);
+
+    // TODO: Give pop-up or some other indication the data is stored in IPFS...
+    if (!cid.empty()) {
+        std::cout << "INFO: File is published successfully on IPFS! With hash: " << cid << std::endl;
+    } else {
+        std::cerr << "ERROR: File could not be published on IPFS." << std::endl;
+    }
 }
 
 /**

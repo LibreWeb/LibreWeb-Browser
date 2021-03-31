@@ -49,9 +49,9 @@ std::map<std::string, float> IPFS::getBandwidthRates()
 }
 
 /**
- * \brief Fetch file from IFPS network (create a new client object each time - which is thread safe), static method
+ * \brief Fetch file from IFPS network (create a new client object each time - which is thread-safe), static method
  * \param path File path
- * \throw runtime error when something goes wrong
+ * \throw std::runtime_error when there is a connection-time/something goes wrong while trying to get the file
  * \return content as string
  */
 std::string const IPFS::fetch(const std::string &path)
@@ -63,13 +63,32 @@ std::string const IPFS::fetch(const std::string &path)
 }
 
 /**
- * \brief Publish file to IPFS network
+ * \brief Publish file to IPFS network (not thread-safe)
  * \param filename Filename that gets stored in IPFS
  * \param content Content that needs to be written to the IPFS network
- * \return IPFS content-addressed identifier (CID)
+ * \return IPFS content-addressed identifier (CID) hash
  */
 std::string const IPFS::publish(const std::string &filename, const std::string &content)
 {
-    // TODO: Publish file to IPFS
-    return "CID";
+    try
+    {
+        ipfs::Json result;
+        // Publish a single file
+        ipfs::http::FileUpload file = {filename, ipfs::http::FileUpload::Type::kFileContents, content};
+        client.FilesAdd({file}, &result);
+        if (result.is_array())
+        {
+            for (const auto &files : result.items())
+            {
+                return files.value()["hash"];
+            }
+        }
+        // something is wrong, fallback
+        return "";
+    }
+    catch (const std::runtime_error &error)
+    {
+        // ignore connection issues
+    }
+    return ""; // empty string, something went wrong
 }
