@@ -79,6 +79,7 @@ MainWindow::MainWindow()
     m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                                               /*!< Menu item for new document */
     m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                                                     /*!< Menu item for opening existing document */
     m_menu.open_edit.connect(sigc::mem_fun(this, &MainWindow::open_and_edit));                                       /*!< Menu item for opening & editing existing document */
+    m_menu.edit.connect(sigc::mem_fun(this, &MainWindow::edit));                                                     /*!< Menu item for editing current open document */
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
     m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                                               /*!< Menu item for save document as */
     m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                                               /*!< Menu item for publishing */
@@ -641,7 +642,7 @@ void MainWindow::selectAll()
 }
 
 /**
- * Trigger/creating a new document
+ * \brief Trigger when user selected 'new document' from menu item
  */
 void MainWindow::new_doc()
 {
@@ -657,6 +658,9 @@ void MainWindow::new_doc()
     this->set_title("Untitled * - " + m_appName);
 }
 
+/**
+ * \brief Triggered when user selected 'open...' from menu item / toolbar
+ */
 void MainWindow::open()
 {
     auto dialog = new Gtk::FileChooserDialog("Open", Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -680,6 +684,9 @@ void MainWindow::open()
     dialog->show();
 }
 
+/**
+ * \brief Triggered when user selected 'open & edit...' from menu item
+ */
 void MainWindow::open_and_edit()
 {
     auto dialog = new Gtk::FileChooserDialog("Open & Edit", Gtk::FILE_CHOOSER_ACTION_OPEN);
@@ -703,6 +710,9 @@ void MainWindow::open_and_edit()
     dialog->show();
 }
 
+/**
+ * \brief Signal response when 'open' dialog is closed
+ */
 void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
@@ -731,20 +741,23 @@ void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog
     delete dialog;
 }
 
+/**
+ * \brief Signal response when 'open & edit' dialog is closed
+ */
 void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
     {
     case Gtk::ResponseType::RESPONSE_OK:
     {
+        // Enable editor if needed
+        if (!this->isEditorEnabled())
+            this->enableEdit();
+
         auto filePath = dialog->get_file()->get_path();
         std::string path = "file://" + filePath;
         // Open file and set address bar, but do not parse the content or the disable editor
         doRequest(path, true, false, false, false);
-
-        // Enable editor if needed
-        if (!this->isEditorEnabled())
-            this->enableEdit();
 
         // Change address bar
         this->m_addressBar.set_text(path);
@@ -768,6 +781,22 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
     delete dialog;
 }
 
+/**
+ * \brief Triggered when user selected 'edit' from menu item
+ */
+void MainWindow::edit()
+{
+    if (!this->isEditorEnabled())
+        this->enableEdit();
+
+    m_draw_main.setText(this->currentContent);
+    // Set title
+    this->set_title("Untitled * - " + m_appName);
+}
+
+/**
+ * \brief Triggered when user selected 'save' from menu item / toolbar
+ */
 void MainWindow::save()
 {
     if (currentFileSavedPath.empty())
@@ -794,6 +823,9 @@ void MainWindow::save()
     }
 }
 
+/**
+ * \brief Triggered when 'save as..' menu item is selected or the user saves the file for the first time via 'save'
+ */
 void MainWindow::save_as()
 {
     auto dialog = new Gtk::FileChooserDialog("Save", Gtk::FILE_CHOOSER_ACTION_SAVE);
@@ -830,6 +862,9 @@ void MainWindow::save_as()
     dialog->show();
 }
 
+/**
+ * \brief Signal response when 'save as' dialog is closed
+ */
 void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog *dialog)
 {
     switch (response_id)
@@ -875,9 +910,62 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
     delete dialog;
 }
 
+/**
+ * \brief Triggered when user selected the 'Publish...' menu item or publish button in the toolbar
+ */
 void MainWindow::publish()
 {
-    std::cout << "INFO: TODO" << std::endl;
+    // TODO: If the currentContent is empty, give a warning about 'Are you sure you want to publish an empty document?'
+
+    std::string path = "new_file.md";
+    // Retrieve filename from saved file (if present)
+    if (!currentFileSavedPath.empty())
+    {
+        path = currentFileSavedPath;
+    }
+    else
+    {
+        // TODO: path is not defined yet. however, this may change anyway once we try to build more complex websites,
+        // needing to use directory structures.
+    }
+    // TODO:  should we run this within a seperate thread? Looks fine until now without threading.
+
+    // Add content to IPFS!
+    try {
+        std::string cid = ipfs.add(path, this->currentContent);
+        // TODO: Give pop-up or some other indication the data is stored in IPFS...
+        if (!cid.empty())
+        {
+            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
+            m_contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:\n\nipfs://" + cid);
+            m_contentPublishedDialog->set_modal(true);
+            // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+            m_contentPublishedDialog->signal_response().connect(
+                sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+            m_contentPublishedDialog->show();
+        }
+        else
+        {
+            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File failed to be added added to IPFS", false,
+                                                                Gtk::MESSAGE_ERROR));
+            m_contentPublishedDialog->set_modal(true);
+            // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+            m_contentPublishedDialog->signal_response().connect(
+                sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+            m_contentPublishedDialog->show();
+        }
+    }
+    catch (const std::runtime_error &error)
+    {
+        m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false,
+                                                            Gtk::MESSAGE_ERROR));
+        m_contentPublishedDialog->set_secondary_text("Error message: " + std::string(error.what()));
+        m_contentPublishedDialog->set_modal(true);
+        // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+        m_contentPublishedDialog->signal_response().connect(
+            sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+        m_contentPublishedDialog->show();
+    }
 }
 
 /**
@@ -1092,8 +1180,6 @@ bool MainWindow::isInstalled()
 
 void MainWindow::enableEdit()
 {
-    // Reset the current content
-
     // Inform the Draw class that we are creating a new document
     this->m_draw_main.newDocument();
     // Show editor toolbars
@@ -1105,8 +1191,10 @@ void MainWindow::enableEdit()
     this->m_draw_main.setViewSourceMenuItem(false);
     // Connect changed signal
     this->textChangedSignalHandler = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
-    // Enable publish button in menu
+    // Enable publish menu item
     this->m_menu.setPublishMenuSensitive(true);
+    // Disable edit menu item (you are already editing)
+    this->m_menu.setEditMenuSensitive(false);
 }
 
 void MainWindow::disableEdit()
@@ -1121,8 +1209,10 @@ void MainWindow::disableEdit()
         // Show "view source" menu item again
         this->m_draw_main.setViewSourceMenuItem(true);
         this->m_draw_secondary.clearText();
-        // Disable publish button in menu
+        // Disable publish menu item
         this->m_menu.setPublishMenuSensitive(false);
+        // Enable edit menu item
+        this->m_menu.setEditMenuSensitive(true);
         // Empty current file saved path
         this->currentFileSavedPath = "";
         // Restore title
@@ -1207,12 +1297,15 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
 {
     try
     {
-        currentContent = File::fetch(finalRequestPath);
-        if (isParseContent) {
+        currentContent = IPFS::fetch(finalRequestPath);
+        if (isParseContent)
+        {
             cmark_node *doc = Parser::parseContent(currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
-        } else {
+        }
+        else
+        {
             // directly set the plain content
             m_draw_main.setText(currentContent);
         }
@@ -1251,23 +1344,27 @@ void MainWindow::openFromDisk(bool isParseContent)
     try
     {
         currentContent = File::read(finalRequestPath);
-        if (isParseContent) {
+        if (isParseContent)
+        {
             cmark_node *doc = Parser::parseContent(currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
-        } else {
+        }
+        else
+        {
             // directly set the plain content
             m_draw_main.setText(currentContent);
         }
     }
-    catch (const std::ios_base::failure &e)
+    catch (const std::ios_base::failure &error)
     {
-        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << error.what() << ".\nError code: " << error.code() << std::endl;
+        m_draw_main.showMessage("🎂 Could not read file", "Message: " + std::string(error.what()));
     }
     catch (const std::runtime_error &error)
     {
         std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
-        m_draw_main.showMessage("Page not found!", "Error message: " + std::string(error.what()));
+        m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
 }
 

@@ -1,5 +1,5 @@
 #include "mainwindow.h"
-#include "ipfs.h"
+#include "ipfs-process.h"
 #include "project_config.h"
 #include <iostream>
 #include <gtkmm/application.h>
@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     if (child_pid == 0)
     {
         // Run by child process
-        return IPFS::startIPFSDaemon();
+        return IPFSProcess::startIPFSDaemon();
     }
     else if (child_pid > 0)
     {

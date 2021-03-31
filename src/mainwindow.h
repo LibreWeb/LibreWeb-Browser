@@ -16,6 +16,7 @@
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/filechooserdialog.h>
+#include <gtkmm/messagedialog.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
@@ -47,6 +48,7 @@ protected:
     void open_and_edit();
     void on_open_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void on_open_edit_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);    
+    void edit();
     void save();
     void save_as();
     void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
@@ -143,6 +145,7 @@ protected:
     Gtk::Image m_hightlightIcon;
     Gtk::Popover m_statusPopover;
     Gtk::Label m_statusLabel;
+    std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
     Gtk::ScrolledWindow m_scrolledWindowSecondary;
     Gtk::Button m_exitBottomButton;

@@ -5,15 +5,13 @@
 
 /**
  * \class File
- * \brief Fetch markdown file from disk or the IPFS network
+ * \brief Read/write markdown files from disk and retrieve filename from path
  */
 class File
 {
 public:
     static std::string const read(const std::string &path);
     static void write(const std::string &path, const std::string &content);
-    static std::string const fetch(const std::string &path);
-    static std::string const publish(const std::string &filename, const std::string &content);
     static std::string const getFilename(const std::string &path);
 };
 #endif

@@ -16,6 +16,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     auto openEditMenuItem = createMenuItem("Open & _Edit...");
     openEditMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_E, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     openEditMenuItem->signal_activate().connect(open_edit);
+    editMenuItem = createMenuItem("Edit");
+    editMenuItem->add_accelerator("activate", accelgroup, GDK_KEY_D, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+    editMenuItem->signal_activate().connect(edit);
     auto saveMenuitem = createMenuItem("_Save");
     saveMenuitem->add_accelerator("activate", accelgroup, GDK_KEY_S, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
     saveMenuitem->signal_activate().connect(save);
@@ -85,6 +88,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup> &accelgroup)
     m_fileSubmenu.append(*newDocumentMenuItem);
     m_fileSubmenu.append(*openMenuItem);
     m_fileSubmenu.append(*openEditMenuItem);
+    m_fileSubmenu.append(*editMenuItem);    
     m_fileSubmenu.append(m_separator1);
     m_fileSubmenu.append(*saveMenuitem);
     m_fileSubmenu.append(*saveAsMenuItem);
@@ -141,6 +145,11 @@ void Menu::setForwardMenuSensitive(bool sensitive)
 void Menu::setPublishMenuSensitive(bool sensitive)
 {
     publishMenuItem->set_sensitive(sensitive);
+}
+
+void Menu::setEditMenuSensitive(bool sensitive)
+{
+    editMenuItem->set_sensitive(sensitive);
 }
 
 /**

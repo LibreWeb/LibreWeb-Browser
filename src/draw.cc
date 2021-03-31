@@ -261,7 +261,7 @@ std::string Draw::getText()
  */
 void Draw::setText(const std::string &content)
 {
-    DispatchData *data = g_new0(struct DispatchData, 1);
+    DispatchData *data = new DispatchData();
     data->buffer = buffer;
     data->text = content;
     gdk_threads_add_idle((GSourceFunc)insertPlainTextIdle, data);
@@ -765,7 +765,6 @@ void Draw::disableEdit()
     this->deleteTextSignalHandler.disconnect();
 }
 
-
 /**
  * Search for links
  */
@@ -1188,19 +1187,11 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
 }
 
 /**
- * Insert plain text - thread safe
- */
-void Draw::insertPlainText(const std::string &content)
-{
-
-}
-
-/**
  * Insert url link - thread safe
  */
 void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
 {
-    DispatchData *data = g_new0(struct DispatchData, 1);
+    DispatchData *data = new DispatchData();
     data->buffer = buffer;
     data->text = text;
     data->url = url;
@@ -1213,7 +1204,7 @@ void Draw::insertLink(const std::string &text, const std::string &url, const std
  */
 void Draw::truncateText(int charsTruncated)
 {
-    DispatchData *data = g_new0(struct DispatchData, 1);
+    DispatchData *data = new DispatchData();
     data->buffer = buffer;
     data->charsTruncated = charsTruncated;
     gdk_threads_add_idle((GSourceFunc)truncateTextIdle, data);
@@ -1251,7 +1242,7 @@ void Draw::encodeText(std::string &string)
  */
 void Draw::insertMarkupTextOnThread(const std::string &text)
 {
-    DispatchData *data = g_new0(struct DispatchData, 1);
+    DispatchData *data = new DispatchData();
     data->buffer = buffer;
     data->text = text;
     gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
@@ -1316,7 +1307,6 @@ gboolean Draw::insertTextIdle(struct DispatchData *data)
  */
 gboolean Draw::insertPlainTextIdle(struct DispatchData *data)
 {
-    GtkTextIter end_iter;
     gtk_text_buffer_set_text(data->buffer, data->text.c_str(), -1);
     g_free(data);
     return FALSE;

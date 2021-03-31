@@ -74,23 +74,25 @@ set(SCHEMA_FILE ${CMAKE_CURRENT_SOURCE_DIR}/org.libreweb.browser.gschema.xml)
 # Source code
 set(HEADERS
     about.h
+    draw.h
     file.h
+    ipfs-process.h
     ipfs.h
     mainwindow.h
-    menu.h
     md-parser.h
-    draw.h
+    menu.h
     source-code-dialog.h
 )
 set(SOURCES 
   main.cc
   about.cc
+  draw.cc
   file.cc
+  ipfs-process.cc
   ipfs.cc
   mainwindow.cc
-  menu.cc
   md-parser.cc
-  draw.cc
+  menu.cc
   source-code-dialog.cc
   ${HEADERS}
 )
