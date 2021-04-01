@@ -1356,7 +1356,7 @@ void MainWindow::openFromDisk(bool isParseContent)
             m_draw_main.setText(currentContent);
         }
     }
-    catch (const std::ios_base::faiure &error)
+    catch (const std::ios_base::failure &error)
     {
         std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << error.what() << ".\nError code: " << error.code() << std::endl;
         m_draw_main.showMessage("🎂 Could not read file", "Message: " + std::string(error.what()));
