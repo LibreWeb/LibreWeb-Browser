@@ -1,5 +1,5 @@
 image: danger89/gtk3-docker-cmake-ninja:2.1
- 
+
 stages:
   - build
   - release
