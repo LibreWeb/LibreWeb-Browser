@@ -21,47 +21,64 @@ namespace n_fs = ::std::filesystem;
  */
 int IPFSProcess::startIPFSDaemon()
 {
-    // Kill any running IPFS daemons if needed
-    if (IPFSProcess::shouldKillRunningProcess())
+    bool startIPFSDaemon = true;
+    pid_t daemonPID = IPFSProcess::getRunningDaemonPID();
+    // Valid PID?
+    if (daemonPID > 0)
     {
-        std::cout << "INFO: Already running ipfs process will be terminated." << std::endl;
-        int res = std::system("killall -w -q ipfs");
-        if (res != 0)
+        // Kill any running IPFS daemon processes if needed
+        if (IPFSProcess::shouldProcessTerminated(daemonPID))
         {
-            // ignore
+            std::cout << "INFO: Already running ipfs process will be terminated." << std::endl;
+            int res = std::system("killall -w -q ipfs");
+            if (res != 0)
+            {
+                // ignore
+            }
+        }
+        else
+        {
+            // Keep running, don't start another daemon process
+             std::cout << "INFO: Keep using the current running IPFS process, with PID: " << std::to_string(daemonPID) << std::endl;
+            startIPFSDaemon = false;
         }
     }
 
-    // Find the IPFS binary
-    std::string executable = IPFSProcess::findIPFSBinary();
-    std::cout << "INFO: Starting IPFS Daemon, using: " << executable << std::endl;
-    if (n_fs::exists(executable))
+    if (startIPFSDaemon)
     {
-        /// open /dev/null for writing
-        int fd = open("/dev/null", O_WRONLY);
-        dup2(fd, 1); // make stdout a copy of fd (> /dev/null)
-        dup2(fd, 2); // ..and same with stderr
-        close(fd);   // close fd
-        // stdout and stderr now write to /dev/null
+        // Find the IPFS binary
+        std::string executable = IPFSProcess::findIPFSBinary();
+        std::cout << "INFO: Starting IPFS Daemon, using: " << executable << std::endl;
+        if (n_fs::exists(executable))
+        {
+            /// open /dev/null for writing
+            int fd = open("/dev/null", O_WRONLY);
+            dup2(fd, 1); // make stdout a copy of fd (> /dev/null)
+            dup2(fd, 2); // ..and same with stderr
+            close(fd);   // close fd
+            // stdout and stderr now write to /dev/null
 
-        // Ready to call exec to start IPFS Daemon
-        const char *exe = executable.c_str();
-        char *proc[] = {strdup(exe), strdup("daemon"), strdup("--init"), strdup("--migrate"), NULL};
-        return execv(exe, proc);
+            // Ready to call exec to start IPFS Daemon
+            const char *exe = executable.c_str();
+            char *proc[] = {strdup(exe), strdup("daemon"), strdup("--init"), strdup("--migrate"), NULL};
+            return execv(exe, proc);
+        }
+        else
+        {
+            std::cerr << "Error: IPFS Daemon is not found. IPFS will not work!" << std::endl;
+            return -1;
+        }
     }
-    else
-    {
-        std::cerr << "Error: IPFS Daemon is not found. IPFS will not work!" << std::endl;
-        return -1;
-    }
+    return 0;
 }
 
 /**
- * \brief Determine if the app needs to kill any running IPFS process
- * \return true if it needs to be terminated, otherwise false
+ * \brief Retrieve IPFS Daemon PID (zero if non-exists)
+ * \return pid_t, 0 if non-exists, -1 on error
  */
-bool IPFSProcess::shouldKillRunningProcess()
+pid_t IPFSProcess::getRunningDaemonPID()
 {
+    pid_t pid = 0; // PID of 0 is by definition not possible
     FILE *cmd_pipe = popen("pidof -s ipfs", "r");
     if (cmd_pipe != NULL)
     {
@@ -75,27 +92,38 @@ bool IPFSProcess::shouldKillRunningProcess()
 
         if (strlen(pidbuf) > 0)
         {
-            pid_t pid = strtoul(pidbuf, NULL, 10);
-            char pathbuf[1024];
-            memset(pathbuf, 0, sizeof(pathbuf));
-            std::string path = "/proc/" + std::to_string(pid) + "/exe";
-            if (readlink(path.c_str(), pathbuf, sizeof(pathbuf) - 1) > 0)
-            {
-                char beginPath[] = "/usr/share/libreweb-browser";
-                // If the begin path does not path (!= 0), return true,
-                // meaning the process will be killed.
-                return (strncmp(pathbuf, beginPath, strlen(beginPath)) != 0);
-            }
-            // TODO: Compare IPFS version as well (via: "ipfs version" command), maybe?
-        }
-        else
-        {
-            // No running IPFS process
-            return false;
+            pid = strtoul(pidbuf, NULL, 10);
         }
     }
-    // Something went wrong, fallback is to kill (better safe then sorry)
-    return true;
+    else
+    {
+        pid = -1; // on error
+    }
+    return pid;
+}
+
+/**
+ * \brief Determine if the app needs to kill any running IPFS process
+ * \param pid Give an actual valid PID to determine if the process needs to be killed (and started again)
+ * \return true if it needs to be terminated, otherwise false
+ */
+bool IPFSProcess::shouldProcessTerminated(pid_t pid)
+{
+    char pathbuf[1024];
+    memset(pathbuf, 0, sizeof(pathbuf));
+    std::string path = "/proc/" + std::to_string(pid) + "/exe";
+    if (readlink(path.c_str(), pathbuf, sizeof(pathbuf) - 1) > 0)
+    {
+        char beginPath[] = "/usr/share/libreweb-browser";
+        // If the begin path does not path (!= 0), return true,
+        // meaning the process will be killed.
+        return (strncmp(pathbuf, beginPath, strlen(beginPath)) != 0);
+        // TODO: Compare IPFS version as well (via: "ipfs version" command), maybe?
+    }
+    else
+    {
+        return true; // error fall-back also kill
+    }
 }
 
 /**

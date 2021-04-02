@@ -13,7 +13,8 @@ public:
     static int startIPFSDaemon();
 
 private:
-    static bool shouldKillRunningProcess();
+    static pid_t getRunningDaemonPID();
+    static bool shouldProcessTerminated(pid_t pid);
     static std::string findIPFSBinary();
 };
 #endif

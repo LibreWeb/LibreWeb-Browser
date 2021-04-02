@@ -36,10 +36,12 @@ int main(int argc, char *argv[])
     {
         // Parent process (child_pid is PID of child)
         auto app = Gtk::Application::create(argc, argv, "org.libreweb.browser");
+        app->set_flags( Gio::ApplicationFlags::APPLICATION_NON_UNIQUE);
 
         MainWindow window;
         int exitCode = app->run(window);
         // Kill also the child
+        // TODO: If we have multiple browsers running, maybe don't kill the IPFS daemon child process yet..?
         kill(child_pid, SIGTERM);
         return exitCode;
     }
