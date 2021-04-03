@@ -30,17 +30,15 @@ MainWindow::MainWindow(const std::string &timeout)
       m_hboxStandardEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
+      m_hboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_statusPopover(m_statusButton),
+      m_copyIDButton("Copy Client ID"),
       m_appName("LibreWeb Browser"),
-      m_iconTheme("flat"),             // filled or flat
+      m_iconTheme("flat"),             // filled or flat      
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
       m_iconSize(18),
       m_requestThread(nullptr),
-      requestPath(""),
-      finalRequestPath(""),
-      currentContent(""),
-      currentFileSavedPath(""),
       currentHistoryIndex(0),
       ipfsHost("localhost"),
       ipfsPort(5001),
@@ -65,12 +63,19 @@ MainWindow::MainWindow(const std::string &timeout)
     if (m_settings->get_boolean("maximized"))
         this->maximize();
 
-    m_statusPopover.set_position(Gtk::POS_BOTTOM);
-    m_statusPopover.set_size_request(200, 80);
-    m_statusPopover.add(m_statusLabel);
-
     m_statusLabel.set_text("Network is still starting..."); // fallback text
+    m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
+    m_copyIDButton.set_margin_start(6);
+    m_copyIDButton.set_margin_end(6);
+    m_hboxStatus.pack_start(m_statusLabel, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_hboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 8);
+    m_statusPopover.set_position(Gtk::POS_BOTTOM);
+    m_statusPopover.set_size_request(220, 80);
+    m_statusPopover.add(m_hboxStatus);
     m_statusPopover.show_all_children();
+
+    // Directly get the client ID (only once)
+    this->clientID = ipfs.getClientID();
 
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
@@ -1042,6 +1047,17 @@ void MainWindow::go_home()
 void MainWindow::show_status()
 {
     this->m_statusPopover.popup();
+}
+
+/**
+ * \brief Copy the IPFS Client ID to clipboard
+ */
+void MainWindow::copy_client_id()
+{
+    if (!this->clientID.empty())
+        get_clipboard("CLIPBOARD")->set_text(this->clientID);
+    else
+        std::cerr << "WARNING: IPFS client ID has not been set!?" << std::endl;
 }
 
 /**

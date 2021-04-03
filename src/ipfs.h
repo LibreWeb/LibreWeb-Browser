@@ -13,6 +13,7 @@ class IPFS
 public:
     explicit IPFS(const std::string &host, int port, const std::string &timeout);
     std::size_t getNrPeers();
+    std::string const getClientID();
     std::map<std::string, float> getBandwidthRates();
     std::string const fetch(const std::string &path);
     std::string const add(const std::string &path, const std::string &content);

@@ -33,6 +33,25 @@ std::size_t IPFS::getNrPeers()
 }
 
 /**
+ * \brief Retrieve your IPFS client ID
+ * \return ID
+ */
+std::string const IPFS::getClientID()
+{
+    try
+    {
+        ipfs::Json id;
+        client.Id(&id);
+        return id["ID"];
+    }
+    catch (const std::runtime_error &error)
+    {
+        // ignore connection issues
+    }
+    return "";
+}
+
+/**
  * \brief Get the number of IPFS peers
  * \return Map with bandwidth information (with keys: 'in' and 'out')
  */
