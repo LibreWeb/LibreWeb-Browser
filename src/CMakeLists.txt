@@ -81,6 +81,7 @@ set(HEADERS
     mainwindow.h
     md-parser.h
     menu.h
+    option-group.h
     source-code-dialog.h
 )
 set(SOURCES 
@@ -93,6 +94,7 @@ set(SOURCES
   mainwindow.cc
   md-parser.cc
   menu.cc
+  option-group.cc
   source-code-dialog.cc
   ${HEADERS}
 )
