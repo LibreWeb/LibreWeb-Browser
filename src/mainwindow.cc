@@ -33,7 +33,8 @@ MainWindow::MainWindow(const std::string &timeout)
       m_hboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_statusPopover(m_statusButton),
-      m_copyIDButton("Copy Client ID"),
+      m_copyIDButton("Copy your ID"),
+      m_copyPublicKeyButton("Copy Public Key"),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat      
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -67,15 +68,17 @@ MainWindow::MainWindow(const std::string &timeout)
     m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
     m_copyIDButton.set_margin_start(6);
     m_copyIDButton.set_margin_end(6);
+    m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
+    m_copyPublicKeyButton.set_margin_start(6);
+    m_copyPublicKeyButton.set_margin_end(6);
+
     m_hboxStatus.pack_start(m_statusLabel, Gtk::PACK_EXPAND_WIDGET, 4);
-    m_hboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 8);
+    m_hboxStatus.pack_end(m_copyPublicKeyButton, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_hboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 4);
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
-    m_statusPopover.set_size_request(220, 80);
+    m_statusPopover.set_size_request(240, 120);
     m_statusPopover.add(m_hboxStatus);
     m_statusPopover.show_all_children();
-
-    // Directly get the client ID (only once)
-    this->clientID = ipfs.getClientID();
 
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
@@ -461,6 +464,12 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
  */
 bool MainWindow::update_connection_status()
 {
+    // Try to set the client ID & Public key
+    if (this->clientID.empty())
+        this->clientID = ipfs.getClientID();
+    if (this->clientPublicKey.empty())
+        this->clientPublicKey = ipfs.getClientPublicKey();
+        
     std::size_t nrPeers = ipfs.getNrPeers();
     if (nrPeers > 0)
     {
@@ -1057,7 +1066,15 @@ void MainWindow::copy_client_id()
     if (!this->clientID.empty())
         get_clipboard("CLIPBOARD")->set_text(this->clientID);
     else
-        std::cerr << "WARNING: IPFS client ID has not been set!?" << std::endl;
+        std::cerr << "WARNING: IPFS client ID has not been set yet. Skip clipboard action." << std::endl;
+}
+
+void MainWindow::copy_client_public_key()
+{
+    if (!this->clientPublicKey.empty())
+        get_clipboard("CLIPBOARD")->set_text(this->clientPublicKey);
+    else
+        std::cerr << "WARNING: IPFS client public key has not been set yet. Skip clipboard action." << std::endl;
 }
 
 /**

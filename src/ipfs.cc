@@ -52,6 +52,25 @@ std::string const IPFS::getClientID()
 }
 
 /**
+ * \brief Retrieve your IPFS Public Key
+ * \return Public Key
+ */
+std::string const IPFS::getClientPublicKey()
+{
+    try
+    {
+        ipfs::Json id;
+        client.Id(&id);
+        return id["PublicKey"];
+    }
+    catch (const std::runtime_error &error)
+    {
+        // ignore connection issues
+    }
+    return "";
+}
+
+/**
  * \brief Get the number of IPFS peers
  * \return Map with bandwidth information (with keys: 'in' and 'out')
  */

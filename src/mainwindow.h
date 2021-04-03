@@ -56,6 +56,7 @@ protected:
     void go_home();
     void show_status();
     void copy_client_id();
+    void copy_client_public_key();
     void address_bar_activate();
     void on_search();
     void on_replace();
@@ -147,6 +148,7 @@ protected:
     Gtk::Image m_hightlightIcon;
     Gtk::Popover m_statusPopover;
     Gtk::Button m_copyIDButton;
+    Gtk::Button m_copyPublicKeyButton;
     Gtk::Label m_statusLabel;
     std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
@@ -172,6 +174,7 @@ private:
     sigc::connection textChangedSignalHandler;
     sigc::connection statusTimerHandler;
     std::string clientID;
+    std::string clientPublicKey;
     std::string ipfsHost;
     int ipfsPort;
     std::string ipfsTimeout;
