@@ -3,8 +3,15 @@
 
 /**
  * \brief IPFS Contructor, connect to IPFS
+ * \param host IPFS host (eg. localhost)
+ * \param port IPFS port number (5001)
+ * \param timeout IPFS time-out (which is a string, eg. "6s" for 6 seconds)
  */
-IPFS::IPFS(const std::string &host, int port) : client(host, port, "6s") {}
+IPFS::IPFS(const std::string &host, int port, const std::string &timeout)
+    : host(host),
+      port(port),
+      timeout(timeout),
+      client(this->host, this->port, this->timeout) {}
 
 /**
  * \brief Get the number of IPFS peers
@@ -56,7 +63,8 @@ std::map<std::string, float> IPFS::getBandwidthRates()
  */
 std::string const IPFS::fetch(const std::string &path)
 {
-    ipfs::Client client("localhost", 5001, "6s");
+    // Create new client each time for thread-safety
+    ipfs::Client client(this->host, this->port, this->timeout);
     std::stringstream contents;
     client.FilesGet(path, &contents);
     return contents.str();

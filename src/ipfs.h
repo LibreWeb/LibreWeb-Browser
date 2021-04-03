@@ -11,13 +11,16 @@
 class IPFS
 {
 public:
-    explicit IPFS(const std::string &host, int port);
+    explicit IPFS(const std::string &host, int port, const std::string &timeout);
     std::size_t getNrPeers();
     std::map<std::string, float> getBandwidthRates();
-    static std::string const fetch(const std::string &path);
+    std::string const fetch(const std::string &path);
     std::string const add(const std::string &path, const std::string &content);
 
 private:
+    std::string host;
+    int port;
+    std::string timeout;
     ipfs::Client client;
 };
 #endif
