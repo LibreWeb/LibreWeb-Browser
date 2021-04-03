@@ -918,56 +918,76 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
  */
 void MainWindow::publish()
 {
-    // TODO: If the currentContent is empty, give a warning about 'Are you sure you want to publish an empty document?'
-
-    std::string path = "new_file.md";
-    // Retrieve filename from saved file (if present)
-    if (!currentFileSavedPath.empty())
+    int result = Gtk::RESPONSE_YES; // By default continue
+    if (this->currentContent.empty())
     {
-        path = currentFileSavedPath;
+        Gtk::MessageDialog dialog(*this, "Are you sure you want to publish <b>empty</b> content?", true,
+                                  Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
+        dialog.set_title("Are you sure?");
+        dialog.set_default_response(Gtk::RESPONSE_NO);
+        result = dialog.run();
     }
-    else
-    {
-        // TODO: path is not defined yet. however, this may change anyway once we try to build more complex websites,
-        // needing to use directory structures.
-    }
-    // TODO:  should we run this within a seperate thread? Looks fine until now without threading.
 
-    // Add content to IPFS!
-    try {
-        std::string cid = ipfs.add(path, this->currentContent);
-        // TODO: Give pop-up or some other indication the data is stored in IPFS...
-        if (!cid.empty())
+    // Continue ...
+    if (result == Gtk::RESPONSE_YES)
+    {
+        std::string path = "new_file.md";
+        // Retrieve filename from saved file (if present)
+        if (!currentFileSavedPath.empty())
         {
-            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
-            m_contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:\n\nipfs://" + cid);
-            m_contentPublishedDialog->set_modal(true);
-            // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
-            m_contentPublishedDialog->signal_response().connect(
-                sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
-            m_contentPublishedDialog->show();
+            path = currentFileSavedPath;
         }
         else
         {
-            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File failed to be added added to IPFS", false,
-                                                                Gtk::MESSAGE_ERROR));
+            // TODO: path is not defined yet. however, this may change anyway once we try to build more complex websites,
+            // needing to use directory structures.
+        }
+        // TODO:  should we run this within a seperate thread? Looks fine until now without threading.
+
+        // Add content to IPFS!
+        try
+        {
+            std::string cid = ipfs.add(path, this->currentContent);
+            // TODO: Give pop-up or some other indication the data is stored in IPFS...
+            if (!cid.empty())
+            {
+                m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
+                m_contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:");
+                // Add custom label
+                Gtk::Label *label = Gtk::manage(new Gtk::Label("ipfs://" + cid));
+                label->set_selectable(true);
+                Gtk::Box *box = m_contentPublishedDialog->get_content_area();
+                box->pack_end(*label);
+
+                m_contentPublishedDialog->set_modal(true);
+
+                // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+                m_contentPublishedDialog->signal_response().connect(
+                    sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+                m_contentPublishedDialog->show_all();
+            }
+            else
+            {
+                m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File failed to be added added to IPFS", false,
+                                                                      Gtk::MESSAGE_ERROR));
+                m_contentPublishedDialog->set_modal(true);
+                // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
+                m_contentPublishedDialog->signal_response().connect(
+                    sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
+                m_contentPublishedDialog->show();
+            }
+        }
+        catch (const std::runtime_error &error)
+        {
+            m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false,
+                                                                  Gtk::MESSAGE_ERROR));
+            m_contentPublishedDialog->set_secondary_text("Error message: " + std::string(error.what()));
             m_contentPublishedDialog->set_modal(true);
             // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
             m_contentPublishedDialog->signal_response().connect(
                 sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
             m_contentPublishedDialog->show();
         }
-    }
-    catch (const std::runtime_error &error)
-    {
-        m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false,
-                                                            Gtk::MESSAGE_ERROR));
-        m_contentPublishedDialog->set_secondary_text("Error message: " + std::string(error.what()));
-        m_contentPublishedDialog->set_modal(true);
-        // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
-        m_contentPublishedDialog->signal_response().connect(
-            sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
-        m_contentPublishedDialog->show();
     }
 }
 
@@ -1323,7 +1343,8 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
             errorMessage.erase(0, errorMessage.find(':') + 2);
             auto content = nlohmann::json::parse(errorMessage);
             std::string message = content.value("Message", "");
-            if (message.starts_with("context deadline exceeded")) {
+            if (message.starts_with("context deadline exceeded"))
+            {
                 message += ". Time-out is set to: " + this->ipfsTimeout;
             }
             m_draw_main.showMessage("🎂 We're having trouble finding this site.", "Message: " + message + ".\n\nYou could try to reload or increase the time-out.");
