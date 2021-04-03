@@ -31,7 +31,7 @@
 class MainWindow : public Gtk::Window
 {
 public:
-    MainWindow();
+    explicit MainWindow(const std::string &timeout);
     void doRequest(const std::string &path = std::string(), bool isSetAddressBar = true, bool isHistoryRequest = false, bool isDisableEditor = true, bool isParseContent = true);
 
 protected:
@@ -168,6 +168,9 @@ private:
     std::vector<std::string> history;
     sigc::connection textChangedSignalHandler;
     sigc::connection statusTimerHandler;
+    std::string ipfsHost;
+    int ipfsPort;
+    std::string ipfsTimeout;
     IPFS ipfs;
 
     bool isInstalled();

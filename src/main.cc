@@ -1,29 +1,40 @@
 #include "mainwindow.h"
 #include "ipfs-process.h"
 #include "project_config.h"
-#include <iostream>
-#include <gtkmm/application.h>
+#include "option-group.h"
 
+#include <gtkmm/application.h>
+#include <iomanip>
+#include <iostream>
+
+/**
+ * \brief Entry point of the app
+ */
 int main(int argc, char *argv[])
 {
-    // Any arguments provided?
-    if (argc > 1)
+    // Set the command-line parameters option settings
+    Glib::OptionContext context("LibreWeb Browser - Decentralized Web Browser");
+    OptionGroup group;
+    context.set_main_group(group);
+
+    // Create the GTK application
+    auto app = Gtk::Application::create();
+    app->set_flags(Gio::ApplicationFlags::APPLICATION_NON_UNIQUE);
+    
+    try
     {
-        int opt;
-        while ((opt = getopt(argc, argv, ":v")) != EOF) // -v is optional
-            switch (opt)
-            {
-            case 'v':
-                // Display version, and directly exit the program.
-                std::cout << "LibreWeb Browser " << PROJECT_VER << std::endl;
-                exit(EXIT_SUCCESS);
-                break;
-            case 'h':
-            case '?': // Unknown
-                fprintf(stderr, "Usuage: browser [-v] \nDecentralized Web-Browser, part of the LibreWeb Project\n\nOptions are:\n    -v : output version information and exit\n\n");
-                exit(EXIT_SUCCESS);
-                break;
-            }
+        // Parse the content
+        context.parse(argc, argv);
+        if (group.m_version)
+        {
+            std::cout << "LibreWeb Browser " << PROJECT_VER << std::endl;
+            exit(EXIT_SUCCESS);
+        }
+    }
+    catch (const Glib::Error &ex)
+    {
+        std::cerr << "Parase failure: " << ex.what() << std::endl;
+        exit(EXIT_FAILURE);
     }
 
     pid_t child_pid = fork();
@@ -34,11 +45,8 @@ int main(int argc, char *argv[])
     }
     else if (child_pid > 0)
     {
-        // Parent process (child_pid is PID of child)
-        auto app = Gtk::Application::create(argc, argv, "org.libreweb.browser");
-        app->set_flags( Gio::ApplicationFlags::APPLICATION_NON_UNIQUE);
-
-        MainWindow window;
+        // Run the GTK window in the parent process (child_pid is the PID of child process)
+        MainWindow window(group.m_timeout);
         int exitCode = app->run(window);
         // Kill also the child
         // TODO: If we have multiple browsers running, maybe don't kill the IPFS daemon child process yet..?
@@ -48,5 +56,6 @@ int main(int argc, char *argv[])
     else // PID < 0, error
     {
         printf("ERROR: fork failed.\n");
+        return EXIT_FAILURE;
     }
 }

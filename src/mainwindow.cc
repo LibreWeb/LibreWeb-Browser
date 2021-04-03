@@ -19,7 +19,7 @@
 #include <fstream>
 #include <nlohmann/json.hpp>
 
-MainWindow::MainWindow()
+MainWindow::MainWindow(const std::string &timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
       m_menu(m_accelGroup),
@@ -42,7 +42,10 @@ MainWindow::MainWindow()
       currentContent(""),
       currentFileSavedPath(""),
       currentHistoryIndex(0),
-      ipfs("localhost", 5001) // Connect to IPFS daemon
+      ipfsHost("localhost"),
+      ipfsPort(5001),
+      ipfsTimeout(timeout),
+      ipfs(ipfsHost, ipfsPort, ipfsTimeout) // Create IPFS object
 {
     set_title(m_appName);
     set_default_size(1000, 800);
@@ -1297,7 +1300,7 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
 {
     try
     {
-        currentContent = IPFS::fetch(finalRequestPath);
+        currentContent = ipfs.fetch(finalRequestPath);
         if (isParseContent)
         {
             cmark_node *doc = Parser::parseContent(currentContent);
@@ -1320,7 +1323,10 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
             errorMessage.erase(0, errorMessage.find(':') + 2);
             auto content = nlohmann::json::parse(errorMessage);
             std::string message = content.value("Message", "");
-            m_draw_main.showMessage("🎂 We're having trouble finding this site.", "Message: " + message + ".\n\nYou could try to reload.");
+            if (message.starts_with("context deadline exceeded")) {
+                message += ". Time-out is set to: " + this->ipfsTimeout;
+            }
+            m_draw_main.showMessage("🎂 We're having trouble finding this site.", "Message: " + message + ".\n\nYou could try to reload or increase the time-out.");
         }
         else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
         {
