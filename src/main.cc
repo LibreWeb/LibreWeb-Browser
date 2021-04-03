@@ -48,9 +48,10 @@ int main(int argc, char *argv[])
         // Run the GTK window in the parent process (child_pid is the PID of child process)
         MainWindow window(group.m_timeout);
         int exitCode = app->run(window);
-        // Kill also the child
+
         // TODO: If we have multiple browsers running, maybe don't kill the IPFS daemon child process yet..?
-        kill(child_pid, SIGTERM);
+        // For now, let's don't kill the IPFS process
+        //kill(child_pid, SIGTERM);
         return exitCode;
     }
     else // PID < 0, error
