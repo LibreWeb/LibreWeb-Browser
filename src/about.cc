@@ -8,20 +8,24 @@ About::About()
 {
     std::vector<Glib::ustring> devs;
     devs.push_back("Melroy van den Berg <info@libreweb.org>");
+    std::vector<Glib::ustring> docs;
+    docs.push_back("Melroy van den Berg <info@libreweb.org>");
+
     logo.set(this->getLogoImage());
 
     set_program_name("LibreWeb Browser");
     set_version(PROJECT_VER);
-    set_comments("The fastest decentralized & distributed Browser on planet Earth.");
+    set_comments("The fastest decentralized & distributed Browser on planet Earth.\n\nVisit GitLab project at: https://gitlab.melroy.org/libreweb/browser");
     set_logo(logo.get_pixbuf());
+    set_website_label("Visit homepage");
     set_website("https://libreweb.org/");
     set_copyright("Copyright © 2020-2021 Melroy van den Berg");
     set_authors(devs);
     set_artists(devs);
+    set_documenters(docs);
+    set_license("");
     set_license_type(Gtk::License::LICENSE_MIT_X11);
     set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
-
-    show_all_children();
 }
 
 About::~About()
