@@ -14,7 +14,7 @@
 class About: public Gtk::AboutDialog
 {
 public:
-    About(Gtk::Window &parent);
+    explicit About(Gtk::Window &parent);
     void show_about();
     void hide_about(int response);
 protected:
