@@ -4,7 +4,9 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/fileutils.h>
 
-About::About()
+About::About(Gtk::Window &parent)
+    : m_visitHomepage("https://libreweb.org/", "Visit Homepage"),
+      m_visitProjectLinkButton("https://gitlab.melroy.org/libreweb/browser", "Visit the GitLab Project")
 {
     std::vector<Glib::ustring> devs;
     devs.push_back("Melroy van den Berg <info@libreweb.org>");
@@ -13,12 +15,11 @@ About::About()
 
     logo.set(this->getLogoImage());
 
+    set_transient_for(parent);
     set_program_name("LibreWeb Browser");
     set_version(PROJECT_VER);
-    set_comments("The fastest decentralized & distributed Browser on planet Earth.\n\nVisit GitLab project at: https://gitlab.melroy.org/libreweb/browser");
+    set_comments("The fastest decentralized & distributed Browser on planet Earth.");
     set_logo(logo.get_pixbuf());
-    set_website_label("Visit homepage");
-    set_website("https://libreweb.org/");
     set_copyright("Copyright © 2020-2021 Melroy van den Berg");
     set_authors(devs);
     set_artists(devs);
@@ -26,10 +27,12 @@ About::About()
     set_license("");
     set_license_type(Gtk::License::LICENSE_MIT_X11);
     set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
-}
 
-About::~About()
-{
+    Gtk::Box *vbox = get_vbox();
+    vbox->pack_end(m_visitProjectLinkButton, Gtk::PackOptions::PACK_SHRINK);
+    vbox->pack_end(m_visitHomepage, Gtk::PackOptions::PACK_SHRINK);
+    m_visitHomepage.show();
+    m_visitProjectLinkButton.show();
 }
 
 void About::show_about()

@@ -25,6 +25,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
+      m_about(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_hboxBrowserToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
       m_hboxStandardEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
