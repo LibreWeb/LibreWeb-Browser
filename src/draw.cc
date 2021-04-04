@@ -223,7 +223,7 @@ void Draw::processDocument(cmark_node *root_node)
         }
         catch (const std::runtime_error &error)
         {
-            std::cerr << "Error: Processing node failed, with message: " << error.what() << std::endl;
+            std::cerr << "ERROR: Processing node failed, with message: " << error.what() << std::endl;
             // Continue nevertheless
         }
     }

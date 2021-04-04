@@ -173,6 +173,7 @@ private:
     std::vector<std::string> history;
     sigc::connection textChangedSignalHandler;
     sigc::connection statusTimerHandler;
+    bool m_waitPageVisible;
     std::string clientID;
     std::string clientPublicKey;
     std::string ipfsHost;

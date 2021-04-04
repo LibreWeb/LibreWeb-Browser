@@ -42,6 +42,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_iconSize(18),
       m_requestThread(nullptr),
       currentHistoryIndex(0),
+      m_waitPageVisible(false),
       ipfsHost("localhost"),
       ipfsPort(5001),
       ipfsTimeout(timeout),
@@ -232,9 +233,9 @@ MainWindow::MainWindow(const std::string &timeout)
         m_highlightButton.add(m_hightlightIcon);
         m_highlightButton.set_relief(Gtk::RELIEF_NONE);
     }
-    catch (const Glib::FileError &e)
+    catch (const Glib::FileError &error)
     {
-        std::cerr << "Error: Icons could not be loaded: " << e.what() << std::endl;
+        std::cerr << "ERROR: Icons could not be loaded: " << error.what() << std::endl;
     }
 
     // Disable focus on editor buttons
@@ -482,6 +483,11 @@ bool MainWindow::update_connection_status()
         {
             m_statusIcon.set(m_statusOnlineIcon);
         }
+
+        // Auto-refresh page if needed (when 'Please wait' page is shown)
+        if (m_waitPageVisible)
+            this->refresh();
+
         std::map<std::string, float> rates = ipfs.getBandwidthRates();
         char buf[32];
         std::string in = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
@@ -505,7 +511,7 @@ bool MainWindow::update_connection_status()
         m_statusLabel.set_text("Disconnected!");
     }
 
-    // Keep going (do not disconnect yet)
+    // Keep going (never disconnect the timer)
     return true;
 }
 
@@ -665,8 +671,8 @@ void MainWindow::selectAll()
 void MainWindow::new_doc()
 {
     // Clear content & requestPath
-    currentContent = "";
-    requestPath = "";
+    this->currentContent = "";
+    this->requestPath = "";
 
     // Enable editing mode
     this->enableEdit();
@@ -829,9 +835,9 @@ void MainWindow::save()
             {
                 File::write(currentFileSavedPath, this->currentContent);
             }
-            catch (std::ios_base::failure &e)
+            catch (std::ios_base::failure &error)
             {
-                std::cerr << "ERROR: Could not write file: " << currentFileSavedPath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+                std::cerr << "ERROR: Could not write file: " << currentFileSavedPath << ". Message: " << error.what() << ".\nError code: " << error.code() << std::endl;
             }
         }
         else
@@ -872,9 +878,9 @@ void MainWindow::save_as()
         {
             dialog->set_uri(Glib::filename_to_uri(currentFileSavedPath));
         }
-        catch (Glib::Error &e)
+        catch (Glib::Error &error)
         {
-            std::cerr << "ERROR: Incorrect filename most likely. Error: " << e.what() << ". Error Code: " << e.code() << std::endl;
+            std::cerr << "ERROR: Incorrect filename most likely. Message: " << error.what() << ". Error Code: " << error.code() << std::endl;
         }
     }
     dialog->show();
@@ -909,9 +915,9 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
                 this->set_title(fileName + " - " + m_appName);
             }
         }
-        catch (std::ios_base::failure &e)
+        catch (std::ios_base::failure &error)
         {
-            std::cerr << "ERROR: Could not write file: " << filePath << ". Error: " << e.what() << ".\nError code: " << e.code() << std::endl;
+            std::cerr << "ERROR: Could not write file: " << filePath << ". Message: " << error.what() << ".\nError code: " << error.code() << std::endl;
         }
         break;
     }
@@ -1295,8 +1301,11 @@ bool MainWindow::isEditorEnabled()
  * set to false if you want to edit the content
  */
 void MainWindow::processRequest(const std::string &path, bool isParseContent)
-{
-    currentContent = "";
+{ 
+    // Reset private variables
+    this->currentContent = "";
+    this->m_waitPageVisible = false;
+
     // Do not update the requestPath when path is empty,
     // this is used for refreshing the page
     if (!path.empty())
@@ -1354,23 +1363,23 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
 {
     try
     {
-        currentContent = ipfs.fetch(finalRequestPath);
+        this->currentContent = ipfs.fetch(finalRequestPath);
         if (isParseContent)
         {
-            cmark_node *doc = Parser::parseContent(currentContent);
+            cmark_node *doc = Parser::parseContent(this->currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
         }
         else
         {
             // directly set the plain content
-            m_draw_main.setText(currentContent);
+            m_draw_main.setText(this->currentContent);
         }
     }
     catch (const std::runtime_error &error)
     {
         std::string errorMessage = std::string(error.what());
-        std::cerr << "Error: IPFS request failed, with message: " << errorMessage << std::endl;
+        std::cerr << "ERROR: IPFS request failed, with message: " << errorMessage << std::endl;
         if (errorMessage.starts_with("HTTP request failed with status code"))
         {
             // Remove text until ':\n'
@@ -1385,7 +1394,8 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
         }
         else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
         {
-            m_draw_main.showMessage("⌛ Please wait...", "IPFS daemon is still spinnng-up, please try to refresh shortly...");
+            m_draw_main.showMessage("⌛ Please wait...", "IPFS daemon is still spinnng-up, page will automatically refresh...");
+            m_waitPageVisible = true; // Please wait page is shown (auto-refresh when network is up)
         }
         else
         {
@@ -1404,27 +1414,27 @@ void MainWindow::openFromDisk(bool isParseContent)
 {
     try
     {
-        currentContent = File::read(finalRequestPath);
+        this->currentContent = File::read(finalRequestPath);
         if (isParseContent)
         {
-            cmark_node *doc = Parser::parseContent(currentContent);
+            cmark_node *doc = Parser::parseContent(this->currentContent);
             m_draw_main.processDocument(doc);
             cmark_node_free(doc);
         }
         else
         {
             // directly set the plain content
-            m_draw_main.setText(currentContent);
+            m_draw_main.setText(this->currentContent);
         }
     }
     catch (const std::ios_base::failure &error)
     {
-        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Error: " << error.what() << ".\nError code: " << error.code() << std::endl;
+        std::cerr << "ERROR: Could not read file: " << finalRequestPath << ". Message: " << error.what() << ".\nError code: " << error.code() << std::endl;
         m_draw_main.showMessage("🎂 Could not read file", "Message: " + std::string(error.what()));
     }
     catch (const std::runtime_error &error)
     {
-        std::cerr << "Error: File request failed, with message: " << error.what() << std::endl;
+        std::cerr << "ERROR: File request failed, with message: " << error.what() << std::endl;
         m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
 }
@@ -1464,9 +1474,9 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
 void MainWindow::editor_changed_text()
 {
     // Retrieve text from text editor
-    currentContent = m_draw_main.getText();
+    this->currentContent = m_draw_main.getText();
     // Parse the markdown contents
-    cmark_node *doc = Parser::parseContent(currentContent);
+    cmark_node *doc = Parser::parseContent(this->currentContent);
     /* Can be enabled to show the markdown format in terminal:
     std::string md = Parser::renderMarkdown(doc);
     std::cout << "Markdown:\n" << md << std::endl;*/
@@ -1481,7 +1491,7 @@ void MainWindow::editor_changed_text()
  */
 void MainWindow::show_source_code_dialog()
 {
-    m_sourceCodeDialog.setText(currentContent);
+    m_sourceCodeDialog.setText(this->currentContent);
     m_sourceCodeDialog.run();
 }
 
@@ -1504,7 +1514,7 @@ void MainWindow::get_heading()
         catch (const std::invalid_argument &)
         {
             // ignore
-            std::cerr << "Error: heading combobox id is invalid (not a number)." << std::endl;
+            std::cerr << "ERROR: heading combobox id is invalid (not a number)." << std::endl;
         }
         catch (const std::out_of_range &)
         {

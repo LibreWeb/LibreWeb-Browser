@@ -31,9 +31,9 @@ int main(int argc, char *argv[])
             exit(EXIT_SUCCESS);
         }
     }
-    catch (const Glib::Error &ex)
+    catch (const Glib::Error &error)
     {
-        std::cerr << "Parase failure: " << ex.what() << std::endl;
+        std::cerr << "ERROR: Parse failure: " << error.what() << std::endl;
         exit(EXIT_FAILURE);
     }
 
