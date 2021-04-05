@@ -15,6 +15,7 @@ public:
     std::size_t getNrPeers();
     std::string const getClientID();
     std::string const getClientPublicKey();
+    std::string const getVersion();
     std::map<std::string, float> getBandwidthRates();
     std::string const fetch(const std::string &path);
     std::string const add(const std::string &path, const std::string &content);

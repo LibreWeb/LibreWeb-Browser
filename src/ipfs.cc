@@ -71,6 +71,25 @@ std::string const IPFS::getClientPublicKey()
 }
 
 /**
+ * \brief Retrieve the Go IPFS daemon version
+ * \return Public Key
+ */
+std::string const IPFS::getVersion()
+{
+    try
+    {
+        ipfs::Json version;
+        client.Version(&version);
+        return version["Version"];
+    }
+    catch (const std::runtime_error &error)
+    {
+        // ignore connection issues
+    }
+    return "";
+}
+
+/**
  * \brief Get the number of IPFS peers
  * \return Map with bandwidth information (with keys: 'in' and 'out')
  */

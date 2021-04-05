@@ -466,12 +466,14 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
  */
 bool MainWindow::update_connection_status()
 {
-    // Try to set the client ID & Public key
+    // Try to set the client ID & Public key and version
     if (this->clientID.empty())
         this->clientID = ipfs.getClientID();
     if (this->clientPublicKey.empty())
         this->clientPublicKey = ipfs.getClientPublicKey();
-        
+    if (this->ipfsVersion.empty())
+        this->ipfsVersion = ipfs.getVersion();
+
     std::size_t nrPeers = ipfs.getNrPeers();
     if (nrPeers > 0)
     {
@@ -495,8 +497,9 @@ bool MainWindow::update_connection_status()
 
         // And also update text
         m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
-                               "\nRate in: " + in + " kB/s" +
-                               "\nRate out: " + out + " kB/s");
+                               "\nRate in:    " + in + " kB/s" +
+                               "\nRate out: " + out + " kB/s" +
+                               "\n\nIPFS version: " + this->ipfsVersion);
     }
     else
     {

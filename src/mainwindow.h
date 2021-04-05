@@ -174,6 +174,7 @@ private:
     sigc::connection textChangedSignalHandler;
     sigc::connection statusTimerHandler;
     bool m_waitPageVisible;
+    std::string ipfsVersion;
     std::string clientID;
     std::string clientPublicKey;
     std::string ipfsHost;
