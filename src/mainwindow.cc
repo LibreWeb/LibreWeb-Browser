@@ -7,12 +7,13 @@
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
 #include <giomm/file.h>
+#include <gtkmm/cssprovider.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
 #include <glibmm/convert.h>
-#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <glibmm/miscutils.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include <cmark-gfm.h>
 #include <pthread.h>
 #include <iostream>
@@ -313,6 +314,16 @@ MainWindow::MainWindow(const std::string &timeout)
     m_homeButton.add(m_homeIcon);
     m_statusButton.add(m_statusIcon);
 
+    // Add spinning CSS class to refresh icon
+    auto cssProvider = Gtk::CssProvider::create();
+    auto screen = Gdk::Screen::get_default();
+    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning {  animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
+    if (!cssProvider->load_from_data(spinningCSS)) {
+        std::cerr << "ERROR: CSS parsing went wrong." << std::endl;
+    }
+    auto refreshIconStyle = m_refreshIcon.get_style_context();
+    refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
     // Add tooltips to the toolbar buttons
     m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
     m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
@@ -442,6 +453,9 @@ void MainWindow::doRequest(const std::string &path, bool isSetAddressBar, bool i
 
     if (m_requestThread == nullptr)
     {
+        // Show spinning icon
+        m_refreshIcon.get_style_context()->add_class("spinning");
+        // Start thread
         m_requestThread = new std::thread(&MainWindow::processRequest, this, path, isParseContent);
         this->postDoRequest(path, isSetAddressBar, isHistoryRequest, isDisableEditor);
     }
@@ -1405,6 +1419,8 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
             m_draw_main.showMessage("❌ Something went wrong", "Error message: " + std::string(error.what()));
         }
     }
+    // Stop spinning icon
+    m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
 /**
@@ -1440,6 +1456,8 @@ void MainWindow::openFromDisk(bool isParseContent)
         std::cerr << "ERROR: File request failed, with message: " << error.what() << std::endl;
         m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
+    // Stop spinning icon
+    m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
 /**
