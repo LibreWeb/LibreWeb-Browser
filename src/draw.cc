@@ -8,8 +8,9 @@
 #include <gtkmm/textiter.h>
 #include <gdkmm/window.h>
 #include <iostream>
-#include <stdexcept>
 #include <regex>
+#include <algorithm>
+#include <stdexcept>
 
 #define PANGO_SCALE_XXX_LARGE ((double)1.98)
 
@@ -391,22 +392,44 @@ void Draw::selectAll()
 
 void Draw::make_heading(int headingLevel)
 {
-    Gtk::TextBuffer::iterator start, end;
+    Gtk::TextBuffer::iterator start, start_line, end_line, _;
     auto buffer = get_buffer();
     buffer->begin_user_action();
     std::string heading = std::string(headingLevel, '#');
-    if (buffer->get_selection_bounds(start, end))
-    {
-        std::string text = buffer->get_text(start, end);
-        buffer->erase_selection();
-        buffer->insert_at_cursor(heading + " " + text);
-    }
-    else
-    {
-        int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        buffer->insert_at_cursor(heading + " \n");
-        auto newCursorPos = buffer->get_iter_at_offset(insertOffset + headingLevel + 1);
-        buffer->place_cursor(newCursorPos);
+    buffer->get_selection_bounds(start, _);
+
+    start_line = buffer->get_iter_at_line(start.get_line());
+    // Lookup to 12 places further
+    int insertLocation = start_line.get_offset();
+    end_line = buffer->get_iter_at_offset(insertLocation + 12);
+    std::string text = start_line.get_text(end_line);
+    if (!text.empty() && text.starts_with("#")) {
+        std::size_t countHashes = 0;
+        bool hasSpace = false;
+        std::size_t len = text.size();
+         for (std::string::size_type i = 0; i < len; i++) {
+            if (text[i] == '#')
+                countHashes++;
+            else
+                break;
+        }
+        // Check for next character after the #-signs, is there already a space?
+        if (countHashes < len)
+        {
+            if (text[countHashes] == ' ')
+                hasSpace = true;
+        }
+        Gtk::TextBuffer::iterator delete_iter_end  = buffer->get_iter_at_offset(insertLocation + countHashes);
+        // Delete hashes at the beginning on the line
+        buffer->erase(start_line, delete_iter_end);
+        // Buffer is now modified, previous iteraters are now invalid, so get a new iter
+        Gtk::TextBuffer::iterator new_start = buffer->get_iter_at_offset(insertLocation);
+
+        // Finally, insert the new heading (add additional space indeed needed)
+        std::string insertHeading = (hasSpace) ? heading : heading + " ";
+        buffer->insert(new_start, insertHeading);
+    } else {
+        buffer->insert(start_line, heading + " ");
     }
     buffer->end_user_action();
 }
