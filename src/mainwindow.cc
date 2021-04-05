@@ -1275,6 +1275,8 @@ void MainWindow::enableEdit()
     this->m_menu.setPublishMenuSensitive(true);
     // Disable edit menu item (you are already editing)
     this->m_menu.setEditMenuSensitive(false);
+    // Just to be sure, disable the spinning animation
+    this->m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
 void MainWindow::disableEdit()
@@ -1338,6 +1340,7 @@ void MainWindow::processRequest(const std::string &path, bool isParseContent)
     else if (requestPath.compare("about:home") == 0)
     {
         m_draw_main.showStartPage();
+        m_refreshIcon.get_style_context()->remove_class("spinning");
     }
     // Handle disk or IPFS file paths
     else
@@ -1419,7 +1422,7 @@ void MainWindow::fetchFromIPFS(bool isParseContent)
             m_draw_main.showMessage("❌ Something went wrong", "Error message: " + std::string(error.what()));
         }
     }
-    // Stop spinning icon
+    // Stop spinning
     m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
@@ -1456,8 +1459,8 @@ void MainWindow::openFromDisk(bool isParseContent)
         std::cerr << "ERROR: File request failed, with message: " << error.what() << std::endl;
         m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
-    // Stop spinning icon
-    m_refreshIcon.get_style_context()->remove_class("spinning");
+    // Stop spinning
+    //m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
 /**
