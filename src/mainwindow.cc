@@ -67,6 +67,7 @@ MainWindow::MainWindow(const std::string &timeout)
     if (m_settings->get_boolean("maximized"))
         this->maximize();
 
+    // Status pop-over
     m_statusLabel.set_text("Network is still starting..."); // fallback text
     m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
     m_copyIDButton.set_margin_start(6);
@@ -236,7 +237,7 @@ MainWindow::MainWindow(const std::string &timeout)
     }
     catch (const Glib::FileError &error)
     {
-        std::cerr << "ERROR: Icons could not be loaded: " << error.what() << std::endl;
+        std::cerr << "ERROR: Editor icons could not be loaded: " << error.what() << std::endl;
     }
 
     // Disable focus on editor buttons
@@ -289,35 +290,42 @@ MainWindow::MainWindow(const std::string &timeout)
     m_statusButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
-    m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
-    m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
+    try 
+    {
+        m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
+        m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
 
-    if (m_useCurrentGTKIconTheme)
-    {
-        m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
+        if (m_useCurrentGTKIconTheme)
+        {
+            m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
+        }
+        else
+        {
+            m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
+            m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
+            m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize*1.13, m_iconSize));
+            m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
+            m_statusIcon.set(m_statusOfflineIcon); // fall-back
+        }
+        m_backButton.add(m_backIcon);
+        m_forwardButton.add(m_forwardIcon);
+        m_refreshButton.add(m_refreshIcon);
+        m_homeButton.add(m_homeIcon);
+        m_statusButton.add(m_statusIcon);
     }
-    else
+    catch (const Glib::FileError &error)
     {
-        m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
-        m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
-        m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_2", "arrows"), m_iconSize, m_iconSize));
-        m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
-        m_statusIcon.set(m_statusOfflineIcon); // fall-back
+        std::cerr << "ERROR: Toolbar icons could not be loaded: " << error.what() << std::endl;
     }
-    m_backButton.add(m_backIcon);
-    m_forwardButton.add(m_forwardIcon);
-    m_refreshButton.add(m_refreshIcon);
-    m_homeButton.add(m_homeIcon);
-    m_statusButton.add(m_statusIcon);
 
     // Add spinning CSS class to refresh icon
     auto cssProvider = Gtk::CssProvider::create();
     auto screen = Gdk::Screen::get_default();
-    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning {  animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
+    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
     if (!cssProvider->load_from_data(spinningCSS)) {
         std::cerr << "ERROR: CSS parsing went wrong." << std::endl;
     }
