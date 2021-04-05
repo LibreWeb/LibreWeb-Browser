@@ -1468,7 +1468,7 @@ void MainWindow::openFromDisk(bool isParseContent)
         m_draw_main.showMessage("🎂 File not found", "Message: " + std::string(error.what()));
     }
     // Stop spinning
-    //m_refreshIcon.get_style_context()->remove_class("spinning");
+    m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
 /**
