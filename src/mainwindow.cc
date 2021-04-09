@@ -145,6 +145,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
     m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
     m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+    m_emojiButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
     m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
     m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
@@ -211,9 +212,13 @@ MainWindow::MainWindow(const std::string &timeout)
         m_linkButton.add(m_linkIcon);
         m_linkButton.set_relief(Gtk::RELIEF_NONE);
         m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), m_iconSize, m_iconSize));
-        m_imageButton.set_tooltip_text("Add a image");
+        m_imageButton.set_tooltip_text("Add an image");
         m_imageButton.add(m_imageIcon);
         m_imageButton.set_relief(Gtk::RELIEF_NONE);
+        m_emojiIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("smile", "smiley"), m_iconSize, m_iconSize));
+        m_emojiButton.set_tooltip_text("Insert emoji");
+        m_emojiButton.add(m_emojiIcon);
+        m_emojiButton.set_relief(Gtk::RELIEF_NONE);
         m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), m_iconSize, m_iconSize));
         m_quoteButton.set_tooltip_text("Insert a quote");
         m_quoteButton.add(m_quoteIcon);
@@ -258,6 +263,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_subButton.set_can_focus(false);
     m_linkButton.set_can_focus(false);
     m_imageButton.set_can_focus(false);
+    m_emojiButton.set_can_focus(false);
     m_quoteButton.set_can_focus(false);
     m_codeButton.set_can_focus(false);
     m_bulletListButton.set_can_focus(false);
@@ -378,6 +384,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
     m_hboxFormattingEditorToolbar.pack_start(m_linkButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_imageButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_emojiButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_separator4, false, false, 0);
     m_hboxFormattingEditorToolbar.pack_start(m_quoteButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_codeButton, false, false, 2);
@@ -1553,4 +1560,10 @@ void MainWindow::get_heading()
             // ignore
         }
     }
+}
+
+void MainWindow::insert_emoji()
+{
+    // Note: The "insert-emoji" signal is not exposed in Gtkmm library (at least not in gtk3)
+    g_signal_emit_by_name(this->m_draw_main.gobj(), "insert-emoji");
 }

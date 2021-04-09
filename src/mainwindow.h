@@ -70,6 +70,7 @@ protected:
     void editor_changed_text();
     void show_source_code_dialog();
     void get_heading();
+    void insert_emoji();
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
@@ -114,6 +115,7 @@ protected:
     Gtk::Button m_subButton;
     Gtk::Button m_linkButton;
     Gtk::Button m_imageButton;
+    Gtk::Button m_emojiButton;
     Gtk::Button m_quoteButton;
     Gtk::Button m_codeButton;
     Gtk::Button m_bulletListButton;
@@ -141,6 +143,7 @@ protected:
     Gtk::Image m_subIcon;
     Gtk::Image m_linkIcon;
     Gtk::Image m_imageIcon;
+    Gtk::Image m_emojiIcon;
     Gtk::Image m_quoteIcon;
     Gtk::Image m_codeIcon;
     Gtk::Image m_bulletListIcon;
