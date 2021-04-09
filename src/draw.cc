@@ -403,11 +403,13 @@ void Draw::make_heading(int headingLevel)
     int insertLocation = start_line.get_offset();
     end_line = buffer->get_iter_at_offset(insertLocation + 12);
     std::string text = start_line.get_text(end_line);
-    if (!text.empty() && text.starts_with("#")) {
+    if (!text.empty() && text.starts_with("#"))
+    {
         std::size_t countHashes = 0;
         bool hasSpace = false;
         std::size_t len = text.size();
-         for (std::string::size_type i = 0; i < len; i++) {
+        for (std::string::size_type i = 0; i < len; i++)
+        {
             if (text[i] == '#')
                 countHashes++;
             else
@@ -419,7 +421,7 @@ void Draw::make_heading(int headingLevel)
             if (text[countHashes] == ' ')
                 hasSpace = true;
         }
-        Gtk::TextBuffer::iterator delete_iter_end  = buffer->get_iter_at_offset(insertLocation + countHashes);
+        Gtk::TextBuffer::iterator delete_iter_end = buffer->get_iter_at_offset(insertLocation + countHashes);
         // Delete hashes at the beginning on the line
         buffer->erase(start_line, delete_iter_end);
         // Buffer is now modified, previous iteraters are now invalid, so get a new iter
@@ -428,7 +430,9 @@ void Draw::make_heading(int headingLevel)
         // Finally, insert the new heading (add additional space indeed needed)
         std::string insertHeading = (hasSpace) ? heading : heading + " ";
         buffer->insert(new_start, insertHeading);
-    } else {
+    }
+    else
+    {
         buffer->insert(start_line, heading + " ");
     }
     buffer->end_user_action();
@@ -654,7 +658,8 @@ void Draw::insert_bullet_list()
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
     buffer->begin_user_action();
-    if (buffer->get_selection_bounds(start, end))
+    bool selected = buffer->get_selection_bounds(start, end);
+    if (selected)
     {
         std::string text = buffer->get_text(start, end);
         buffer->erase_selection();
@@ -662,12 +667,76 @@ void Draw::insert_bullet_list()
         std::string line;
         while (std::getline(iss, line))
         {
-            buffer->insert_at_cursor("* " + line + "\n");
+            // Line already begins with a bullet, remove bullet list item
+            if (line.starts_with("* "))
+                buffer->insert_at_cursor(line.substr(2) + "\n");
+            else if (line.starts_with("*"))
+                buffer->insert_at_cursor(line.substr(1) + "\n");
+            else if (!line.empty() && (line.find_first_not_of(" \t\n\v\f\r") != std::string::npos))
+                buffer->insert_at_cursor("* " + line + "\n");
         }
     }
     else
     {
-        buffer->insert_at_cursor("\n* ");
+        int curLineNumber = start.get_line();
+        Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(curLineNumber);
+        if (start.is_start())
+        {
+            buffer->insert(begin_current_line_iter, "* ");
+        }
+        else
+        {
+            Gtk::TextBuffer::iterator end_current_line_iter, prev_lines_iter;
+            // Get the end of the line iter
+            end_current_line_iter = buffer->get_iter_at_line_offset(curLineNumber, begin_current_line_iter.get_chars_in_line());
+            std::string currentLineText = begin_current_line_iter.get_text(end_current_line_iter);
+            // Get previous line (if possible)
+            prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 1);
+            std::string prevLineText = prev_lines_iter.get_text(start);
+            if (currentLineText.compare("* ") == 0)
+            {
+                // remove empty bullet list
+                buffer->erase(begin_current_line_iter, end_current_line_iter);
+            }
+            else // Insert bullet list
+            {
+                // Was there already a bullet list item? Continue adding bullet item
+                if (currentLineText.starts_with("* "))
+                {
+                    // We're still on the current line, new-line is required
+                    int insertCharOffset = end_current_line_iter.get_offset();
+                    buffer->insert(end_current_line_iter, "\n* ");
+                    Gtk::TextBuffer::iterator insert_iter = buffer->get_iter_at_offset(insertCharOffset + 3); // add 3 additional chars
+                    buffer->place_cursor(insert_iter);
+                }
+                else if (prevLineText.starts_with("* "))
+                {
+                    buffer->insert(begin_current_line_iter, "* ");
+                }
+                else // Insert new bullet list
+                {
+                    // Get also the previous two lines (if possible)
+                    Gtk::TextBuffer::iterator two_prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 2);
+                    std::string prevTwoLinesText = two_prev_lines_iter.get_text(start);
+
+                    std::string additionalNewlines;
+                    if (prevTwoLinesText.ends_with("\n\n"))
+                    {
+                        // No additional lines needed
+                    }
+                    else if (prevLineText.ends_with("\n"))
+                    {
+                        additionalNewlines = "\n";
+                    }
+                    else
+                    {
+                        additionalNewlines = "\n\n";
+                    }
+                    // Add additional new lines (if needed), before the bullet item
+                    buffer->insert_at_cursor(additionalNewlines + "* ");
+                }
+            }
+        }
     }
     buffer->end_user_action();
 }
@@ -677,22 +746,118 @@ void Draw::insert_numbered_list()
     Gtk::TextBuffer::iterator start, end;
     auto buffer = get_buffer();
     buffer->begin_user_action();
-    if (buffer->get_selection_bounds(start, end))
+    bool selected = buffer->get_selection_bounds(start, end);
+    if (selected)
     {
         std::string text = buffer->get_text(start, end);
         buffer->erase_selection();
         std::istringstream iss(text);
         std::string line;
+        std::smatch match;
         int counter = 1;
         while (std::getline(iss, line))
         {
-            buffer->insert_at_cursor(std::to_string(counter) + ". " + line + "\n");
-            counter++;
+            // Line already begins with a numbering, remove numbered list item
+            if (std::regex_search(line, match, std::regex("^[0-9]+\\. ")))
+                buffer->insert_at_cursor(line.substr(match[0].length()) + "\n");
+            else if (std::regex_search(line, match, std::regex("^[0-9]+\\.")))
+                buffer->insert_at_cursor(line.substr(match[0].length()) + "\n");
+            else if (!line.empty() && (line.find_first_not_of(" \t\n\v\f\r") != std::string::npos))
+            {
+                buffer->insert_at_cursor(std::to_string(counter) + ". " + line + "\n");
+                counter++;
+            }
         }
     }
     else
     {
-        buffer->insert_at_cursor("\n1. ");
+        int curLineNumber = start.get_line();
+        Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(curLineNumber);
+        if (start.is_start())
+        {
+            buffer->insert(begin_current_line_iter, "1. ");
+        }
+        else
+        {
+            Gtk::TextBuffer::iterator end_current_line_iter, prev_lines_iter;
+            // Get the end of the line iter
+            end_current_line_iter = buffer->get_iter_at_line_offset(curLineNumber, begin_current_line_iter.get_chars_in_line());
+            std::string currentLineText = begin_current_line_iter.get_text(end_current_line_iter);
+            // Get previous line (if possible)
+            prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 1);
+            std::string prevLineText = prev_lines_iter.get_text(start);
+            if (std::regex_match(currentLineText, std::regex("^[0-9]+\\. ")))
+            {
+                // remove empty numbered list
+                buffer->erase(begin_current_line_iter, end_current_line_iter);
+            }
+            else // Insert numbered list
+            {
+                std::smatch match;
+                // Was there already a numbered list item? Continue adding numbered item
+                if (std::regex_search(currentLineText, match, std::regex("^[0-9]+\\. ")))
+                {
+                    try
+                    {
+                        int number = std::stoi(match[0]);
+                        std::string newNumber = std::to_string(++number);
+                        int insertCharOffset = end_current_line_iter.get_offset();
+                        // We're still on the current line, new-line is required
+                        buffer->insert(end_current_line_iter, "\n" + newNumber + ". ");
+                        Gtk::TextBuffer::iterator insert_iter = buffer->get_iter_at_offset(insertCharOffset + 3 + newNumber.length()); // add 3 additional chars + number
+                        buffer->place_cursor(insert_iter);
+                    }
+                    catch (std::invalid_argument &error)
+                    {
+                        // Fall-back
+                        int insertCharOffset = end_current_line_iter.get_offset();
+                        buffer->insert(end_current_line_iter, "\n1. ");
+                        Gtk::TextBuffer::iterator insert_iter = buffer->get_iter_at_offset(insertCharOffset + 3); // add 3 additional chars + number
+                        buffer->place_cursor(insert_iter);
+                        // Give warning
+                        std::cerr << "WARN: Couldn't convert heading to a number?" << std::endl;
+                    }
+                }
+                else if (std::regex_search(prevLineText, match, std::regex("^[0-9]+\\. ")))
+                {
+                    try
+                    {
+                        int number = std::stoi(match[0]);
+                        std::string newNumber = std::to_string(++number);
+                        buffer->insert(begin_current_line_iter, newNumber + ". ");
+                    }
+                    catch (std::invalid_argument &error)
+                    {
+                        // Fall-back
+                        buffer->insert(begin_current_line_iter, "1. ");
+                        // Give warning
+                        std::cerr << "WARN: Couldn't convert heading to a number?" << std::endl;
+                    }
+                }
+                else // Insert new numbered list
+                {
+                    // Get also the previous two lines (if possible)
+                    Gtk::TextBuffer::iterator two_prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 2);
+                    std::string prevTwoLinesText = two_prev_lines_iter.get_text(start);
+
+                    std::string additionalNewlines;
+                    if (prevTwoLinesText.ends_with("\n\n"))
+                    {
+                        // No additional lines needed
+                    }
+                    else if (prevLineText.ends_with("\n"))
+                    {
+                        additionalNewlines = "\n";
+                    }
+                    else
+                    {
+                        additionalNewlines = "\n\n";
+                    }
+                    // Add additional new lines (if needed), before the bullet item
+                    buffer->insert_at_cursor(additionalNewlines + "1. ");
+                }
+            }
+        }
     }
     buffer->end_user_action();
 }
