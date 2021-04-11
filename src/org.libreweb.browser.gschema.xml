@@ -17,5 +17,9 @@
       <default>false</default>
       <summary>Is window fullscreen</summary>
     </key>
+    <key name="position-divider" type="i">
+      <default>42</default>
+      <summary>Position of paned divider</summary>
+    </key>
   </schema>
 </schemalist>

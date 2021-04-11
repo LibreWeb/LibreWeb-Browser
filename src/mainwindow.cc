@@ -38,7 +38,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
       m_appName("LibreWeb Browser"),
-      m_iconTheme("flat"),             // filled or flat      
+      m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
       m_iconSize(18),
       m_requestThread(nullptr),
@@ -296,7 +296,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_statusButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
-    try 
+    try
     {
         m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
         m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
@@ -313,7 +313,7 @@ MainWindow::MainWindow(const std::string &timeout)
         {
             m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
             m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
-            m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize*1.13, m_iconSize));
+            m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize * 1.13, m_iconSize));
             m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
             m_statusIcon.set(m_statusOfflineIcon); // fall-back
         }
@@ -332,7 +332,8 @@ MainWindow::MainWindow(const std::string &timeout)
     auto cssProvider = Gtk::CssProvider::create();
     auto screen = Gdk::Screen::get_default();
     std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
-    if (!cssProvider->load_from_data(spinningCSS)) {
+    if (!cssProvider->load_from_data(spinningCSS))
+    {
         std::cerr << "ERROR: CSS parsing went wrong." << std::endl;
     }
     auto refreshIconStyle = m_refreshIcon.get_style_context();
@@ -400,7 +401,6 @@ MainWindow::MainWindow(const std::string &timeout)
     m_draw_secondary.setViewSourceMenuItem(false);
     m_scrolledWindowSecondary.add(m_draw_secondary);
     m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    m_scrolledWindowSecondary.set_size_request(450, -1);
 
     // Bottom Search bar
     m_search.connect_entry(m_searchEntry);
@@ -414,7 +414,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_hboxBottom.pack_start(m_searchMatchCase, false, false, 10);
 
     m_paned.pack1(m_scrolledWindowMain, true, false);
-    m_paned.pack2(m_scrolledWindowSecondary, false, true);
+    m_paned.pack2(m_scrolledWindowSecondary, true, true);
 
     m_vbox.pack_start(m_paned, true, true, 0);
     m_vbox.pack_end(m_hboxBottom, false, true, 6);
@@ -485,6 +485,7 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
     m_settings->set_int("width", this->get_width());
     m_settings->set_int("height", this->get_height());
     m_settings->set_boolean("maximized", this->is_maximized());
+    m_settings->set_int("position-divider", this->m_paned.get_position());
     // Fullscreen will be availible with gtkmm-4.0
     //m_settings->set_boolean("fullscreen", this->is_fullscreen());
     return false;
@@ -1280,6 +1281,23 @@ void MainWindow::enableEdit()
     // Show editor toolbars
     this->m_hboxStandardEditorToolbar.show();
     this->m_hboxFormattingEditorToolbar.show();
+    // Determine position of divider between the primary and secondary windows
+    int location = 0;
+    int positionSettings = m_settings->get_int("position-divider");
+    int currentWidth, _ = 0;
+    this->get_size(currentWidth, _);
+    // If position from settings is still default (42) or too big,
+    // let's calculate the paned divider location
+    if ((positionSettings == 42) || (positionSettings >= (currentWidth - 10)))
+    {
+        location = static_cast<int>(currentWidth / 2.0);
+    }
+    else
+    {
+        location = positionSettings;
+    }
+    this->m_paned.set_position(location);
+
     // Enabled secondary text view (on the right)
     this->m_scrolledWindowSecondary.show();
     // Disable "view source" menu item
@@ -1335,7 +1353,7 @@ bool MainWindow::isEditorEnabled()
  * set to false if you want to edit the content
  */
 void MainWindow::processRequest(const std::string &path, bool isParseContent)
-{ 
+{
     // Reset private variables
     this->currentContent = "";
     this->m_waitPageVisible = false;
