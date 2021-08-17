@@ -2,6 +2,7 @@
 #define IPFS_H
 
 #include <string>
+#include <variant>
 #include "ipfs/client.h"
 
 /**
@@ -17,6 +18,7 @@ public:
     std::string const getClientPublicKey();
     std::string const getVersion();
     std::map<std::string, float> getBandwidthRates();
+    std::map<std::string, std::variant<int, std::string>> getRepoStats();
     std::string const fetch(const std::string &path);
     std::string const add(const std::string &path, const std::string &content);
 

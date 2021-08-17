@@ -525,10 +525,16 @@ bool MainWindow::update_connection_status()
         std::string in = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
         std::string out = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("out") / 1000.0));
 
+        std::map<std::string, std::variant<int, std::string>> repoStats = ipfs.getRepoStats();
+        int totalRepoSize = std::get<int>(repoStats.at("total_size"));
+        std::string repoPath = std::get<std::string>(repoStats.at("path"));
+
         // And also update text
         m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
                                "\nRate in:    " + in + " kB/s" +
                                "\nRate out: " + out + " kB/s" +
+                               "\n\nTotal repo size: " + std::to_string(totalRepoSize) + " MB" +
+                               "\nRepo path: " + repoPath +
                                "\n\nIPFS version: " + this->ipfsVersion);
     }
     else
