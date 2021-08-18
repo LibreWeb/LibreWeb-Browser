@@ -35,6 +35,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_hboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_statusPopover(m_statusButton),
+      m_settingsPopover(m_settingsButton),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
       m_appName("LibreWeb Browser"),
@@ -84,6 +85,11 @@ MainWindow::MainWindow(const std::string &timeout)
     m_statusPopover.add(m_hboxStatus);
     m_statusPopover.show_all_children();
 
+    // Settings pop-over
+    m_settingsPopover.set_position(Gtk::POS_BOTTOM);
+    // m_settingsPopover.add(m_hboxStatus); TODO
+    m_settingsPopover.show_all_children();
+
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
 
@@ -122,7 +128,9 @@ MainWindow::MainWindow(const std::string &timeout)
     m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));                             /*!< Button for next page */
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
+    m_searchButton.signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::show_search), false));       /*!< Button for finding text */
     m_statusButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_status));                          /*!< Button for IPFS status */
+    m_settingsButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_settings));                      /*!< Button for settings */    
     m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));                            /*!< Execute the text search */
     m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));                    /*!< Execute the text replace */
 
@@ -293,7 +301,9 @@ MainWindow::MainWindow(const std::string &timeout)
     m_forwardButton.set_relief(Gtk::RELIEF_NONE);
     m_refreshButton.set_relief(Gtk::RELIEF_NONE);
     m_homeButton.set_relief(Gtk::RELIEF_NONE);
+    m_searchButton.set_relief(Gtk::RELIEF_NONE);
     m_statusButton.set_relief(Gtk::RELIEF_NONE);
+    m_settingsButton.set_relief(Gtk::RELIEF_NONE);
 
     // Add icons to the toolbar buttons
     try
@@ -307,7 +317,9 @@ MainWindow::MainWindow(const std::string &timeout)
             m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
             m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
             m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
+            m_searchIcon.set_from_icon_name("edit-find-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
+            m_settingsIcon.set_from_icon_name("open-menu-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         }
         else
         {
@@ -315,13 +327,17 @@ MainWindow::MainWindow(const std::string &timeout)
             m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
             m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize * 1.13, m_iconSize));
             m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
+            m_searchIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("search", "basic"), m_iconSize, m_iconSize));
             m_statusIcon.set(m_statusOfflineIcon); // fall-back
+            m_settingsIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("menu", "basic"), m_iconSize, m_iconSize));
         }
         m_backButton.add(m_backIcon);
         m_forwardButton.add(m_forwardIcon);
         m_refreshButton.add(m_refreshIcon);
         m_homeButton.add(m_homeIcon);
+        m_searchButton.add(m_searchIcon);
         m_statusButton.add(m_statusIcon);
+        m_settingsButton.add(m_settingsIcon);
     }
     catch (const Glib::FileError &error)
     {
@@ -344,7 +360,9 @@ MainWindow::MainWindow(const std::string &timeout)
     m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
     m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
     m_homeButton.set_tooltip_text("Home page (Alt+Home)");
+    m_searchButton.set_tooltip_text("Find");
     m_statusButton.set_tooltip_text("IPFS Network Status");
+    m_settingsButton.set_tooltip_text("Settings");
 
     // Disable back/forward buttons on start-up
     m_backButton.set_sensitive(false);
@@ -356,8 +374,10 @@ MainWindow::MainWindow(const std::string &timeout)
     m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);
+    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);    
+    m_hboxBrowserToolbar.pack_start(m_searchButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_statusButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_settingsButton, false, false, 0);
     m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
 
     // Standard editor toolbar
@@ -509,7 +529,7 @@ bool MainWindow::update_connection_status()
     {
         if (m_useCurrentGTKIconTheme)
         {
-            m_statusIcon.set_from_icon_name("network-wired", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_statusIcon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         }
         else
         {
@@ -541,13 +561,13 @@ bool MainWindow::update_connection_status()
     {
         if (m_useCurrentGTKIconTheme)
         {
-            m_statusIcon.set_from_icon_name("network-offline", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
         }
         else
         {
             m_statusIcon.set(m_statusOfflineIcon);
         }
-        m_statusLabel.set_text("Disconnected!");
+        m_statusLabel.set_text("IPFS Status: Connecting...");
     }
 
     // Keep going (never disconnect the timer)
@@ -1102,6 +1122,14 @@ void MainWindow::go_home()
 void MainWindow::show_status()
 {
     this->m_statusPopover.popup();
+}
+
+/**
+ * \brief Show settings popup
+ */
+void MainWindow::show_settings()
+{
+    this->m_settingsPopover.popup();
 }
 
 /**

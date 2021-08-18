@@ -55,6 +55,7 @@ protected:
     void publish();
     void go_home();
     void show_status();
+    void show_settings();
     void copy_client_id();
     void copy_client_public_key();
     void address_bar_activate();
@@ -98,7 +99,9 @@ protected:
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
+    Gtk::Button m_searchButton;
     Gtk::Button m_statusButton;
+    Gtk::Button m_settingsButton;
     Gtk::Button m_openButton;
     Gtk::Button m_saveButton;
     Gtk::Button m_publishButton;
@@ -125,9 +128,11 @@ protected:
     Gtk::Image m_forwardIcon;
     Gtk::Image m_refreshIcon;
     Gtk::Image m_homeIcon;
+    Gtk::Image m_searchIcon;
     Gtk::Image m_statusIcon;
     Glib::RefPtr<Gdk::Pixbuf> m_statusOfflineIcon;
     Glib::RefPtr<Gdk::Pixbuf> m_statusOnlineIcon;
+    Gtk::Image m_settingsIcon;    
     Gtk::Image m_openIcon;
     Gtk::Image m_saveIcon;
     Gtk::Image m_publishIcon;
@@ -150,6 +155,7 @@ protected:
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
     Gtk::Popover m_statusPopover;
+    Gtk::Popover m_settingsPopover;
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
     Gtk::Label m_statusLabel;
