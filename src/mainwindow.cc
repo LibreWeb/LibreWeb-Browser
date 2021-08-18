@@ -23,16 +23,14 @@
 MainWindow::MainWindow(const std::string &timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
+      m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.5, 1.5, 0.05, 0.1)),
       m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
       m_about(*this),
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
-      m_hboxBrowserToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
-      m_hboxStandardEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
-      m_hboxFormattingEditorToolbar(Gtk::ORIENTATION_HORIZONTAL, 0),
-      m_hboxBottom(Gtk::ORIENTATION_HORIZONTAL, 0),
-      m_hboxStatus(Gtk::ORIENTATION_VERTICAL),
+      m_vboxStatus(Gtk::ORIENTATION_VERTICAL),
+      m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_statusPopover(m_statusButton),
       m_settingsPopover(m_settingsButton),
@@ -77,17 +75,74 @@ MainWindow::MainWindow(const std::string &timeout)
     m_copyPublicKeyButton.set_margin_start(6);
     m_copyPublicKeyButton.set_margin_end(6);
 
-    m_hboxStatus.pack_start(m_statusLabel, Gtk::PACK_EXPAND_WIDGET, 4);
-    m_hboxStatus.pack_end(m_copyPublicKeyButton, Gtk::PACK_EXPAND_WIDGET, 4);
-    m_hboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_vboxStatus.pack_start(m_statusLabel, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_vboxStatus.pack_end(m_copyPublicKeyButton, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_vboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 4);
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
     m_statusPopover.set_size_request(240, 120);
-    m_statusPopover.add(m_hboxStatus);
+    m_statusPopover.add(m_vboxStatus);
     m_statusPopover.show_all_children();
 
     // Settings pop-over
+    // First start with loading the images
+    try
+    {
+        if (m_useCurrentGTKIconTheme)
+        {
+            m_zoomOutImage.set_from_icon_name("zoom-out-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_zoomInImage.set_from_icon_name("zoom-in-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_brightnessImage.set_from_icon_name("display-brightness-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        }
+        else
+        {
+            m_zoomOutImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_out", "basic"), m_iconSize, m_iconSize));
+            m_zoomInImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_in", "basic"), m_iconSize, m_iconSize));
+            m_brightnessImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("brightness", "basic"), m_iconSize, m_iconSize));
+        }
+        m_zoomOutButton.add(m_zoomOutImage);
+        m_zoomInButton.add(m_zoomInImage);
+
+        m_brightnessImage.set_tooltip_text("Brightness");
+        m_brightnessImage.set_margin_start(2);
+        m_brightnessImage.set_margin_end(2);
+        m_brightnessImage.set_margin_top(1);
+        m_brightnessImage.set_margin_bottom(1);
+    }
+    catch (const Glib::FileError &error)
+    {
+        std::cerr << "ERROR: Settings images could not be loaded: " << error.what() << std::endl;
+    }
+
+    auto hboxZoomStyleContext = m_hboxSetingsZoom.get_style_context();
+    hboxZoomStyleContext->add_class("linked");
+    m_zoomRestoreButton.set_sensitive(false); // By default disabled
+    m_zoomRestoreButton.set_label("100%");
+
+    m_zoomOutButton.set_tooltip_text("Zoom out");
+    m_zoomRestoreButton.set_tooltip_text("Restore zoom");
+    m_zoomInButton.set_tooltip_text("Zoom in");
+    m_hboxSetingsZoom.pack_start(m_zoomOutButton);
+    m_hboxSetingsZoom.pack_start(m_zoomRestoreButton);
+    m_hboxSetingsZoom.pack_end(m_zoomInButton);
+
+    m_scaleSettingsBrightness.set_adjustment(m_brightnessAdjustment);
+    m_scaleSettingsBrightness.add_mark(1.0, Gtk::PositionType::POS_BOTTOM, "");
+    m_scaleSettingsBrightness.set_draw_value(false);
+    m_hboxSetingsBrightness.pack_start(m_brightnessImage, false, false);
+    m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
+
+    m_vboxSettings.set_margin_start(10);
+    m_vboxSettings.set_margin_end(10);
+    m_vboxSettings.set_margin_top(10);
+    m_vboxSettings.set_margin_bottom(10);
+    m_vboxSettings.set_spacing(8);
+    m_vboxSettings.add(m_hboxSetingsZoom);
+    m_vboxSettings.add(m_hboxSetingsBrightness);    
+    m_vboxSettings.add(m_separator5);
+    m_vboxSettings.add(m_gridSetings);
     m_settingsPopover.set_position(Gtk::POS_BOTTOM);
-    // m_settingsPopover.add(m_hboxStatus); TODO
+    m_settingsPopover.set_size_request(200, 400);
+    m_settingsPopover.add(m_vboxSettings);
     m_settingsPopover.show_all_children();
 
     // Timeouts

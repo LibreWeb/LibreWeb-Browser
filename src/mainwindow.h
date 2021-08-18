@@ -13,14 +13,19 @@
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
 #include <gtkmm/togglebutton.h>
+#include <gtkmm/spinbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
+#include <gtkmm/grid.h>
+#include <gtkmm/scale.h>
 #include <gtkmm/filechooserdialog.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/entry.h>
 #include <gtkmm/searchbar.h>
 #include <gtkmm/searchentry.h>
 #include <gtkmm/paned.h>
+#include <gtkmm/adjustment.h>
+#include <gtkmm/separator.h>
 #include <giomm/settings.h>
 #include <thread>
 
@@ -75,6 +80,8 @@ protected:
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
+    Glib::RefPtr<Gtk::Adjustment> m_brightnessAdjustment; /*!< Bridghtness adjustment settings */
+
 
     // Child widgets
     Menu m_menu;
@@ -92,9 +99,17 @@ protected:
     Gtk::Box m_hboxStandardEditorToolbar;
     Gtk::Box m_hboxFormattingEditorToolbar;
     Gtk::Box m_hboxBottom;
-    Gtk::Box m_hboxStatus;
+    Gtk::Box m_vboxStatus;
+    Gtk::Box m_vboxSettings;
+    Gtk::Box m_hboxSetingsZoom;
+    Gtk::Box m_hboxSetingsBrightness;
+    Gtk::Scale m_scaleSettingsBrightness;
+    Gtk::Grid m_gridSetings;
     Gtk::Entry m_addressBar;
     Gtk::ToggleButton m_searchMatchCase;
+    Gtk::Button m_zoomOutButton;
+    Gtk::Button m_zoomRestoreButton;
+    Gtk::Button m_zoomInButton;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
@@ -124,6 +139,9 @@ protected:
     Gtk::Button m_bulletListButton;
     Gtk::Button m_numberedListButton;
     Gtk::Button m_highlightButton;
+    Gtk::Image m_zoomOutImage;
+    Gtk::Image m_zoomInImage;
+    Gtk::Image m_brightnessImage;
     Gtk::Image m_backIcon;
     Gtk::Image m_forwardIcon;
     Gtk::Image m_refreshIcon;
@@ -167,6 +185,8 @@ protected:
     Gtk::SeparatorMenuItem m_separator2;
     Gtk::SeparatorMenuItem m_separator3;
     Gtk::SeparatorMenuItem m_separator4;
+    Gtk::Separator m_separator5;
+    Gtk::Separator m_separator6;
 
 private:
     std::string m_appName;
