@@ -30,8 +30,8 @@ Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
-      fontSize(10 * PANGO_SCALE),
-      fontFamily("Ubuntu Monospace"),
+      fontSize(12 * PANGO_SCALE),
+      fontFamily("Sans"),
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -55,7 +55,7 @@ Draw::Draw(MainWindow &mainWindow)
     set_right_margin(10);
     set_top_margin(12);
     set_bottom_margin(0);
-    set_monospace(true);
+    set_monospace(false);
     set_app_paintable(true);
     set_pixels_above_lines(1);
     set_pixels_below_lines(2);
@@ -614,6 +614,7 @@ void Draw::insert_image()
     buffer->end_user_action();
 }
 
+// TODO: set_monospace(true)
 void Draw::make_code()
 {
     Gtk::TextBuffer::iterator start, end;
