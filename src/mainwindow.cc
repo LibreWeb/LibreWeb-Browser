@@ -255,6 +255,8 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_widthLabel, 0, 2);
     m_gridSetings.attach(m_widthSpinButton, 1, 2);
 
+    m_aboutButton.set_label("About LibreWeb"),
+
     // Add all to vbox / pop-over
     m_vboxSettings.set_margin_start(10);
     m_vboxSettings.set_margin_end(10);
@@ -265,8 +267,10 @@ void MainWindow::initSettingsPopover()
     m_vboxSettings.add(m_hboxSetingsBrightness);
     m_vboxSettings.add(m_separator5);
     m_vboxSettings.add(m_gridSetings);
+    m_vboxSettings.add(m_separator6);
+    m_vboxSettings.pack_end(m_aboutButton, false, false);
     m_settingsPopover.set_position(Gtk::POS_BOTTOM);
-    m_settingsPopover.set_size_request(200, 400);
+    m_settingsPopover.set_size_request(200, 300);
     m_settingsPopover.set_margin_end(2);
     m_settingsPopover.add(m_vboxSettings);
     m_settingsPopover.show_all_children();
@@ -344,6 +348,9 @@ void MainWindow::initSignals()
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
+
+    // Settings pop-over buttons
+    m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
 }
 
 /**

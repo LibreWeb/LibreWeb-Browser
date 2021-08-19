@@ -14,6 +14,7 @@
 #include <gtkmm/button.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/spinbutton.h>
+#include <gtkmm/modelbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/grid.h>
@@ -115,6 +116,7 @@ protected:
     Gtk::SpinButton m_spacingSpinButton;
     Gtk::SpinButton m_marginsSpinButton;
     Gtk::SpinButton m_widthSpinButton;
+    Gtk::ModelButton m_aboutButton;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
