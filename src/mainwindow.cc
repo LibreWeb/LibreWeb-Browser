@@ -53,6 +53,84 @@ MainWindow::MainWindow(const std::string &timeout)
     set_position(Gtk::WIN_POS_CENTER);
     add_accel_group(m_accelGroup);
 
+    loadStoredSettings();
+    initStatusPopover();
+    initSettingsPopover();
+    initSignals();
+    initButtons();
+
+    // Browser text main drawing area
+    m_scrolledWindowMain.add(m_draw_main);
+    m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+    // Secondary drawing area
+    m_draw_secondary.setViewSourceMenuItem(false);
+    m_scrolledWindowSecondary.add(m_draw_secondary);
+    m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+
+    // Bottom Search bar
+    m_search.connect_entry(m_searchEntry);
+    m_searchReplace.connect_entry(m_searchReplaceEntry);
+    m_exitBottomIcon.set_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_BUTTON));
+    m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);   
+    m_exitBottomButton.add(m_exitBottomIcon);
+    m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
+    m_searchEntry.set_size_request(250, -1);
+    m_searchReplaceEntry.set_size_request(250, -1);
+    m_searchEntry.set_margin_top(3);
+    m_searchEntry.set_margin_bottom(3); 
+    m_searchReplaceEntry.set_margin_top(3);
+    m_searchReplaceEntry.set_margin_bottom(3); 
+    m_searchMatchCase.set_margin_top(3); 
+    m_searchMatchCase.set_margin_bottom(3); 
+    m_hboxBottom.set_margin_start(6);
+    m_hboxBottom.set_spacing(8);
+    m_hboxBottom.pack_start(m_exitBottomButton, false, false);
+    m_hboxBottom.pack_start(m_searchEntry, false, false);
+    m_hboxBottom.pack_start(m_searchReplaceEntry, false, false);
+    m_hboxBottom.pack_start(m_searchMatchCase, false, false);
+
+    m_paned.pack1(m_scrolledWindowMain, true, false);
+    m_paned.pack2(m_scrolledWindowSecondary, true, true);
+
+    m_vbox.pack_start(m_menu, false, false, 0);
+    m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
+    m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
+    m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
+    m_vbox.pack_start(m_paned, true, true, 0);
+    m_vbox.pack_end(m_hboxBottom, false, true, 6);
+
+    add(m_vbox);
+    show_all_children();
+
+    // Hide by default the bottom box + replace entry, editor box & secondary text view
+    m_hboxBottom.hide();
+    m_searchReplaceEntry.hide();
+    m_hboxStandardEditorToolbar.hide();
+    m_hboxFormattingEditorToolbar.hide();
+    m_scrolledWindowSecondary.hide();
+
+    // Grap focus to input field by default
+    m_addressBar.grab_focus();
+
+    // First time manually trigger the status update once,
+    // timer will do the updates later
+    this->update_connection_status();
+
+// Show homepage if debugging is disabled
+#ifdef NDEBUG
+    go_home();
+#else
+    std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
+    // Load test file when developing
+    doRequest("file://../../test.md");
+#endif
+}
+
+/**
+ * Load stored settings from GSettings scheme file
+ */
+void MainWindow::loadStoredSettings()
+{
     // Change schema directory when browser is not installed
     if (!this->isInstalled())
     {
@@ -65,8 +143,13 @@ MainWindow::MainWindow(const std::string &timeout)
     set_default_size(m_settings->get_int("width"), m_settings->get_int("height"));
     if (m_settings->get_boolean("maximized"))
         this->maximize();
+}
 
-    // Status pop-over
+/**
+ * Init the IPFS status pop-over
+ */
+void MainWindow::initStatusPopover()
+{
     m_statusLabel.set_text("Network is still starting..."); // fallback text
     m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
     m_copyIDButton.set_margin_start(6);
@@ -80,10 +163,16 @@ MainWindow::MainWindow(const std::string &timeout)
     m_vboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 4);
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
     m_statusPopover.set_size_request(240, 120);
+    m_statusPopover.set_margin_end(2);
     m_statusPopover.add(m_vboxStatus);
     m_statusPopover.show_all_children();
+}
 
-    // Settings pop-over
+/**
+ * Init the settings pop-over
+ */
+void MainWindow::initSettingsPopover()
+{
     // First start with loading the images
     try
     {
@@ -137,14 +226,21 @@ MainWindow::MainWindow(const std::string &timeout)
     m_vboxSettings.set_margin_bottom(10);
     m_vboxSettings.set_spacing(8);
     m_vboxSettings.add(m_hboxSetingsZoom);
-    m_vboxSettings.add(m_hboxSetingsBrightness);    
+    m_vboxSettings.add(m_hboxSetingsBrightness);
     m_vboxSettings.add(m_separator5);
     m_vboxSettings.add(m_gridSetings);
     m_settingsPopover.set_position(Gtk::POS_BOTTOM);
     m_settingsPopover.set_size_request(200, 400);
+    m_settingsPopover.set_margin_end(2);
     m_settingsPopover.add(m_vboxSettings);
     m_settingsPopover.show_all_children();
+}
 
+/**
+ * Init all signals and connect them to functions
+ */
+void MainWindow::initSignals()
+{
     // Timeouts
     this->statusTimerHandler = Glib::signal_timeout().connect(sigc::mem_fun(this, &MainWindow::update_connection_status), 3000);
 
@@ -159,7 +255,7 @@ MainWindow::MainWindow(const std::string &timeout)
     m_menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                                                     /*!< Menu item for save document */
     m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                                               /*!< Menu item for save document as */
     m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                                               /*!< Menu item for publishing */
-    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::hide));                                                     /*!< hide main window and therefor closes the app */
+    m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                                                    /*!< close main window and therefor closes the app */
     m_menu.undo.connect(sigc::mem_fun(m_draw_main, &Draw::undo));                                                    /*!< Menu item for undo text */
     m_menu.redo.connect(sigc::mem_fun(m_draw_main, &Draw::redo));                                                    /*!< Menu item for redo text */
     m_menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                                                       /*!< Menu item for cut text */
@@ -185,11 +281,9 @@ MainWindow::MainWindow(const std::string &timeout)
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
     m_searchButton.signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::show_search), false));       /*!< Button for finding text */
     m_statusButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_status));                          /*!< Button for IPFS status */
-    m_settingsButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_settings));                      /*!< Button for settings */    
+    m_settingsButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_settings));                      /*!< Button for settings */
     m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));                            /*!< Execute the text search */
     m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));                    /*!< Execute the text replace */
-
-    m_vbox.pack_start(m_menu, false, false, 0);
 
     // Editor buttons
     m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
@@ -214,10 +308,19 @@ MainWindow::MainWindow(const std::string &timeout)
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
+}
 
+/**
+ * Init all buttons / comboboxes from the toolbars
+ */
+void MainWindow::initButtons()
+{
+    /*
+     * Load and add all the icons to the buttons
+     */
+    // Add icons to the editor buttons
     try
     {
-        // Add icons to the editor buttons
         m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), m_iconSize, m_iconSize));
         m_openButton.set_tooltip_text("Open document (Ctrl+O)");
         m_openButton.add(m_openIcon);
@@ -423,17 +526,20 @@ MainWindow::MainWindow(const std::string &timeout)
     m_backButton.set_sensitive(false);
     m_forwardButton.set_sensitive(false);
 
+    /* 
+     * Adding the buttons to the boxes
+     */
+
     // Browser Toolbar
     m_backButton.set_margin_left(6);
     m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);    
+    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);
     m_hboxBrowserToolbar.pack_start(m_searchButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_statusButton, false, false, 0);
     m_hboxBrowserToolbar.pack_start(m_settingsButton, false, false, 0);
-    m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
 
     // Standard editor toolbar
     m_headingsComboBox.set_margin_left(4);
@@ -447,7 +553,6 @@ MainWindow::MainWindow(const std::string &timeout)
     m_hboxStandardEditorToolbar.pack_start(m_separator2, false, false, 0);
     m_hboxStandardEditorToolbar.pack_start(m_undoButton, false, false, 2);
     m_hboxStandardEditorToolbar.pack_start(m_redoButton, false, false, 2);
-    m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
 
     // Formatting toolbar
     m_headingsComboBox.set_margin_left(4);
@@ -467,57 +572,6 @@ MainWindow::MainWindow(const std::string &timeout)
     m_hboxFormattingEditorToolbar.pack_start(m_bulletListButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_numberedListButton, false, false, 2);
     m_hboxFormattingEditorToolbar.pack_start(m_highlightButton, false, false, 2);
-    m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
-
-    // Browser text main drawing area
-    m_scrolledWindowMain.add(m_draw_main);
-    m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-    // Secondary drawing area
-    m_draw_secondary.setViewSourceMenuItem(false);
-    m_scrolledWindowSecondary.add(m_draw_secondary);
-    m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-
-    // Bottom Search bar
-    m_search.connect_entry(m_searchEntry);
-    m_searchReplace.connect_entry(m_searchReplaceEntry);
-    m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);
-    m_exitBottomButton.set_label("\u2716");
-    m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
-    m_hboxBottom.pack_start(m_exitBottomButton, false, false, 10);
-    m_hboxBottom.pack_start(m_searchEntry, false, false, 10);
-    m_hboxBottom.pack_start(m_searchReplaceEntry, false, false, 10);
-    m_hboxBottom.pack_start(m_searchMatchCase, false, false, 10);
-
-    m_paned.pack1(m_scrolledWindowMain, true, false);
-    m_paned.pack2(m_scrolledWindowSecondary, true, true);
-
-    m_vbox.pack_start(m_paned, true, true, 0);
-    m_vbox.pack_end(m_hboxBottom, false, true, 6);
-
-    add(m_vbox);
-    show_all_children();
-    // Hide by default the bottom box + replace entry, editor box & secondary text view
-    m_hboxBottom.hide();
-    m_searchReplaceEntry.hide();
-    m_hboxStandardEditorToolbar.hide();
-    m_hboxFormattingEditorToolbar.hide();
-    m_scrolledWindowSecondary.hide();
-
-    // Grap focus to input field by default
-    m_addressBar.grab_focus();
-
-    // First time manually trigger the status update once,
-    // timer will do the updates later
-    this->update_connection_status();
-
-// Show homepage if debugging is disabled
-#ifdef NDEBUG
-    go_home();
-#else
-    std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
-    // Load test file when developing
-    doRequest("file://../../test.md");
-#endif
 }
 
 /**
@@ -560,7 +614,11 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
     m_settings->set_int("width", this->get_width());
     m_settings->set_int("height", this->get_height());
     m_settings->set_boolean("maximized", this->is_maximized());
-    m_settings->set_int("position-divider", this->m_paned.get_position());
+    // Only store a divider value bigger than zero,
+    // because the secondary draw window is hidden by default, resulting into a zero value.
+    if (this->m_paned.get_position() > 0)
+        m_settings->set_int("position-divider", this->m_paned.get_position());
+
     // Fullscreen will be availible with gtkmm-4.0
     //m_settings->set_boolean("fullscreen", this->is_fullscreen());
     return false;

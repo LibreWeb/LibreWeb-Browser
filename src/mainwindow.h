@@ -172,6 +172,7 @@ protected:
     Gtk::Image m_bulletListIcon;
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
+    Gtk::Image m_exitBottomIcon;
     Gtk::Popover m_statusPopover;
     Gtk::Popover m_settingsPopover;
     Gtk::Button m_copyIDButton;
@@ -211,6 +212,11 @@ private:
     std::string ipfsTimeout;
     IPFS ipfs;
 
+    void loadStoredSettings();
+    void initStatusPopover();
+    void initSettingsPopover();
+    void initSignals();
+    void initButtons();
     bool isInstalled();
     void enableEdit();
     void disableEdit();
