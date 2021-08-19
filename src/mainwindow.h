@@ -81,7 +81,9 @@ protected:
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
     Glib::RefPtr<Gtk::Adjustment> m_brightnessAdjustment; /*!< Bridghtness adjustment settings */
-
+    Glib::RefPtr<Gtk::Adjustment> m_spacingAdjustment; /*!< Spacing adjustment settings */
+    Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment; /*!< Margins adjustment settings */
+    Glib::RefPtr<Gtk::Adjustment> m_widthAdjustment; /*!< Width adjustment settings */
 
     // Child widgets
     Menu m_menu;
@@ -110,6 +112,9 @@ protected:
     Gtk::Button m_zoomOutButton;
     Gtk::Button m_zoomRestoreButton;
     Gtk::Button m_zoomInButton;
+    Gtk::SpinButton m_spacingSpinButton;
+    Gtk::SpinButton m_marginsSpinButton;
+    Gtk::SpinButton m_widthSpinButton;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
@@ -177,6 +182,9 @@ protected:
     Gtk::Popover m_settingsPopover;
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
+    Gtk::Label m_spacingLabel;
+    Gtk::Label m_marginsLabel;
+    Gtk::Label m_widthLabel;
     Gtk::Label m_statusLabel;
     std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;

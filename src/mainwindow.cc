@@ -24,6 +24,9 @@ MainWindow::MainWindow(const std::string &timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
       m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.5, 1.5, 0.05, 0.1)),
+      m_spacingAdjustment(Gtk::Adjustment::create(1.5, 1, 3, 0.05, 0.1)),
+      m_marginsAdjustment(Gtk::Adjustment::create(0, 0, 1000, 20, 30)),
+      m_widthAdjustment(Gtk::Adjustment::create(1920, 0, 99999.0, 100, 250)),
       m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
@@ -36,6 +39,9 @@ MainWindow::MainWindow(const std::string &timeout)
       m_settingsPopover(m_settingsButton),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
+      m_spacingLabel("Spacing"),
+      m_marginsLabel("Margins"),
+      m_widthLabel("Width"),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -202,24 +208,54 @@ void MainWindow::initSettingsPopover()
         std::cerr << "ERROR: Settings images could not be loaded: " << error.what() << std::endl;
     }
 
+    // Zoom buttons
     auto hboxZoomStyleContext = m_hboxSetingsZoom.get_style_context();
-    hboxZoomStyleContext->add_class("linked");
-    m_zoomRestoreButton.set_sensitive(false); // By default disabled
+    hboxZoomStyleContext->add_class("linked");    
+    m_zoomRestoreButton.set_sensitive(false); // By default restore button disabled
     m_zoomRestoreButton.set_label("100%");
-
     m_zoomOutButton.set_tooltip_text("Zoom out");
     m_zoomRestoreButton.set_tooltip_text("Restore zoom");
     m_zoomInButton.set_tooltip_text("Zoom in");
+    m_hboxSetingsZoom.set_size_request(-1, 40);
+    m_hboxSetingsZoom.set_margin_bottom(6);
     m_hboxSetingsZoom.pack_start(m_zoomOutButton);
     m_hboxSetingsZoom.pack_start(m_zoomRestoreButton);
     m_hboxSetingsZoom.pack_end(m_zoomInButton);
 
+    // Brightness slider
     m_scaleSettingsBrightness.set_adjustment(m_brightnessAdjustment);
     m_scaleSettingsBrightness.add_mark(1.0, Gtk::PositionType::POS_BOTTOM, "");
     m_scaleSettingsBrightness.set_draw_value(false);
     m_hboxSetingsBrightness.pack_start(m_brightnessImage, false, false);
     m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
 
+    // Spin buttons
+    m_spacingSpinButton.set_digits(2);
+    m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
+    m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
+    m_widthSpinButton.set_adjustment(m_widthAdjustment);
+    m_spacingLabel.set_xalign(1);
+    m_marginsLabel.set_xalign(1);
+    m_widthLabel.set_xalign(1);
+    auto spacingLabelContext = m_spacingLabel.get_style_context();
+    spacingLabelContext->add_class("dim-label");
+    auto marginsLabelContext = m_marginsLabel.get_style_context();
+    marginsLabelContext->add_class("dim-label");
+    auto widthLabelContext = m_widthLabel.get_style_context();
+    widthLabelContext->add_class("dim-label");
+    m_gridSetings.set_margin_start(6);
+    m_gridSetings.set_margin_top(6);
+    m_gridSetings.set_margin_bottom(6);
+    m_gridSetings.set_row_spacing(10);
+    m_gridSetings.set_column_spacing(10);
+    m_gridSetings.attach(m_spacingLabel, 0, 0);
+    m_gridSetings.attach(m_spacingSpinButton, 1, 0);
+    m_gridSetings.attach(m_marginsLabel, 0, 1);
+    m_gridSetings.attach(m_marginsSpinButton, 1, 1);
+    m_gridSetings.attach(m_widthLabel, 0, 2);
+    m_gridSetings.attach(m_widthSpinButton, 1, 2);
+
+    // Add all to vbox / pop-over
     m_vboxSettings.set_margin_start(10);
     m_vboxSettings.set_margin_end(10);
     m_vboxSettings.set_margin_top(10);
