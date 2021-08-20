@@ -78,6 +78,9 @@ protected:
     void show_source_code_dialog();
     void get_heading();
     void insert_emoji();
+    void on_spacing_changed();
+    void on_margins_changed();
+    void on_width_changed();
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */

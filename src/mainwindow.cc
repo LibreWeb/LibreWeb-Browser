@@ -77,17 +77,17 @@ MainWindow::MainWindow(const std::string &timeout)
     m_search.connect_entry(m_searchEntry);
     m_searchReplace.connect_entry(m_searchReplaceEntry);
     m_exitBottomIcon.set_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_BUTTON));
-    m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);   
+    m_exitBottomButton.set_relief(Gtk::RELIEF_NONE);
     m_exitBottomButton.add(m_exitBottomIcon);
     m_exitBottomButton.signal_clicked().connect(sigc::mem_fun(m_hboxBottom, &Gtk::Box::hide));
     m_searchEntry.set_size_request(250, -1);
     m_searchReplaceEntry.set_size_request(250, -1);
     m_searchEntry.set_margin_top(3);
-    m_searchEntry.set_margin_bottom(3); 
+    m_searchEntry.set_margin_bottom(3);
     m_searchReplaceEntry.set_margin_top(3);
-    m_searchReplaceEntry.set_margin_bottom(3); 
-    m_searchMatchCase.set_margin_top(3); 
-    m_searchMatchCase.set_margin_bottom(3); 
+    m_searchReplaceEntry.set_margin_bottom(3);
+    m_searchMatchCase.set_margin_top(3);
+    m_searchMatchCase.set_margin_bottom(3);
     m_hboxBottom.set_margin_start(6);
     m_hboxBottom.set_spacing(8);
     m_hboxBottom.pack_start(m_exitBottomButton, false, false);
@@ -210,7 +210,7 @@ void MainWindow::initSettingsPopover()
 
     // Zoom buttons
     auto hboxZoomStyleContext = m_hboxSetingsZoom.get_style_context();
-    hboxZoomStyleContext->add_class("linked");    
+    hboxZoomStyleContext->add_class("linked");
     m_zoomRestoreButton.set_sensitive(false); // By default restore button disabled
     m_zoomRestoreButton.set_label("100%");
     m_zoomOutButton.set_tooltip_text("Zoom out");
@@ -257,8 +257,8 @@ void MainWindow::initSettingsPopover()
 
     m_aboutButton.set_label("About LibreWeb"),
 
-    // Add all to vbox / pop-over
-    m_vboxSettings.set_margin_start(10);
+        // Add all to vbox / pop-over
+        m_vboxSettings.set_margin_start(10);
     m_vboxSettings.set_margin_end(10);
     m_vboxSettings.set_margin_top(10);
     m_vboxSettings.set_margin_bottom(10);
@@ -350,6 +350,9 @@ void MainWindow::initSignals()
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
 
     // Settings pop-over buttons
+    m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
+    m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
+    m_widthSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_width_changed));
     m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
 }
 
@@ -1774,4 +1777,19 @@ void MainWindow::insert_emoji()
 {
     // Note: The "insert-emoji" signal is not exposed in Gtkmm library (at least not in gtk3)
     g_signal_emit_by_name(this->m_draw_main.gobj(), "insert-emoji");
+}
+
+void MainWindow::on_spacing_changed()
+{
+    std::cout << "Value: " << m_spacingSpinButton.get_value();
+}
+
+void MainWindow::on_margins_changed()
+{
+    std::cout << "Value: " << m_marginsSpinButton.get_value_as_int() << std::endl;
+}
+
+void MainWindow::on_width_changed()
+{
+    std::cout << "Value: " << m_widthSpinButton.get_value_as_int() << std::endl;
 }
