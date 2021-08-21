@@ -50,9 +50,9 @@ Draw::Draw(MainWindow &mainWindow)
       isUserAction(false)
 {
     this->disableEdit();
-    set_indent(15);
-    set_left_margin(10);
-    set_right_margin(10);
+    set_indent(0);
+    set_left_margin(20);
+    set_right_margin(20);
     set_top_margin(12);
     set_bottom_margin(0);
     set_monospace(false);
@@ -1340,7 +1340,14 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
     {
         span.append("background=\"" + background + "\" ");
     }
-    span.append("font_desc=\"" + font.to_string() + "\"");
+    if (codeType != Draw::CodeTypeEnum::NONE)
+    {
+        span.append("font_desc=\"monospace\"");
+    }
+    else
+    {
+        span.append("font_desc=\"" + font.to_string() + "\"");
+    }
 
     // Insert URL
     if (!url.empty())
