@@ -8,6 +8,7 @@
 #include "ipfs.h"
 
 #include <gtkmm/window.h>
+#include <gtkmm/cssprovider.h>
 #include <gtkmm/box.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
@@ -37,6 +38,7 @@
 class MainWindow : public Gtk::Window
 {
 public:
+    static const int DEFAULT_FONT_SIZE = 10;
     explicit MainWindow(const std::string &timeout);
     void doRequest(const std::string &path = std::string(), bool isSetAddressBar = true, bool isHistoryRequest = false, bool isDisableEditor = true, bool isParseContent = true);
 
@@ -78,10 +80,14 @@ protected:
     void show_source_code_dialog();
     void get_heading();
     void insert_emoji();
+    void on_zoom_out();
+    void on_zoom_restore();
+    void on_zoom_in();
     void on_spacing_changed();
     void on_margins_changed();
     void on_indent_changed();
     void on_width_changed();
+    void update_main_css_provider();
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
@@ -90,6 +96,8 @@ protected:
     Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment; /*!< Margins adjustment settings */
     Glib::RefPtr<Gtk::Adjustment> m_indentAdjustment; /*!< Indent adjustment settings */
     Glib::RefPtr<Gtk::Adjustment> m_widthAdjustment; /*!< Width adjustment settings */
+
+    Glib::RefPtr<Gtk::CssProvider> m_mainDrawCSSProvider; /*!< CSS Provider for main draw textview */
 
     // Child widgets
     Menu m_menu;
@@ -211,6 +219,8 @@ private:
     std::string m_iconTheme;
     bool m_useCurrentGTKIconTheme;
     int m_iconSize;
+    int m_fontSize;
+    int m_fontSpacing;
     std::thread *m_requestThread;
     std::string requestPath;
     std::string finalRequestPath;

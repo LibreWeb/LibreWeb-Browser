@@ -7,7 +7,6 @@
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
 #include <giomm/file.h>
-#include <gtkmm/cssprovider.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
@@ -24,10 +23,11 @@ MainWindow::MainWindow(const std::string &timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
       m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.5, 1.5, 0.05, 0.1)),
-      m_spacingAdjustment(Gtk::Adjustment::create(1.5, 1, 3, 0.05, 0.1)),
+      m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
       m_marginsAdjustment(Gtk::Adjustment::create(20, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       m_widthAdjustment(Gtk::Adjustment::create(1920, 0, 99999.0, 100, 250)),
+      m_mainDrawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
@@ -48,6 +48,8 @@ MainWindow::MainWindow(const std::string &timeout)
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
       m_iconSize(18),
+      m_fontSize(DEFAULT_FONT_SIZE),
+      m_fontSpacing(0),
       m_requestThread(nullptr),
       currentHistoryIndex(0),
       m_waitPageVisible(false),
@@ -66,6 +68,10 @@ MainWindow::MainWindow(const std::string &timeout)
     initSettingsPopover();
     initSignals();
     initButtons();
+
+    // Add custom CSS Provider to draw textview
+    auto style = m_draw_main.get_style_context();
+    style->add_provider(m_mainDrawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
 
     // Browser text main drawing area
     m_scrolledWindowMain.add(m_draw_main);
@@ -232,7 +238,6 @@ void MainWindow::initSettingsPopover()
     m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
 
     // Spin buttons
-    m_spacingSpinButton.set_digits(2);
     m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
     m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
     m_indentSpinButton.set_adjustment(m_indentAdjustment);
@@ -265,8 +270,8 @@ void MainWindow::initSettingsPopover()
 
     m_aboutButton.set_label("About LibreWeb"),
 
-    // Add all to vbox / pop-over
-    m_vboxSettings.set_margin_start(10);
+        // Add all to vbox / pop-over
+        m_vboxSettings.set_margin_start(10);
     m_vboxSettings.set_margin_end(10);
     m_vboxSettings.set_margin_top(10);
     m_vboxSettings.set_margin_bottom(10);
@@ -358,6 +363,9 @@ void MainWindow::initSignals()
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
 
     // Settings pop-over buttons
+    m_zoomOutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
+    m_zoomRestoreButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
+    m_zoomInButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_in));
     m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
     m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
     m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
@@ -1788,9 +1796,31 @@ void MainWindow::insert_emoji()
     g_signal_emit_by_name(this->m_draw_main.gobj(), "insert-emoji");
 }
 
+void MainWindow::on_zoom_out()
+{
+    m_fontSize -= 2;
+    update_main_css_provider();
+    m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
+}
+
+void MainWindow::on_zoom_restore()
+{
+    m_fontSize = DEFAULT_FONT_SIZE; // reset
+    update_main_css_provider();
+    m_zoomRestoreButton.set_sensitive(false);
+}
+
+void MainWindow::on_zoom_in()
+{
+    m_fontSize += 2;
+    update_main_css_provider();
+    m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
+}
+
 void MainWindow::on_spacing_changed()
 {
-    std::cout << "Value: " << m_spacingSpinButton.get_value();
+    m_fontSpacing = m_spacingSpinButton.get_value_as_int(); // Letter spacing
+    update_main_css_provider();
 }
 
 void MainWindow::on_margins_changed()
@@ -1807,4 +1837,13 @@ void MainWindow::on_indent_changed()
 void MainWindow::on_width_changed()
 {
     std::cout << "Value: " << m_widthSpinButton.get_value_as_int() << std::endl;
+}
+
+void MainWindow::update_main_css_provider()
+{
+    m_mainDrawCSSProvider->load_from_data("textview { "
+                                          // "font-family: FreeSans;"
+                                          "font-size: " + std::to_string(m_fontSize) + "pt;"
+                                          "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
+                                          "}");
 }
