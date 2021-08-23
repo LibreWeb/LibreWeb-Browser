@@ -26,7 +26,6 @@ MainWindow::MainWindow(const std::string &timeout)
       m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
       m_marginsAdjustment(Gtk::Adjustment::create(20, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
-      m_widthAdjustment(Gtk::Adjustment::create(1920, 0, 99999.0, 100, 250)),
       m_mainDrawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
       m_draw_main(*this),
@@ -43,7 +42,6 @@ MainWindow::MainWindow(const std::string &timeout)
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
-      m_widthLabel("Width"),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -241,19 +239,15 @@ void MainWindow::initSettingsPopover()
     m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
     m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
     m_indentSpinButton.set_adjustment(m_indentAdjustment);
-    m_widthSpinButton.set_adjustment(m_widthAdjustment);
     m_spacingLabel.set_xalign(1);
     m_indentLabel.set_xalign(1);
     m_marginsLabel.set_xalign(1);
-    m_widthLabel.set_xalign(1);
     auto spacingLabelContext = m_spacingLabel.get_style_context();
     spacingLabelContext->add_class("dim-label");
     auto marginsLabelContext = m_marginsLabel.get_style_context();
     marginsLabelContext->add_class("dim-label");
     auto indentLabelContext = m_indentLabel.get_style_context();
     indentLabelContext->add_class("dim-label");
-    auto widthLabelContext = m_widthLabel.get_style_context();
-    widthLabelContext->add_class("dim-label");
     m_gridSetings.set_margin_start(6);
     m_gridSetings.set_margin_top(6);
     m_gridSetings.set_margin_bottom(6);
@@ -265,13 +259,11 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_marginsSpinButton, 1, 1);
     m_gridSetings.attach(m_indentLabel, 0, 2);
     m_gridSetings.attach(m_indentSpinButton, 1, 2);
-    m_gridSetings.attach(m_widthLabel, 0, 3);
-    m_gridSetings.attach(m_widthSpinButton, 1, 3);
 
     m_aboutButton.set_label("About LibreWeb"),
 
-        // Add all to vbox / pop-over
-        m_vboxSettings.set_margin_start(10);
+    // Add all to vbox / pop-over
+    m_vboxSettings.set_margin_start(10);
     m_vboxSettings.set_margin_end(10);
     m_vboxSettings.set_margin_top(10);
     m_vboxSettings.set_margin_bottom(10);
@@ -369,7 +361,6 @@ void MainWindow::initSignals()
     m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
     m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
     m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
-    m_widthSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_width_changed));
     m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
 }
 
@@ -1832,11 +1823,6 @@ void MainWindow::on_margins_changed()
 void MainWindow::on_indent_changed()
 {
     this->m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
-}
-
-void MainWindow::on_width_changed()
-{
-    std::cout << "Value: " << m_widthSpinButton.get_value_as_int() << std::endl;
 }
 
 void MainWindow::update_main_css_provider()

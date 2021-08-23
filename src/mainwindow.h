@@ -86,7 +86,6 @@ protected:
     void on_spacing_changed();
     void on_margins_changed();
     void on_indent_changed();
-    void on_width_changed();
     void update_main_css_provider();
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
@@ -95,7 +94,6 @@ protected:
     Glib::RefPtr<Gtk::Adjustment> m_spacingAdjustment; /*!< Spacing adjustment settings */
     Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment; /*!< Margins adjustment settings */
     Glib::RefPtr<Gtk::Adjustment> m_indentAdjustment; /*!< Indent adjustment settings */
-    Glib::RefPtr<Gtk::Adjustment> m_widthAdjustment; /*!< Width adjustment settings */
 
     Glib::RefPtr<Gtk::CssProvider> m_mainDrawCSSProvider; /*!< CSS Provider for main draw textview */
 
@@ -129,7 +127,6 @@ protected:
     Gtk::SpinButton m_spacingSpinButton;
     Gtk::SpinButton m_indentSpinButton;
     Gtk::SpinButton m_marginsSpinButton;
-    Gtk::SpinButton m_widthSpinButton;
     Gtk::ModelButton m_aboutButton;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
@@ -201,7 +198,6 @@ protected:
     Gtk::Label m_spacingLabel;
     Gtk::Label m_marginsLabel;
     Gtk::Label m_indentLabel;
-    Gtk::Label m_widthLabel;
     Gtk::Label m_statusLabel;
     std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
