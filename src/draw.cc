@@ -30,8 +30,8 @@ Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
-      fontSize(12 * PANGO_SCALE),
-      fontFamily("Sans"),
+      fontSize(12 * PANGO_SCALE),  // Migrate to mainwindow.cc
+      fontFamily("Sans"), // Migrate to mainwindow.cc
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -1346,7 +1346,7 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
     }
     else
     {
-        span.append("font_desc=\"" + font.to_string() + "\"");
+        span.append("font_desc=\"" + font.to_string() + "\""); // TODO: Remove and use CSS custom styles in GTK
     }
 
     // Insert URL

@@ -16,6 +16,7 @@
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/modelbutton.h>
+#include <gtkmm/fontbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/grid.h>
@@ -39,6 +40,7 @@ class MainWindow : public Gtk::Window
 {
 public:
     static const int DEFAULT_FONT_SIZE = 10;
+    inline static const std::string DEFAULT_FONT_FAMILY = "Sans";
     explicit MainWindow(const std::string &timeout);
     void doRequest(const std::string &path = std::string(), bool isSetAddressBar = true, bool isHistoryRequest = false, bool isDisableEditor = true, bool isParseContent = true);
 
@@ -83,6 +85,7 @@ protected:
     void on_zoom_out();
     void on_zoom_restore();
     void on_zoom_in();
+    void on_font_set();
     void on_spacing_changed();
     void on_margins_changed();
     void on_indent_changed();
@@ -118,16 +121,17 @@ protected:
     Gtk::Box m_hboxSetingsZoom;
     Gtk::Box m_hboxSetingsBrightness;
     Gtk::Scale m_scaleSettingsBrightness;
-    Gtk::Grid m_gridSetings;
     Gtk::Entry m_addressBar;
     Gtk::ToggleButton m_searchMatchCase;
     Gtk::Button m_zoomOutButton;
     Gtk::Button m_zoomRestoreButton;
     Gtk::Button m_zoomInButton;
+    Gtk::FontButton m_fontButton;
     Gtk::SpinButton m_spacingSpinButton;
     Gtk::SpinButton m_indentSpinButton;
     Gtk::SpinButton m_marginsSpinButton;
     Gtk::ModelButton m_aboutButton;
+    Gtk::Grid m_gridSetings;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
@@ -195,6 +199,7 @@ protected:
     Gtk::Popover m_settingsPopover;
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
+    Gtk::Label m_fontLabel;
     Gtk::Label m_spacingLabel;
     Gtk::Label m_marginsLabel;
     Gtk::Label m_indentLabel;
@@ -215,6 +220,7 @@ private:
     std::string m_iconTheme;
     bool m_useCurrentGTKIconTheme;
     int m_iconSize;
+    std::string m_fontFamily;
     int m_fontSize;
     int m_fontSpacing;
     std::thread *m_requestThread;

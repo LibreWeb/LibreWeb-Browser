@@ -35,10 +35,12 @@ MainWindow::MainWindow(const std::string &timeout)
       m_vboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
+      m_fontButton(DEFAULT_FONT_FAMILY + " " + std::to_string(DEFAULT_FONT_SIZE)),
       m_statusPopover(m_statusButton),
       m_settingsPopover(m_settingsButton),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
+      m_fontLabel("Font"),
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
@@ -46,6 +48,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
       m_iconSize(18),
+      m_fontFamily(DEFAULT_FONT_FAMILY),
       m_fontSize(DEFAULT_FONT_SIZE),
       m_fontSpacing(0),
       m_requestThread(nullptr),
@@ -236,12 +239,16 @@ void MainWindow::initSettingsPopover()
     m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
 
     // Spin buttons
+    // m_fontButton.set?
     m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
     m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
     m_indentSpinButton.set_adjustment(m_indentAdjustment);
+    m_fontLabel.set_xalign(1);
     m_spacingLabel.set_xalign(1);
     m_indentLabel.set_xalign(1);
     m_marginsLabel.set_xalign(1);
+    auto fontLabelContext = m_fontLabel.get_style_context();
+    fontLabelContext->add_class("dim-label");
     auto spacingLabelContext = m_spacingLabel.get_style_context();
     spacingLabelContext->add_class("dim-label");
     auto marginsLabelContext = m_marginsLabel.get_style_context();
@@ -253,12 +260,14 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.set_margin_bottom(6);
     m_gridSetings.set_row_spacing(10);
     m_gridSetings.set_column_spacing(10);
-    m_gridSetings.attach(m_spacingLabel, 0, 0);
-    m_gridSetings.attach(m_spacingSpinButton, 1, 0);
-    m_gridSetings.attach(m_marginsLabel, 0, 1);
-    m_gridSetings.attach(m_marginsSpinButton, 1, 1);
-    m_gridSetings.attach(m_indentLabel, 0, 2);
-    m_gridSetings.attach(m_indentSpinButton, 1, 2);
+    m_gridSetings.attach(m_fontLabel, 0, 0);
+    m_gridSetings.attach(m_fontButton, 1, 0);
+    m_gridSetings.attach(m_spacingLabel, 0, 1);
+    m_gridSetings.attach(m_spacingSpinButton, 1, 1);
+    m_gridSetings.attach(m_marginsLabel, 0, 2);
+    m_gridSetings.attach(m_marginsSpinButton, 1, 2);
+    m_gridSetings.attach(m_indentLabel, 0, 3);
+    m_gridSetings.attach(m_indentSpinButton, 1, 3);
 
     m_aboutButton.set_label("About LibreWeb"),
 
@@ -269,7 +278,7 @@ void MainWindow::initSettingsPopover()
     m_vboxSettings.set_margin_bottom(10);
     m_vboxSettings.set_spacing(8);
     m_vboxSettings.add(m_hboxSetingsZoom);
-    m_vboxSettings.add(m_hboxSetingsBrightness);
+    // m_vboxSettings.add(m_hboxSetingsBrightness); // TODO
     m_vboxSettings.add(m_separator5);
     m_vboxSettings.add(m_gridSetings);
     m_vboxSettings.add(m_separator6);
@@ -358,6 +367,7 @@ void MainWindow::initSignals()
     m_zoomOutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
     m_zoomRestoreButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
     m_zoomInButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_in));
+    m_fontButton.signal_font_set().connect(sigc::mem_fun(this, &MainWindow::on_font_set));
     m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
     m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
     m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
@@ -1808,6 +1818,14 @@ void MainWindow::on_zoom_in()
     m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
 }
 
+void MainWindow::on_font_set()
+{
+    Pango::FontDescription fontDesc = Pango::FontDescription(m_fontButton.get_font_name());
+    m_fontFamily = fontDesc.get_family();
+    m_fontSize = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
+    update_main_css_provider();
+}
+
 void MainWindow::on_spacing_changed()
 {
     m_fontSpacing = m_spacingSpinButton.get_value_as_int(); // Letter spacing
@@ -1828,7 +1846,7 @@ void MainWindow::on_indent_changed()
 void MainWindow::update_main_css_provider()
 {
     m_mainDrawCSSProvider->load_from_data("textview { "
-                                          // "font-family: FreeSans;"
+                                          "font-family: \"" + m_fontFamily + "\";"
                                           "font-size: " + std::to_string(m_fontSize) + "pt;"
                                           "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
                                           "}");
