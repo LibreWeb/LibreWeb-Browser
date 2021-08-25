@@ -119,6 +119,7 @@ private:
     sigc::connection insertTextSignalHandler;
     sigc::connection deleteTextSignalHandler;
 
+    void addTags();
     void enableEdit();
     void disableEdit();
     void followLink(Gtk::TextBuffer::iterator &iter);
@@ -129,10 +130,12 @@ private:
     void truncateText(int charsTruncated);
     void encodeText(std::string &string);
 
+    void insertTagTextOnThread(const std::string &text, std::vector<std::string> const &tagNames);
     void insertMarkupTextOnThread(const std::string &text);
     void clearOnThread();
     void changeCursor(int x, int y);
-    static gboolean insertTextIdle(struct DispatchData *data);
+    static gboolean insertTagTextIdle(struct DispatchData *data);
+    static gboolean insertMarkupTextIdle(struct DispatchData *data);
     static gboolean insertPlainTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean truncateTextIdle(struct DispatchData *data);

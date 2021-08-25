@@ -6,6 +6,7 @@
 #include <gdk/gdkthreads.h>
 #include <gdk/gdkselection.h>
 #include <gtkmm/textiter.h>
+#include <gtkmm/texttag.h>
 #include <gdkmm/window.h>
 #include <iostream>
 #include <regex>
@@ -20,6 +21,7 @@ struct DispatchData
     // For inserting text
     std::string text;
     std::string url;
+    std::vector<std::string> tagNames;
     // For removing text
     int charsTruncated;
     // Optional URL formatting
@@ -68,10 +70,35 @@ Draw::Draw(MainWindow &mainWindow)
     linkCursor = Gdk::Cursor::create(display, "grab");
     textCursor = Gdk::Cursor::create(display, "text");
 
+    // Create text-tags
+    addTags();
+
     // Connect Signals
     signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
     signal_motion_notify_event().connect(sigc::mem_fun(this, &Draw::motion_notify_event));
     signal_populate_popup().connect(sigc::mem_fun(this, &Draw::populate_popup));
+}
+
+/**
+ * See also: https://github.com/GNOME/gtkmm/blob/master/demos/gtk-demo/example_textview.cc#L120
+ */
+void Draw::addTags()
+{
+    auto buffer = get_buffer();
+    Glib::RefPtr<Gtk::TextBuffer::Tag> tempTextTag;
+
+    // Italic / bold
+    buffer->create_tag("italic")->property_style() = Pango::Style::STYLE_ITALIC;
+    buffer->create_tag("bold")->property_weight() = Pango::Weight::WEIGHT_BOLD;
+
+    // Add headings
+    buffer->create_tag("heading1")->property_scale() = 3.0;
+    buffer->create_tag("heading2")->property_scale() = 2.5;
+    buffer->create_tag("heading3")->property_scale() = 2.2;
+    buffer->create_tag("heading4")->property_scale() = 2.0;
+    buffer->create_tag("heading5")->property_scale() = 1.8;
+    buffer->create_tag("heading6")->property_scale() = 1.4;
+    buffer->create_tag("strikethrough")->property_strikethrough() = true;
 }
 
 /**
@@ -1259,6 +1286,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
+    std::vector<std::string> tagNames;
     std::string span;
     span.reserve(80);
     std::string foreground;
@@ -1270,6 +1298,7 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
     if (isStrikethrough)
     {
         span.append("strikethrough=\"true\" ");
+        tagNames.push_back("strikethrough");
     }
     if (isSuperscript)
     {
@@ -1285,6 +1314,7 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
     if (isBold)
     {
         font.set_weight(Pango::WEIGHT_BOLD);
+        tagNames.push_back("bold");
     }
     if (isItalic)
     {
@@ -1377,6 +1407,8 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
         // Just insert text/heading the normal way
         else
         {
+            // First move to Glib signal idle... before starting this function
+            // insertTagTextOnThread(text, tagNames);
             insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
         }
     }
@@ -1434,6 +1466,26 @@ void Draw::encodeText(std::string &string)
  *****************************************************/
 
 /**
+ * Insert pango text with tag - thread safe
+ */
+void Draw::insertTagTextOnThread(const std::string &text, std::vector<std::string> const &tagNames)
+{
+    DispatchData *data = new DispatchData();
+    data->buffer = buffer;
+    data->text = text;
+    data->tagNames = tagNames;
+    // Threading in C++ should be done use Glib::Dispatcher or Glib signal idle instead of add_idle c function. 
+    // (maybe a std::mutex is needed to protect member data, https://developer-old.gnome.org/gtkmm-tutorial/stable/sec-multithread-example.html.en)
+    // 
+    // https://developer-old.gnome.org/gtkmm-tutorial/stable/sec-idle-functions.html.en
+    //  Glib::signal_idle().connect( sigc::mem_fun(*this, &IdleExample::on_idle));
+    //
+    // Or just call it once: // https://developer-old.gnome.org/glibmm/stable/thread_2dispatcher_8cc-example.html#a17
+    // Glib::signal_idle().connect_once(sigc::mem_fun(*this, &Application::launch_threads));
+    gdk_threads_add_idle((GSourceFunc)insertTagTextIdle, data);
+}
+
+/**
  * Insert markup pango text - thread safe
  */
 void Draw::insertMarkupTextOnThread(const std::string &text)
@@ -1441,7 +1493,7 @@ void Draw::insertMarkupTextOnThread(const std::string &text)
     DispatchData *data = new DispatchData();
     data->buffer = buffer;
     data->text = text;
-    gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
+    gdk_threads_add_idle((GSourceFunc)insertMarkupTextIdle, data);
 }
 
 /**
@@ -1487,9 +1539,23 @@ void Draw::changeCursor(int x, int y)
 }
 
 /**
+ * Insert text with tag on Idle call function
+ */
+gboolean Draw::insertTagTextIdle(struct DispatchData *data)
+{
+    GtkTextIter end_iter;
+    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
+    // Not possible? https://stackoverflow.com/questions/41980888/how-to-convert-from-stdvector-to-args
+
+    gtk_text_buffer_insert_with_tags_by_name(data->buffer, &end_iter, data->text.c_str(), -1, "strikethrough", "bold", NULL);
+    g_free(data);
+    return FALSE;
+}
+
+/**
  * Insert markup text on Idle call function
  */
-gboolean Draw::insertTextIdle(struct DispatchData *data)
+gboolean Draw::insertMarkupTextIdle(struct DispatchData *data)
 {
     GtkTextIter end_iter;
     gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
