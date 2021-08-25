@@ -10,12 +10,6 @@
 class MainWindow;
 
 /**
- * \struct DispatchData
- * \brief Data struct for dispatching calls to GTK thread (on idle)
- */
-struct DispatchData;
-
-/**
  * \struct UndoRedoData
  * \brief Data structure for undo/redo text
  */
@@ -125,21 +119,21 @@ private:
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text (thread-safe)
-    void insertText(std::string text, const Glib::ustring &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
-    void insertLink(const std::string &text, const Glib::ustring &url, const Glib::ustring &urlFont = "");
-    void truncateText(int charsTruncated);
     void encodeText(std::string &string);
-
-    void insertTagTextOnThread(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
-    void insertMarkupTextOnThread(const Glib::ustring &text);
+    void insertText(std::string text, const Glib::ustring &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertTagText(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertMarkupText(const Glib::ustring &text);
+    void insertLink(const Glib::ustring &text, const Glib::ustring &url);
+    void truncateText(int charsTruncated);
     void clearOnThread();
+
     void changeCursor(int x, int y);
     void insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
-    static gboolean insertMarkupTextIdle(struct DispatchData *data);
-    static gboolean insertPlainTextIdle(struct DispatchData *data);
-    static gboolean insertLinkIdle(struct DispatchData *data);
-    static gboolean truncateTextIdle(struct DispatchData *data);
-    static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
+    void insertMarupTextIdle(const Glib::ustring &text);
+    void insertPlainTextIdle(const Glib::ustring &text);
+    void insertLinkIdle(const Glib::ustring &text, const Glib::ustring &url);
+    void truncateTextIdle(int charsTruncated);
+    void clearBufferIdle();
     static Glib::ustring const intToRoman(int num);
 };
 
