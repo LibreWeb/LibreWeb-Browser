@@ -239,7 +239,6 @@ void MainWindow::initSettingsPopover()
     m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
 
     // Spin buttons
-    // m_fontButton.set?
     m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
     m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
     m_indentSpinButton.set_adjustment(m_indentAdjustment);

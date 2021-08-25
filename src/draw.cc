@@ -119,8 +119,6 @@ void Draw::addTags()
     tmpTag->property_foreground() = "blue";
     tmpTag->property_wrap_mode() = Gtk::WrapMode::WRAP_WORD;
     tmpTag->property_indent() = 15;
-    tmpTag->property_left_margin() = 10;
-    tmpTag->property_right_margin() = 10;
 
     // highlight
     tmpTag = buffer->create_tag("highlight");
