@@ -18,8 +18,6 @@ Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
-      fontSize(12 * PANGO_SCALE), // Migrate to mainwindow.cc
-      fontFamily("Sans"),         // Migrate to mainwindow.cc
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -34,7 +32,6 @@ Draw::Draw(MainWindow &mainWindow)
       isOrderedList(false),
       isLink(false),
       hovingOverLink(false),
-      defaultFont(fontFamily),
       isUserAction(false)
 {
     this->disableEdit();
@@ -66,7 +63,7 @@ Draw::Draw(MainWindow &mainWindow)
 }
 
 /**
- * See also: https://github.com/GNOME/gtkmm/blob/master/demos/gtk-demo/example_textview.cc#L120
+ * See also: https://gitlab.gnome.org/GNOME/gtkmm/-/blob/master/demos/gtk-demo/example_textview.cc#L100
  */
 void Draw::addTags()
 {
@@ -79,16 +76,16 @@ void Draw::addTags()
 
     // Add headings
     tmpTag = buffer->create_tag("heading1");
-    tmpTag->property_scale() = 2.8;
+    tmpTag->property_scale() = 2.3;
     tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
     tmpTag = buffer->create_tag("heading2");
-    tmpTag->property_scale() = 2.4;
-    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
-    tmpTag = buffer->create_tag("heading3");
     tmpTag->property_scale() = 2.0;
     tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading3");
+    tmpTag->property_scale() = 1.8;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
     tmpTag = buffer->create_tag("heading4");
-    tmpTag->property_scale() = 1.7;
+    tmpTag->property_scale() = 1.6;
     tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
     tmpTag = buffer->create_tag("heading5");
     tmpTag->property_scale() = 1.4;
@@ -98,8 +95,37 @@ void Draw::addTags()
     tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
     tmpTag->property_foreground() = "gray";
 
-    // Strikethrough
+    // Strikethrough, underline, double underline
     buffer->create_tag("strikethrough")->property_strikethrough() = true;
+    buffer->create_tag("underline")->property_underline() = Pango::Underline::UNDERLINE_SINGLE;
+    buffer->create_tag("double_underline")->property_underline() = Pango::Underline::UNDERLINE_DOUBLE;
+
+    // Superscript/subscript
+    tmpTag = buffer->create_tag("superscript");
+    tmpTag->property_rise() = 6 * Pango::SCALE;
+    tmpTag->property_scale() = 0.8;
+    tmpTag = buffer->create_tag("subscript");
+    tmpTag->property_rise() = -6 * Pango::SCALE;
+    tmpTag->property_scale() = 0.8;
+
+    // code block
+    tmpTag = buffer->create_tag("code");
+    tmpTag->property_family() = "monospace";
+    tmpTag->property_foreground() = "#323232";
+    tmpTag->property_background() = "#e0e0e0";
+
+    // quote
+    tmpTag = buffer->create_tag("quote");
+    tmpTag->property_foreground() = "blue";
+    tmpTag->property_wrap_mode() = Gtk::WrapMode::WRAP_WORD;
+    tmpTag->property_indent() = 15;
+    tmpTag->property_left_margin() = 10;
+    tmpTag->property_right_margin() = 10;
+
+    // highlight
+    tmpTag = buffer->create_tag("highlight");
+    tmpTag->property_foreground() = "black";
+    tmpTag->property_background() = "#FFFF00";
 }
 
 /**
@@ -1309,54 +1335,42 @@ void Draw::encodeText(std::string &string)
  */
 void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum codeType)
 {
-    auto font = defaultFont;
     std::vector<Glib::ustring> tagNames;
-    Glib::ustring span;
-    span.reserve(80);
-    Glib::ustring foreground;
-    Glib::ustring background;
 
     // Use by reference to replace the string
     this->encodeText(text);
 
     if (isStrikethrough)
     {
-        span.append("strikethrough=\"true\" ");
         tagNames.push_back("strikethrough");
     }
     if (isSuperscript)
     {
-        font.set_size(8000);
-        span.append("rise=\"6000\" ");
+        tagNames.push_back("superscript");
     }
     // You can not have superscript & subscript applied together
     else if (isSubscript)
     {
-        font.set_size(8000);
-        span.append("rise=\"-6000\" ");
+        tagNames.push_back("subscript");
     }
     if (isBold)
     {
-        font.set_weight(Pango::WEIGHT_BOLD);
         tagNames.push_back("bold");
     }
     if (isItalic)
     {
-        font.set_style(Pango::STYLE_ITALIC);
+        tagNames.push_back("italic");
     }
     if (isHighlight)
     {
-        foreground = "black";
-        background = "#FFFF00";
+        tagNames.push_back("highlight");
     }
     if (codeType != Draw::CodeTypeEnum::NONE)
     {
-        foreground = "#323232";
-        background = "#e0e0e0";
+        tagNames.push_back("code");
     }
     if (headingLevel > 0)
     {
-        font.set_weight(Pango::WEIGHT_BOLD);
         switch (headingLevel)
         {
         case 1:
@@ -1383,23 +1397,7 @@ void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum c
     }
     if (isQuote)
     {
-        foreground = "blue";
-    }
-    if (!foreground.empty())
-    {
-        span.append("foreground=\"" + foreground + "\" ");
-    }
-    if (!background.empty())
-    {
-        span.append("background=\"" + background + "\" ");
-    }
-    if (codeType != Draw::CodeTypeEnum::NONE)
-    {
-        span.append("font_desc=\"monospace\"");
-    }
-    else
-    {
-        span.append("font_desc=\"" + font.to_string() + "\""); // TODO: Remove and use CSS custom styles in GTK
+        tagNames.push_back("quote");
     }
 
     // Insert URL
@@ -1418,14 +1416,16 @@ void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum c
             // Add a quote for each new code line
             while (getline(iss, line))
             {
-                insertMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + line + "</span>\n");
+                insertTagText("\uFF5C ", "quote");
+                insertTagText(line + "\n", tagNames);
             }
-            insertMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
+            insertTagText("\uFF5C\n", "quote");
         }
         // Special case for heading within quote
         else if ((headingLevel > 0) && isQuote)
         {
-            insertMarkupText("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
+            insertTagText("\uFF5C ", "quote");
+            insertTagText(text, tagNames);
         }
         // Just insert text/heading the normal way
         else
@@ -1436,11 +1436,19 @@ void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum c
 }
 
 /**
- * Insert pango text with tag - thread safe
+ * Insert pango text with tags - thread safe
  */
 void Draw::insertTagText(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
 {
     Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertTagTextIdle), text, tagNames));
+}
+
+/**
+ * Insert pango text with a single tag name - thread safe
+ */
+void Draw::insertTagText(const Glib::ustring &text, const Glib::ustring &tagName)
+{
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertSingleTagTextIdle), text, tagName));
 }
 
 /**
@@ -1511,7 +1519,7 @@ void Draw::changeCursor(int x, int y)
 }
 
 /**
- * Insert text with tag on signal idle
+ * Insert text with tags on signal idle
  */
 
 void Draw::insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
@@ -1519,6 +1527,17 @@ void Draw::insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustrin
     auto buffer = get_buffer();
     auto endIter = buffer->end();
     buffer->insert_with_tags_by_name(endIter, text, tagNames);
+}
+
+/**
+ * Insert text with a single tag name on signal idle
+ */
+
+void Draw::insertSingleTagTextIdle(const Glib::ustring &text, const Glib::ustring &tagName)
+{
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    buffer->insert_with_tag(endIter, text, tagName);
 }
 
 /**

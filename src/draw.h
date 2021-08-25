@@ -82,8 +82,6 @@ private:
     MainWindow &mainWindow;
     GtkTextBuffer *buffer;
     bool addViewSourceMenuItem;
-    int fontSize;
-    Glib::ustring fontFamily;
     int headingLevel;
     int listLevel;
     bool isBold;
@@ -103,7 +101,6 @@ private:
     Glib::RefPtr<Gdk::Cursor> linkCursor;
     Glib::RefPtr<Gdk::Cursor> textCursor;
     bool hovingOverLink;
-    Pango::FontDescription defaultFont;
     bool isUserAction;
 
     std::vector<UndoRedoData> undoPool;
@@ -122,6 +119,7 @@ private:
     void encodeText(std::string &string);
     void insertText(std::string text, const Glib::ustring &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
     void insertTagText(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertTagText(const Glib::ustring &text, const Glib::ustring &tagName);
     void insertMarkupText(const Glib::ustring &text);
     void insertLink(const Glib::ustring &text, const Glib::ustring &url);
     void truncateText(int charsTruncated);
@@ -129,6 +127,7 @@ private:
 
     void changeCursor(int x, int y);
     void insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertSingleTagTextIdle(const Glib::ustring &text, const Glib::ustring &tagName);    
     void insertMarupTextIdle(const Glib::ustring &text);
     void insertPlainTextIdle(const Glib::ustring &text);
     void insertLinkIdle(const Glib::ustring &text, const Glib::ustring &url);
