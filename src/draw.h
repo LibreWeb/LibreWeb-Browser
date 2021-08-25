@@ -22,7 +22,7 @@ struct DispatchData;
 struct UndoRedoData
 {
     bool isInsert;
-    std::string text;
+    Glib::ustring text;
     int beginOffset;
     int endOffset;
 };
@@ -43,13 +43,13 @@ public:
     };
 
     explicit Draw(MainWindow &mainWindow);
-    void showMessage(const std::string &message, const std::string &detailed_info = "");
+    void showMessage(const Glib::ustring &message, const Glib::ustring &detailed_info = "");
     void showStartPage();
     void processDocument(cmark_node *root_node);
     void setViewSourceMenuItem(bool isEnabled);
     void newDocument();
-    std::string getText();
-    void setText(const std::string &content);
+    Glib::ustring getText();
+    void setText(const Glib::ustring &content);
     void clearText();
     void undo();
     void redo();
@@ -89,7 +89,7 @@ private:
     GtkTextBuffer *buffer;
     bool addViewSourceMenuItem;
     int fontSize;
-    std::string fontFamily;
+    Glib::ustring fontFamily;
     int headingLevel;
     int listLevel;
     bool isBold;
@@ -103,7 +103,7 @@ private:
     int orderedListLevel;
     bool isOrderedList;
     bool isLink;
-    std::string linkURL;
+    Glib::ustring linkURL;
     std::map<int, int> orderedListCounters;
     Glib::RefPtr<Gdk::Cursor> normalCursor;
     Glib::RefPtr<Gdk::Cursor> linkCursor;
@@ -125,22 +125,22 @@ private:
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text (thread-safe)
-    void insertText(std::string text, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
-    void insertLink(const std::string &text, const std::string &url, const std::string &urlFont = "");
+    void insertText(std::string text, const Glib::ustring &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertLink(const std::string &text, const Glib::ustring &url, const Glib::ustring &urlFont = "");
     void truncateText(int charsTruncated);
     void encodeText(std::string &string);
 
-    void insertTagTextOnThread(const std::string &text, std::vector<std::string> const &tagNames);
-    void insertMarkupTextOnThread(const std::string &text);
+    void insertTagTextOnThread(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertMarkupTextOnThread(const Glib::ustring &text);
     void clearOnThread();
     void changeCursor(int x, int y);
-    static gboolean insertTagTextIdle(struct DispatchData *data);
+    void insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
     static gboolean insertMarkupTextIdle(struct DispatchData *data);
     static gboolean insertPlainTextIdle(struct DispatchData *data);
     static gboolean insertLinkIdle(struct DispatchData *data);
     static gboolean truncateTextIdle(struct DispatchData *data);
     static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
-    static std::string const intToRoman(int num);
+    static Glib::ustring const intToRoman(int num);
 };
 
 #endif

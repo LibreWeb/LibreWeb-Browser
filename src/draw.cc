@@ -8,6 +8,7 @@
 #include <gtkmm/textiter.h>
 #include <gtkmm/texttag.h>
 #include <gdkmm/window.h>
+#include <glibmm.h>
 #include <iostream>
 #include <regex>
 #include <algorithm>
@@ -32,8 +33,8 @@ Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
-      fontSize(12 * PANGO_SCALE),  // Migrate to mainwindow.cc
-      fontFamily("Sans"), // Migrate to mainwindow.cc
+      fontSize(12 * PANGO_SCALE), // Migrate to mainwindow.cc
+      fontFamily("Sans"),         // Migrate to mainwindow.cc
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -85,19 +86,34 @@ Draw::Draw(MainWindow &mainWindow)
 void Draw::addTags()
 {
     auto buffer = get_buffer();
-    Glib::RefPtr<Gtk::TextBuffer::Tag> tempTextTag;
+    Glib::RefPtr<Gtk::TextBuffer::Tag> tmpTag;
 
     // Italic / bold
     buffer->create_tag("italic")->property_style() = Pango::Style::STYLE_ITALIC;
     buffer->create_tag("bold")->property_weight() = Pango::Weight::WEIGHT_BOLD;
 
     // Add headings
-    buffer->create_tag("heading1")->property_scale() = 3.0;
-    buffer->create_tag("heading2")->property_scale() = 2.5;
-    buffer->create_tag("heading3")->property_scale() = 2.2;
-    buffer->create_tag("heading4")->property_scale() = 2.0;
-    buffer->create_tag("heading5")->property_scale() = 1.8;
-    buffer->create_tag("heading6")->property_scale() = 1.4;
+    tmpTag = buffer->create_tag("heading1");
+    tmpTag->property_scale() = 2.8;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading2");
+    tmpTag->property_scale() = 2.4;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading3");
+    tmpTag->property_scale() = 2.0;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading4");
+    tmpTag->property_scale() = 1.7;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading5");
+    tmpTag->property_scale() = 1.4;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading6");
+    tmpTag->property_scale() = 1.3;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag->property_foreground() = "gray";
+
+    // Strikethrough
     buffer->create_tag("strikethrough")->property_strikethrough() = true;
 }
 
@@ -156,7 +172,7 @@ void Draw::populate_popup(Gtk::Menu *menu)
     for (auto *item : items)
     {
         Gtk::MenuItem *menuItem = static_cast<Gtk::MenuItem *>(item);
-        std::string name = menuItem->get_label();
+        Glib::ustring name = menuItem->get_label();
         if (name.compare("Cu_t") == 0)
         {
             menuItem->set_label("Cu_t (Ctrl+X)");
@@ -196,7 +212,7 @@ void Draw::populate_popup(Gtk::Menu *menu)
  * \param message Headliner
  * \param detailed_info Additional text info
  */
-void Draw::showMessage(const std::string &message, const std::string &detailed_info)
+void Draw::showMessage(const Glib::ustring &message, const Glib::ustring &detailed_info)
 {
     if (get_editable())
         this->disableEdit();
@@ -278,7 +294,7 @@ void Draw::newDocument()
 /**
  * \brief Retrieve the current text buffer (not thread-safe)
  */
-std::string Draw::getText()
+Glib::ustring Draw::getText()
 {
     return get_buffer().get()->get_text();
 }
@@ -287,7 +303,7 @@ std::string Draw::getText()
  * \brief Set text in text buffer (for example plain text) - thead-safe
  * \param content Content string that needs to be set as buffer text
  */
-void Draw::setText(const std::string &content)
+void Draw::setText(const Glib::ustring &content)
 {
     DispatchData *data = new DispatchData();
     data->buffer = buffer;
@@ -422,7 +438,7 @@ void Draw::make_heading(int headingLevel)
     Gtk::TextBuffer::iterator start, start_line, end_line, _;
     auto buffer = get_buffer();
     buffer->begin_user_action();
-    std::string heading = std::string(headingLevel, '#');
+    Glib::ustring heading = Glib::ustring(headingLevel, '#');
     buffer->get_selection_bounds(start, _);
 
     start_line = buffer->get_iter_at_line(start.get_line());
@@ -435,7 +451,7 @@ void Draw::make_heading(int headingLevel)
         std::size_t countHashes = 0;
         bool hasSpace = false;
         std::size_t len = text.size();
-        for (std::string::size_type i = 0; i < len; i++)
+        for (Glib::ustring::size_type i = 0; i < len; i++)
         {
             if (text[i] == '#')
                 countHashes++;
@@ -455,7 +471,7 @@ void Draw::make_heading(int headingLevel)
         Gtk::TextBuffer::iterator new_start = buffer->get_iter_at_offset(insertLocation);
 
         // Finally, insert the new heading (add additional space indeed needed)
-        std::string insertHeading = (hasSpace) ? heading : heading + " ";
+        Glib::ustring insertHeading = (hasSpace) ? heading : heading + " ";
         buffer->insert(new_start, insertHeading);
     }
     else
@@ -472,7 +488,7 @@ void Draw::make_bold()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("**" + text + "**");
     }
@@ -493,7 +509,7 @@ void Draw::make_italic()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("*" + text + "*");
     }
@@ -514,7 +530,7 @@ void Draw::make_strikethrough()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("~~" + text + "~~");
     }
@@ -535,7 +551,7 @@ void Draw::make_super()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("^" + text + "^");
     }
@@ -556,7 +572,7 @@ void Draw::make_sub()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("%" + text + "%");
     }
@@ -601,7 +617,7 @@ void Draw::insert_link()
     if (buffer->get_selection_bounds(start, end))
     {
         int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("[" + text + "](ipfs://url)");
         auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 10);
@@ -626,7 +642,7 @@ void Draw::insert_image()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("![](" + text + "]");
     }
@@ -1130,16 +1146,16 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             {
                 if (bulletListLevel % 2 == 0)
                 {
-                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u25e6 ");
+                    this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u25e6 ");
                 }
                 else
                 {
-                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u2022 ");
+                    this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u2022 ");
                 }
             }
             else if (orderedListLevel > 0)
             {
-                std::string number;
+                Glib::ustring number;
                 if (orderedListLevel % 2 == 0)
                 {
                     number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
@@ -1148,7 +1164,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 {
                     number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
                 }
-                this->insertText(std::string(orderedListLevel, '\u0009') + number);
+                this->insertText(Glib::ustring(orderedListLevel, '\u0009') + number);
             }
         }
         break;
@@ -1168,8 +1184,8 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_CODE_BLOCK:
     {
-        std::string code = cmark_node_get_literal(node);
-        std::string newline = (isQuote) ? "" : "\n";
+        Glib::ustring code = cmark_node_get_literal(node);
+        Glib::ustring newline = (isQuote) ? "" : "\n";
         this->insertText(code + newline, "", CodeTypeEnum::CODE_BLOCK);
     }
     break;
@@ -1212,7 +1228,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_TEXT:
     {
-        std::string text = cmark_node_get_literal(node);
+        Glib::ustring text = cmark_node_get_literal(node);
         // URL
         if (isLink)
         {
@@ -1239,7 +1255,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_CODE:
     {
-        std::string code = cmark_node_get_literal(node);
+        Glib::ustring code = cmark_node_get_literal(node);
         this->insertText(code, "", CodeTypeEnum::INLINE_CODE);
     }
     break;
@@ -1275,7 +1291,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_FOOTNOTE_DEFINITION:
         break;
     default:
-        throw std::runtime_error("Node type '" + std::string(cmark_node_get_type_string(node)) + "' not found.");
+        throw std::runtime_error("Node type '" + Glib::ustring(cmark_node_get_type_string(node)) + "' not found.");
         break;
     }
 }
@@ -1283,14 +1299,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 /**
  * Insert markup text - thread safe
  */
-void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum codeType)
+void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum codeType)
 {
     auto font = defaultFont;
-    std::vector<std::string> tagNames;
-    std::string span;
+    std::vector<Glib::ustring> tagNames;
+    Glib::ustring span;
     span.reserve(80);
-    std::string foreground;
-    std::string background;
+    Glib::ustring foreground;
+    Glib::ustring background;
 
     // Use by reference to replace the string
     this->encodeText(text);
@@ -1336,23 +1352,22 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
         switch (headingLevel)
         {
         case 1:
-            font.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
+            tagNames.push_back("heading1");
             break;
         case 2:
-            font.set_size(fontSize * PANGO_SCALE_XX_LARGE);
+            tagNames.push_back("heading2");
             break;
         case 3:
-            font.set_size(fontSize * PANGO_SCALE_X_LARGE);
+            tagNames.push_back("heading3");
             break;
         case 4:
-            font.set_size(fontSize * PANGO_SCALE_LARGE);
+            tagNames.push_back("heading4");
             break;
         case 5:
-            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
+            tagNames.push_back("heading5");
             break;
         case 6:
-            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
-            foreground = "gray";
+            tagNames.push_back("heading6");
             break;
         default:
             break;
@@ -1408,8 +1423,8 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
         else
         {
             // First move to Glib signal idle... before starting this function
-            // insertTagTextOnThread(text, tagNames);
-            insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
+            insertTagTextOnThread(text, tagNames);
+            //insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
         }
     }
 }
@@ -1417,7 +1432,7 @@ void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum cod
 /**
  * Insert url link - thread safe
  */
-void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
+void Draw::insertLink(const std::string &text, const Glib::ustring &url, const Glib::ustring &urlFont)
 {
     DispatchData *data = new DispatchData();
     data->buffer = buffer;
@@ -1468,27 +1483,15 @@ void Draw::encodeText(std::string &string)
 /**
  * Insert pango text with tag - thread safe
  */
-void Draw::insertTagTextOnThread(const std::string &text, std::vector<std::string> const &tagNames)
+void Draw::insertTagTextOnThread(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
 {
-    DispatchData *data = new DispatchData();
-    data->buffer = buffer;
-    data->text = text;
-    data->tagNames = tagNames;
-    // Threading in C++ should be done use Glib::Dispatcher or Glib signal idle instead of add_idle c function. 
-    // (maybe a std::mutex is needed to protect member data, https://developer-old.gnome.org/gtkmm-tutorial/stable/sec-multithread-example.html.en)
-    // 
-    // https://developer-old.gnome.org/gtkmm-tutorial/stable/sec-idle-functions.html.en
-    //  Glib::signal_idle().connect( sigc::mem_fun(*this, &IdleExample::on_idle));
-    //
-    // Or just call it once: // https://developer-old.gnome.org/glibmm/stable/thread_2dispatcher_8cc-example.html#a17
-    // Glib::signal_idle().connect_once(sigc::mem_fun(*this, &Application::launch_threads));
-    gdk_threads_add_idle((GSourceFunc)insertTagTextIdle, data);
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertTagTextIdle), text, tagNames));
 }
 
 /**
  * Insert markup pango text - thread safe
  */
-void Draw::insertMarkupTextOnThread(const std::string &text)
+void Draw::insertMarkupTextOnThread(const Glib::ustring &text)
 {
     DispatchData *data = new DispatchData();
     data->buffer = buffer;
@@ -1541,15 +1544,12 @@ void Draw::changeCursor(int x, int y)
 /**
  * Insert text with tag on Idle call function
  */
-gboolean Draw::insertTagTextIdle(struct DispatchData *data)
-{
-    GtkTextIter end_iter;
-    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
-    // Not possible? https://stackoverflow.com/questions/41980888/how-to-convert-from-stdvector-to-args
 
-    gtk_text_buffer_insert_with_tags_by_name(data->buffer, &end_iter, data->text.c_str(), -1, "strikethrough", "bold", NULL);
-    g_free(data);
-    return FALSE;
+void Draw::insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
+{
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    buffer->insert_with_tags_by_name(endIter, text, tagNames);
 }
 
 /**
@@ -1622,11 +1622,11 @@ gboolean Draw::clearBufferIdle(GtkTextBuffer *textBuffer)
 /**
  * Convert number to roman numerals
  */
-std::string const Draw::intToRoman(int num)
+Glib::ustring const Draw::intToRoman(int num)
 {
     static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-    static const std::string numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
-    std::string res;
+    static const Glib::ustring numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+    Glib::ustring res;
     for (int i = 0; i < 13; ++i)
     {
         while (num >= values[i])
