@@ -272,6 +272,7 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_indentLabel, 0, 3);
     m_gridSetings.attach(m_indentSpinButton, 1, 3);
 
+    m_iconThemeButton.set_property("submenu", "aa");
     m_iconThemeButton.set_label("Icon Theme");
     m_aboutButton.set_label("About LibreWeb");
     Gtk::Label *iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(m_iconThemeButton.get_child());
@@ -1760,8 +1761,6 @@ void MainWindow::updateCSS()
                                           "font-size: " + std::to_string(m_fontSize) + "pt;"
                                           "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
                                           "}");
-    auto style = m_draw_main.get_style_context();
-    auto font = style->get_font();
     
 }
 
