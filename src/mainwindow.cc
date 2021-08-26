@@ -26,7 +26,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
       m_marginsAdjustment(Gtk::Adjustment::create(20, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
-      m_mainDrawCSSProvider(Gtk::CssProvider::create()),
+      m_drawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
       m_draw_main(*this),
       m_draw_secondary(*this),
@@ -70,11 +70,13 @@ MainWindow::MainWindow(const std::string &timeout)
     initSignals();
     initButtons();
 
-    // Add custom CSS Provider to draw textview
-    auto style = m_draw_main.get_style_context();
-    style->add_provider(m_mainDrawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    // Add custom CSS Provider to draw textviews
+    auto styleMain = m_draw_main.get_style_context();
+    auto styleSecondary = m_draw_secondary.get_style_context();
+    styleMain->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    styleSecondary->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
     // Load the default font family and font size
-    updateMainCSS();
+    updateCSS();
 
     // Browser text main drawing area
     m_scrolledWindowMain.add(m_draw_main);
@@ -1743,9 +1745,9 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
 /**
  * Update the CSS provider data on the main draw text view
  */
-void MainWindow::updateMainCSS()
+void MainWindow::updateCSS()
 {
-    m_mainDrawCSSProvider->load_from_data("textview { "
+    m_drawCSSProvider->load_from_data("textview { "
                                           "font-family: \"" + m_fontFamily + "\";"
                                           "font-size: " + std::to_string(m_fontSize) + "pt;"
                                           "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
@@ -1813,21 +1815,21 @@ void MainWindow::insert_emoji()
 void MainWindow::on_zoom_out()
 {
     m_fontSize -= 2;
-    updateMainCSS();
+    updateCSS();
     m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
 }
 
 void MainWindow::on_zoom_restore()
 {
     m_fontSize = DEFAULT_FONT_SIZE; // reset
-    updateMainCSS();
+    updateCSS();
     m_zoomRestoreButton.set_sensitive(false);
 }
 
 void MainWindow::on_zoom_in()
 {
     m_fontSize += 2;
-    updateMainCSS();
+    updateCSS();
     m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
 }
 
@@ -1836,13 +1838,13 @@ void MainWindow::on_font_set()
     Pango::FontDescription fontDesc = Pango::FontDescription(m_fontButton.get_font_name());
     m_fontFamily = fontDesc.get_family();
     m_fontSize = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
-    updateMainCSS();
+    updateCSS();
 }
 
 void MainWindow::on_spacing_changed()
 {
     m_fontSpacing = m_spacingSpinButton.get_value_as_int(); // Letter spacing
-    updateMainCSS();
+    updateCSS();
 }
 
 void MainWindow::on_margins_changed()

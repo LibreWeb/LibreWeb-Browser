@@ -97,7 +97,7 @@ protected:
     Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment; /*!< Margins adjustment settings */
     Glib::RefPtr<Gtk::Adjustment> m_indentAdjustment; /*!< Indent adjustment settings */
 
-    Glib::RefPtr<Gtk::CssProvider> m_mainDrawCSSProvider; /*!< CSS Provider for main draw textview */
+    Glib::RefPtr<Gtk::CssProvider> m_drawCSSProvider; /*!< CSS Provider for draw textviews */
 
     // Child widgets
     Menu m_menu;
@@ -254,7 +254,7 @@ private:
     void fetchFromIPFS(bool isParseContent);
     void openFromDisk(bool isParseContent);
     std::string getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon);
-    void updateMainCSS();
+    void updateCSS();
 };
 
 #endif
