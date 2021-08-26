@@ -248,8 +248,8 @@ void MainWindow::initSettingsPopover()
     m_indentSpinButton.set_adjustment(m_indentAdjustment);
     m_fontLabel.set_xalign(1);
     m_spacingLabel.set_xalign(1);
-    m_indentLabel.set_xalign(1);
     m_marginsLabel.set_xalign(1);
+    m_indentLabel.set_xalign(1);
     auto fontLabelContext = m_fontLabel.get_style_context();
     fontLabelContext->add_class("dim-label");
     auto spacingLabelContext = m_spacingLabel.get_style_context();
@@ -272,7 +272,13 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_indentLabel, 0, 3);
     m_gridSetings.attach(m_indentSpinButton, 1, 3);
 
-    m_aboutButton.set_label("About LibreWeb"),
+    m_iconThemeButton.set_label("Icon Theme");
+    m_aboutButton.set_label("About LibreWeb");
+    Gtk::Label *iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(m_iconThemeButton.get_child());
+    iconThemeButtonlabel->set_xalign(0.0);
+    Gtk::Label *aboutButtonLabel = dynamic_cast<Gtk::Label*>(m_aboutButton.get_child());
+    iconThemeButtonlabel->set_xalign(0.0);
+    aboutButtonLabel->set_xalign(0.0);
 
     // Add all to vbox / pop-over
     m_vboxSettings.set_margin_start(10);
@@ -285,6 +291,8 @@ void MainWindow::initSettingsPopover()
     m_vboxSettings.add(m_separator5);
     m_vboxSettings.add(m_gridSetings);
     m_vboxSettings.add(m_separator6);
+    m_vboxSettings.add(m_iconThemeButton);
+    m_vboxSettings.add(m_separator7);
     m_vboxSettings.pack_end(m_aboutButton, false, false);
     m_settingsPopover.set_position(Gtk::POS_BOTTOM);
     m_settingsPopover.set_size_request(200, 300);
@@ -1752,6 +1760,9 @@ void MainWindow::updateCSS()
                                           "font-size: " + std::to_string(m_fontSize) + "pt;"
                                           "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
                                           "}");
+    auto style = m_draw_main.get_style_context();
+    auto font = style->get_font();
+    
 }
 
 void MainWindow::editor_changed_text()

@@ -127,8 +127,9 @@ protected:
     Gtk::Button m_zoomInButton;
     Gtk::FontButton m_fontButton;
     Gtk::SpinButton m_spacingSpinButton;
-    Gtk::SpinButton m_indentSpinButton;
     Gtk::SpinButton m_marginsSpinButton;
+    Gtk::SpinButton m_indentSpinButton;
+    Gtk::ModelButton m_iconThemeButton;
     Gtk::ModelButton m_aboutButton;
     Gtk::Grid m_gridSetings;
     Gtk::Button m_backButton;
@@ -213,6 +214,7 @@ protected:
     Gtk::SeparatorMenuItem m_separator4;
     Gtk::Separator m_separator5;
     Gtk::Separator m_separator6;
+    Gtk::Separator m_separator7;
 
 private:
     std::string m_appName;
