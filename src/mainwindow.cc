@@ -73,6 +73,8 @@ MainWindow::MainWindow(const std::string &timeout)
     // Add custom CSS Provider to draw textview
     auto style = m_draw_main.get_style_context();
     style->add_provider(m_mainDrawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+    // Load the default font family and font size
+    updateMainCSS();
 
     // Browser text main drawing area
     m_scrolledWindowMain.add(m_draw_main);
@@ -1738,6 +1740,18 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
     }
 }
 
+/**
+ * Update the CSS provider data on the main draw text view
+ */
+void MainWindow::updateMainCSS()
+{
+    m_mainDrawCSSProvider->load_from_data("textview { "
+                                          "font-family: \"" + m_fontFamily + "\";"
+                                          "font-size: " + std::to_string(m_fontSize) + "pt;"
+                                          "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
+                                          "}");
+}
+
 void MainWindow::editor_changed_text()
 {
     // Retrieve text from text editor
@@ -1799,21 +1813,21 @@ void MainWindow::insert_emoji()
 void MainWindow::on_zoom_out()
 {
     m_fontSize -= 2;
-    update_main_css_provider();
+    updateMainCSS();
     m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
 }
 
 void MainWindow::on_zoom_restore()
 {
     m_fontSize = DEFAULT_FONT_SIZE; // reset
-    update_main_css_provider();
+    updateMainCSS();
     m_zoomRestoreButton.set_sensitive(false);
 }
 
 void MainWindow::on_zoom_in()
 {
     m_fontSize += 2;
-    update_main_css_provider();
+    updateMainCSS();
     m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
 }
 
@@ -1822,13 +1836,13 @@ void MainWindow::on_font_set()
     Pango::FontDescription fontDesc = Pango::FontDescription(m_fontButton.get_font_name());
     m_fontFamily = fontDesc.get_family();
     m_fontSize = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
-    update_main_css_provider();
+    updateMainCSS();
 }
 
 void MainWindow::on_spacing_changed()
 {
     m_fontSpacing = m_spacingSpinButton.get_value_as_int(); // Letter spacing
-    update_main_css_provider();
+    updateMainCSS();
 }
 
 void MainWindow::on_margins_changed()
@@ -1840,13 +1854,4 @@ void MainWindow::on_margins_changed()
 void MainWindow::on_indent_changed()
 {
     this->m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
-}
-
-void MainWindow::update_main_css_provider()
-{
-    m_mainDrawCSSProvider->load_from_data("textview { "
-                                          "font-family: \"" + m_fontFamily + "\";"
-                                          "font-size: " + std::to_string(m_fontSize) + "pt;"
-                                          "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
-                                          "}");
 }

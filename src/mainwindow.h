@@ -89,7 +89,6 @@ protected:
     void on_spacing_changed();
     void on_margins_changed();
     void on_indent_changed();
-    void update_main_css_provider();
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
@@ -255,6 +254,7 @@ private:
     void fetchFromIPFS(bool isParseContent);
     void openFromDisk(bool isParseContent);
     std::string getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon);
+    void updateMainCSS();
 };
 
 #endif
