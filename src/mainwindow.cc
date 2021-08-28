@@ -272,8 +272,8 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_indentLabel, 0, 3);
     m_gridSetings.attach(m_indentSpinButton, 1, 3);
 
-    m_iconThemeButton.set_property("submenu", "aa");
     m_iconThemeButton.set_label("Icon Theme");
+    m_iconThemeButton.property_menu_name() = "icon-theme";
     m_aboutButton.set_label("About LibreWeb");
     Gtk::Label *iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(m_iconThemeButton.get_child());
     iconThemeButtonlabel->set_xalign(0.0);
@@ -346,8 +346,6 @@ void MainWindow::initSignals()
     m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh));                             /*!< Button for reloading the page */
     m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));                                /*!< Button for home page */
     m_searchButton.signal_clicked().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::show_search), false));       /*!< Button for finding text */
-    m_statusButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_status));                          /*!< Button for IPFS status */
-    m_settingsButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_settings));                      /*!< Button for settings */
     m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));                            /*!< Execute the text search */
     m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));                    /*!< Execute the text replace */
 
@@ -531,6 +529,8 @@ void MainWindow::initButtons()
     styleForward->add_class("circular");
     auto styleRefresh = m_refreshButton.get_style_context();
     styleRefresh->add_class("circular");
+    m_statusButton.set_popover(m_statusPopover);
+    m_settingsButton.set_popover(m_settingsPopover);
     m_backButton.set_relief(Gtk::RELIEF_NONE);
     m_forwardButton.set_relief(Gtk::RELIEF_NONE);
     m_refreshButton.set_relief(Gtk::RELIEF_NONE);
@@ -1303,22 +1303,6 @@ void MainWindow::postDoRequest(const std::string &path, bool isSetAddressBar, bo
 void MainWindow::go_home()
 {
     doRequest("about:home", true, false, true);
-}
-
-/**
- * \brief Show IFFS status popup
- */
-void MainWindow::show_status()
-{
-    this->m_statusPopover.popup();
-}
-
-/**
- * \brief Show settings popup
- */
-void MainWindow::show_settings()
-{
-    this->m_settingsPopover.popup();
 }
 
 /**

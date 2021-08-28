@@ -13,12 +13,14 @@
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
+#include <gtkmm/menubutton.h>
 #include <gtkmm/togglebutton.h>
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/modelbutton.h>
 #include <gtkmm/fontbutton.h>
 #include <gtkmm/comboboxtext.h>
 #include <gtkmm/popover.h>
+#include <gtkmm/popovermenu.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/filechooserdialog.h>
@@ -64,8 +66,6 @@ protected:
     void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void publish();
     void go_home();
-    void show_status();
-    void show_settings();
     void copy_client_id();
     void copy_client_public_key();
     void address_bar_activate();
@@ -119,6 +119,7 @@ protected:
     Gtk::Box m_vboxSettings;
     Gtk::Box m_hboxSetingsZoom;
     Gtk::Box m_hboxSetingsBrightness;
+    Gtk::Box m_vboxTemp;
     Gtk::Scale m_scaleSettingsBrightness;
     Gtk::Entry m_addressBar;
     Gtk::ToggleButton m_searchMatchCase;
@@ -137,8 +138,8 @@ protected:
     Gtk::Button m_refreshButton;
     Gtk::Button m_homeButton;
     Gtk::Button m_searchButton;
-    Gtk::Button m_statusButton;
-    Gtk::Button m_settingsButton;
+    Gtk::MenuButton m_statusButton;
+    Gtk::MenuButton m_settingsButton;
     Gtk::Button m_openButton;
     Gtk::Button m_saveButton;
     Gtk::Button m_publishButton;
@@ -196,7 +197,7 @@ protected:
     Gtk::Image m_hightlightIcon;
     Gtk::Image m_exitBottomIcon;
     Gtk::Popover m_statusPopover;
-    Gtk::Popover m_settingsPopover;
+    Gtk::Popover m_settingsPopover; // Move to PopoverMenu, so I'm able to add submenu's !?
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
     Gtk::Label m_fontLabel;
