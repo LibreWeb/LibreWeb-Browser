@@ -36,8 +36,6 @@ MainWindow::MainWindow(const std::string &timeout)
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_fontButton(DEFAULT_FONT_FAMILY + " " + std::to_string(DEFAULT_FONT_SIZE)),
-      m_statusPopover(m_statusButton),
-      m_settingsPopover(m_settingsButton),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
       m_fontLabel("Font"),
@@ -275,9 +273,9 @@ void MainWindow::initSettingsPopover()
     m_iconThemeButton.set_label("Icon Theme");
     m_iconThemeButton.property_menu_name() = "icon-theme";
     m_aboutButton.set_label("About LibreWeb");
-    Gtk::Label *iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(m_iconThemeButton.get_child());
+    Gtk::Label *iconThemeButtonlabel = dynamic_cast<Gtk::Label *>(m_iconThemeButton.get_child());
     iconThemeButtonlabel->set_xalign(0.0);
-    Gtk::Label *aboutButtonLabel = dynamic_cast<Gtk::Label*>(m_aboutButton.get_child());
+    Gtk::Label *aboutButtonLabel = dynamic_cast<Gtk::Label *>(m_aboutButton.get_child());
     iconThemeButtonlabel->set_xalign(0.0);
     aboutButtonLabel->set_xalign(0.0);
 
@@ -697,6 +695,8 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
 
     // Fullscreen will be availible with gtkmm-4.0
     //m_settings->set_boolean("fullscreen", this->is_fullscreen());
+    
+    // TODO: Also add font family & font size to the settings (and restore)
     return false;
 }
 
@@ -1217,9 +1217,9 @@ void MainWindow::publish()
         try
         {
             std::string cid = ipfs.add(path, this->currentContent);
-            // TODO: Give pop-up or some other indication the data is stored in IPFS...
             if (!cid.empty())
             {
+                // Show dialog
                 m_contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
                 m_contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:");
                 // Add custom label
@@ -1229,7 +1229,6 @@ void MainWindow::publish()
                 box->pack_end(*label);
 
                 m_contentPublishedDialog->set_modal(true);
-
                 // m_contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
                 m_contentPublishedDialog->signal_response().connect(
                     sigc::hide(sigc::mem_fun(*m_contentPublishedDialog, &Gtk::Widget::hide)));
@@ -1548,7 +1547,6 @@ void MainWindow::disableEdit()
  */
 bool MainWindow::isEditorEnabled()
 {
-    // TODO: maybe use: return this->m_draw_main.get_editable();
     return m_hboxStandardEditorToolbar.is_visible();
 }
 
@@ -1741,11 +1739,13 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
 void MainWindow::updateCSS()
 {
     m_drawCSSProvider->load_from_data("textview { "
-                                          "font-family: \"" + m_fontFamily + "\";"
-                                          "font-size: " + std::to_string(m_fontSize) + "pt;"
-                                          "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
-                                          "}");
-    
+                                      "font-family: \"" +
+                                      m_fontFamily + "\";"
+                                                     "font-size: " +
+                                      std::to_string(m_fontSize) + "pt;"
+                                                                   "letter-spacing: " +
+                                      std::to_string(m_fontSpacing) + "px;"
+                                                                      "}");
 }
 
 void MainWindow::editor_changed_text()

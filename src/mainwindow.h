@@ -197,7 +197,7 @@ protected:
     Gtk::Image m_hightlightIcon;
     Gtk::Image m_exitBottomIcon;
     Gtk::Popover m_statusPopover;
-    Gtk::Popover m_settingsPopover; // Move to PopoverMenu, so I'm able to add submenu's !?
+    Gtk::PopoverMenu m_settingsPopover; // Move to PopoverMenu, so I'm able to add submenu's !?
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
     Gtk::Label m_fontLabel;
