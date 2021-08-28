@@ -34,6 +34,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
       m_vboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
+      m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
       m_fontButton(DEFAULT_FONT_FAMILY + " " + std::to_string(DEFAULT_FONT_SIZE)),
       m_copyIDButton("Copy your ID"),
@@ -270,6 +271,7 @@ void MainWindow::initSettingsPopover()
     m_gridSetings.attach(m_indentLabel, 0, 3);
     m_gridSetings.attach(m_indentSpinButton, 1, 3);
 
+    // Icon theme (+ submenu)
     m_iconThemeButton.set_label("Icon Theme");
     m_iconThemeButton.property_menu_name() = "icon-theme";
     m_aboutButton.set_label("About LibreWeb");
@@ -278,6 +280,13 @@ void MainWindow::initSettingsPopover()
     Gtk::Label *aboutButtonLabel = dynamic_cast<Gtk::Label *>(m_aboutButton.get_child());
     iconThemeButtonlabel->set_xalign(0.0);
     aboutButtonLabel->set_xalign(0.0);
+
+    m_iconThemeBackButton.set_label("Main menu");
+    m_iconThemeBackButton.property_menu_name() = "main";
+    m_iconThemeBackButton.property_inverted() = true;
+    m_vboxIconTheme.add(m_iconThemeBackButton);
+    m_settingsPopover.add(m_vboxIconTheme);
+    m_settingsPopover.child_property_submenu(m_vboxIconTheme) = "icon-theme";
 
     // Add all to vbox / pop-over
     m_vboxSettings.set_margin_start(10);
@@ -695,7 +704,7 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
 
     // Fullscreen will be availible with gtkmm-4.0
     //m_settings->set_boolean("fullscreen", this->is_fullscreen());
-    
+
     // TODO: Also add font family & font size to the settings (and restore)
     return false;
 }
@@ -1739,13 +1748,10 @@ std::string MainWindow::getIconImageFromTheme(const std::string &iconName, const
 void MainWindow::updateCSS()
 {
     m_drawCSSProvider->load_from_data("textview { "
-                                      "font-family: \"" +
-                                      m_fontFamily + "\";"
-                                                     "font-size: " +
-                                      std::to_string(m_fontSize) + "pt;"
-                                                                   "letter-spacing: " +
-                                      std::to_string(m_fontSpacing) + "px;"
-                                                                      "}");
+                                      "font-family: \"" +  m_fontFamily + "\";"
+                                      "font-size: " + std::to_string(m_fontSize) + "pt;"
+                                      "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
+                                      "}");
 }
 
 void MainWindow::editor_changed_text()

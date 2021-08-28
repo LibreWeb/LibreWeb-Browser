@@ -119,7 +119,7 @@ protected:
     Gtk::Box m_vboxSettings;
     Gtk::Box m_hboxSetingsZoom;
     Gtk::Box m_hboxSetingsBrightness;
-    Gtk::Box m_vboxTemp;
+    Gtk::Box m_vboxIconTheme;
     Gtk::Scale m_scaleSettingsBrightness;
     Gtk::Entry m_addressBar;
     Gtk::ToggleButton m_searchMatchCase;
@@ -132,6 +132,7 @@ protected:
     Gtk::SpinButton m_indentSpinButton;
     Gtk::ModelButton m_iconThemeButton;
     Gtk::ModelButton m_aboutButton;
+    Gtk::ModelButton m_iconThemeBackButton;
     Gtk::Grid m_gridSetings;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
