@@ -10,6 +10,7 @@
 #include <gtkmm/window.h>
 #include <gtkmm/cssprovider.h>
 #include <gtkmm/box.h>
+#include <gtkmm/listbox.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/button.h>
@@ -19,7 +20,6 @@
 #include <gtkmm/modelbutton.h>
 #include <gtkmm/fontbutton.h>
 #include <gtkmm/comboboxtext.h>
-#include <gtkmm/popover.h>
 #include <gtkmm/popovermenu.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/scale.h>
@@ -120,6 +120,8 @@ protected:
     Gtk::Box m_hboxSetingsZoom;
     Gtk::Box m_hboxSetingsBrightness;
     Gtk::Box m_vboxIconTheme;
+    Gtk::ScrolledWindow m_iconThemeListScrolledWindow;
+    Gtk::ListBox m_iconThemeListBox;
     Gtk::Scale m_scaleSettingsBrightness;
     Gtk::Entry m_addressBar;
     Gtk::ToggleButton m_searchMatchCase;
@@ -197,14 +199,15 @@ protected:
     Gtk::Image m_numberedListIcon;
     Gtk::Image m_hightlightIcon;
     Gtk::Image m_exitBottomIcon;
-    Gtk::Popover m_statusPopover;
-    Gtk::PopoverMenu m_settingsPopover; // Move to PopoverMenu, so I'm able to add submenu's !?
+    Gtk::PopoverMenu m_statusPopover;
+    Gtk::PopoverMenu m_settingsPopover;
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
     Gtk::Label m_fontLabel;
     Gtk::Label m_spacingLabel;
     Gtk::Label m_marginsLabel;
     Gtk::Label m_indentLabel;
+    Gtk::Label m_iconThemeLabel;
     Gtk::Label m_statusLabel;
     std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
@@ -217,6 +220,7 @@ protected:
     Gtk::Separator m_separator5;
     Gtk::Separator m_separator6;
     Gtk::Separator m_separator7;
+    Gtk::Separator m_separator8;
 
 private:
     std::string m_appName;

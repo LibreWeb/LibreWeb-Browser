@@ -6,6 +6,7 @@
 #include "file.h"
 #include <gtkmm/menuitem.h>
 #include <gtkmm/image.h>
+#include <gtkmm/listboxrow.h>
 #include <giomm/file.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
@@ -43,6 +44,7 @@ MainWindow::MainWindow(const std::string &timeout)
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
+      m_iconThemeLabel("Select Icon Theme:"),
       m_appName("LibreWeb Browser"),
       m_iconTheme("flat"),             // filled or flat
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
@@ -281,10 +283,27 @@ void MainWindow::initSettingsPopover()
     iconThemeButtonlabel->set_xalign(0.0);
     aboutButtonLabel->set_xalign(0.0);
 
-    m_iconThemeBackButton.set_label("Main menu");
+    // Submenu: back button
+    m_iconThemeBackButton.set_label("Back to Settings");
     m_iconThemeBackButton.property_menu_name() = "main";
     m_iconThemeBackButton.property_inverted() = true;
+    // List box
+    Gtk::Label *label = Gtk::manage(new Gtk::Label("Bla"));
+    Gtk::ListBoxRow *row = Gtk::manage(new Gtk::ListBoxRow());
+    row->add(*label);
+    Gtk::Label *label2 = Gtk::manage(new Gtk::Label("Hello"));
+    Gtk::ListBoxRow *row2 = Gtk::manage(new Gtk::ListBoxRow());
+    row2->add(*label2);
+    m_iconThemeListBox.add(*row);
+    m_iconThemeListBox.add(*row2);
+    m_iconThemeListScrolledWindow.property_height_request() = 200;
+    m_iconThemeListScrolledWindow.add(m_iconThemeListBox);
+    auto iconThemeLabelContext = m_iconThemeLabel.get_style_context();
+    iconThemeLabelContext->add_class("dim-label");
     m_vboxIconTheme.add(m_iconThemeBackButton);
+    m_vboxIconTheme.add(m_separator8);
+    m_vboxIconTheme.add(m_iconThemeLabel);
+    m_vboxIconTheme.add(m_iconThemeListScrolledWindow);
     m_settingsPopover.add(m_vboxIconTheme);
     m_settingsPopover.child_property_submenu(m_vboxIconTheme) = "icon-theme";
 
