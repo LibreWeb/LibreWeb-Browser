@@ -35,9 +35,6 @@ Draw::Draw(MainWindow &mainWindow)
       isUserAction(false)
 {
     this->disableEdit();
-    set_indent(0);
-    set_left_margin(20);
-    set_right_margin(20);
     set_top_margin(12);
     set_bottom_margin(0);
     set_monospace(false);

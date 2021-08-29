@@ -37,20 +37,17 @@ MainWindow::MainWindow(const std::string &timeout)
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
-      m_fontButton(DEFAULT_FONT_FAMILY + " " + std::to_string(DEFAULT_FONT_SIZE)),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
       m_fontLabel("Font"),
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
-      m_iconThemeLabel("Select Icon Theme:"),
+      m_iconThemeLabel("Active theme"),
       m_appName("LibreWeb Browser"),
-      m_iconTheme("flat"),             // filled or flat
+      m_iconTheme("flat"),             // default is flat theme
       m_useCurrentGTKIconTheme(false), // Use our built-in icon theme or the GTK icons
       m_iconSize(18),
-      m_fontFamily(DEFAULT_FONT_FAMILY),
-      m_fontSize(DEFAULT_FONT_SIZE),
       m_fontSpacing(0),
       m_requestThread(nullptr),
       currentHistoryIndex(0),
@@ -161,9 +158,27 @@ void MainWindow::loadStoredSettings()
     }
     // Load schema settings file
     m_settings = Gio::Settings::create("org.libreweb.browser");
+    // Apply global settings
     set_default_size(m_settings->get_int("width"), m_settings->get_int("height"));
     if (m_settings->get_boolean("maximized"))
         this->maximize();
+    
+    this->m_fontFamily = m_settings->get_string("font-family");
+    this->m_currentFontSize = this->m_defaultFontSize = m_settings->get_int("font-size");
+    this->m_fontButton.set_font_name(this->m_fontFamily + " " + std::to_string(this->m_currentFontSize));
+
+    m_fontSpacing = m_settings->get_int("spacing");
+    int margins = m_settings->get_int("margins");
+    int indent = m_settings->get_int("indent");
+    this->m_spacingAdjustment->set_value(m_fontSpacing);
+    this->m_marginsAdjustment->set_value(margins);
+    this->m_indentAdjustment->set_value(indent);
+    this->m_draw_main.set_left_margin(margins);
+    this->m_draw_main.set_right_margin(margins);
+    this->m_draw_main.set_indent(indent);
+
+    this->m_iconTheme = m_settings->get_string("icon-theme");
+    this->m_useCurrentGTKIconTheme = m_settings->get_boolean("icon-gtk-theme");
 }
 
 /**
@@ -577,7 +592,7 @@ void MainWindow::initSettingsPopover()
     aboutButtonLabel->set_xalign(0.0);
 
     // Submenu: back button
-    m_iconThemeBackButton.set_label("Back to Settings");
+    m_iconThemeBackButton.set_label("Icon Theme");
     m_iconThemeBackButton.property_menu_name() = "main";
     m_iconThemeBackButton.property_inverted() = true;
     // List box
@@ -596,16 +611,18 @@ void MainWindow::initSettingsPopover()
     m_iconThemeListBox.add(*row1);
     m_iconThemeListBox.add(*row2);
     m_iconThemeListBox.add(*row3);
-    m_iconThemeListBox.select_row(*row1);
+    m_iconThemeListBox.select_row(*row1); // TODO: Select the correct theme on loading
     m_iconThemeListScrolledWindow.property_height_request() = 200;
     m_iconThemeListScrolledWindow.add(m_iconThemeListBox);
-    auto iconThemeLabelContext = m_iconThemeLabel.get_style_context();
-    iconThemeLabelContext->add_class("dim-label");
+    m_iconThemeLabel.set_xalign(0.0);
+    m_iconThemeLabel.get_style_context()->add_class("dim-label");
     m_vboxIconTheme.add(m_iconThemeBackButton);
     m_vboxIconTheme.add(m_separator8);
     m_vboxIconTheme.add(m_iconThemeLabel);
     m_vboxIconTheme.add(m_iconThemeListScrolledWindow);
+    // TODO: Some strange sliding animation happens the first time I collapse the settings popover
     m_settingsPopover.add(m_vboxIconTheme);
+    
     m_settingsPopover.child_property_submenu(m_vboxIconTheme) = "icon-theme";
 
     // Add all to vbox / pop-over
@@ -744,7 +761,7 @@ void MainWindow::doRequest(const std::string &path, bool isSetAddressBar, bool i
 }
 
 /**
- * \brief Called when Window is closed
+ * \brief Called when Window is closed/exited
  */
 bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
 {
@@ -760,7 +777,13 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
     // Fullscreen will be availible with gtkmm-4.0
     //m_settings->set_boolean("fullscreen", this->is_fullscreen());
 
-    // TODO: Also add font family & font size to the settings (and restore)
+    m_settings->set_string("font-family", this->m_fontFamily);
+    m_settings->set_int("font-size", this->m_currentFontSize);
+    m_settings->set_int("spacing", this->m_spacingSpinButton.get_value_as_int());
+    m_settings->set_int("margins", this->m_marginsSpinButton.get_value_as_int());
+    m_settings->set_int("indent", this->m_indentSpinButton.get_value_as_int());
+    m_settings->set_string("icon-theme", this->m_iconTheme);
+    m_settings->set_boolean("icon-gtk-theme", this->m_useCurrentGTKIconTheme);    
     return false;
 }
 
@@ -1787,7 +1810,7 @@ void MainWindow::updateCSS()
 {
     m_drawCSSProvider->load_from_data("textview { "
                                       "font-family: \"" +  m_fontFamily + "\";"
-                                      "font-size: " + std::to_string(m_fontSize) + "pt;"
+                                      "font-size: " + std::to_string(m_currentFontSize) + "pt;"
                                       "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
                                       "}");
 }
@@ -1852,30 +1875,30 @@ void MainWindow::insert_emoji()
 
 void MainWindow::on_zoom_out()
 {
-    m_fontSize -= 2;
+    m_currentFontSize -= 2;
     updateCSS();
-    m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
+    m_zoomRestoreButton.set_sensitive(m_currentFontSize != m_defaultFontSize);
 }
 
 void MainWindow::on_zoom_restore()
 {
-    m_fontSize = DEFAULT_FONT_SIZE; // reset
+    m_currentFontSize = m_defaultFontSize; // reset
     updateCSS();
     m_zoomRestoreButton.set_sensitive(false);
 }
 
 void MainWindow::on_zoom_in()
 {
-    m_fontSize += 2;
+    m_currentFontSize += 2;
     updateCSS();
-    m_zoomRestoreButton.set_sensitive(m_fontSize != DEFAULT_FONT_SIZE);
+    m_zoomRestoreButton.set_sensitive(m_currentFontSize != m_defaultFontSize);
 }
 
 void MainWindow::on_font_set()
 {
     Pango::FontDescription fontDesc = Pango::FontDescription(m_fontButton.get_font_name());
     m_fontFamily = fontDesc.get_family();
-    m_fontSize = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
+    m_currentFontSize = m_defaultFontSize = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
     updateCSS();
 }
 

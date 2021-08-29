@@ -42,7 +42,6 @@ class MainWindow : public Gtk::Window
 {
 public:
     static const int DEFAULT_FONT_SIZE = 10;
-    inline static const std::string DEFAULT_FONT_FAMILY = "Sans";
     explicit MainWindow(const std::string &timeout);
     void doRequest(const std::string &path = std::string(), bool isSetAddressBar = true, bool isHistoryRequest = false, bool isDisableEditor = true, bool isParseContent = true);
 
@@ -229,7 +228,8 @@ private:
     bool m_useCurrentGTKIconTheme;
     int m_iconSize;
     std::string m_fontFamily;
-    int m_fontSize;
+    int m_defaultFontSize;
+    int m_currentFontSize;
     int m_fontSpacing;
     std::thread *m_requestThread;
     std::string requestPath;
