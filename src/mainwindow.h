@@ -89,6 +89,7 @@ protected:
     void on_spacing_changed();
     void on_margins_changed();
     void on_indent_changed();
+    void on_icon_theme_activated(Gtk::ListBoxRow *row);
 
     Glib::RefPtr<Gtk::AccelGroup> m_accelGroup; /*!< Accelerator group, used for keyboard shortcut bindings */
     Glib::RefPtr<Gio::Settings> m_settings; /*!< Settings to store our preferences, even during restarts */
@@ -249,10 +250,12 @@ private:
     IPFS ipfs;
 
     void loadStoredSettings();
+    void loadIcons();
+    std::size_t loadStatusIcon(bool reload = true);
+    void initButtons();
     void initStatusPopover();
     void initSettingsPopover();
     void initSignals();
-    void initButtons();
     bool isInstalled();
     void enableEdit();
     void disableEdit();

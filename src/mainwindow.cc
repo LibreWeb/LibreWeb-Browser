@@ -66,10 +66,11 @@ MainWindow::MainWindow(const std::string &timeout)
     add_accel_group(m_accelGroup);
 
     loadStoredSettings();
+    loadIcons();
+    initButtons();
     initStatusPopover();
     initSettingsPopover();
     initSignals();
-    initButtons();
 
     // Add custom CSS Provider to draw textviews
     auto styleMain = m_draw_main.get_style_context();
@@ -166,6 +167,318 @@ void MainWindow::loadStoredSettings()
 }
 
 /**
+ * Load all icon images from theme/disk. Or reload them.
+ * TODO: Reloading images, does this cause any memory leaks or?
+ */
+void MainWindow::loadIcons()
+{
+    try
+    {
+        // Editor buttons
+        m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), m_iconSize, m_iconSize));
+        m_saveIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("floppy_disk", "basic"), m_iconSize, m_iconSize));
+        m_publishIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("upload", "basic"), m_iconSize, m_iconSize));
+        m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), m_iconSize, m_iconSize));
+        m_copyIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("copy", "editor"), m_iconSize, m_iconSize));
+        m_pasteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("clipboard", "editor"), m_iconSize, m_iconSize));
+        m_undoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("undo", "editor"), m_iconSize, m_iconSize));
+        m_redoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("redo", "editor"), m_iconSize, m_iconSize));
+        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bold", "editor"), m_iconSize, m_iconSize));
+        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("italic", "editor"), m_iconSize, m_iconSize));
+        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("strikethrough", "editor"), m_iconSize, m_iconSize));
+        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("superscript", "editor"), m_iconSize, m_iconSize));
+        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("subscript", "editor"), m_iconSize, m_iconSize));
+        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("link", "editor"), m_iconSize, m_iconSize));
+        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), m_iconSize, m_iconSize));
+        m_emojiIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("smile", "smiley"), m_iconSize, m_iconSize));
+        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), m_iconSize, m_iconSize));
+        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("code", "editor"), m_iconSize, m_iconSize));
+        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bullet_list", "editor"), m_iconSize, m_iconSize));
+        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("number_list", "editor"), m_iconSize, m_iconSize));
+        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("highlighter", "editor"), m_iconSize, m_iconSize));
+
+        if (m_useCurrentGTKIconTheme)
+        {
+            // Toolbox buttons
+            m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_searchIcon.set_from_icon_name("edit-find-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_settingsIcon.set_from_icon_name("open-menu-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+
+            // Settings pop-over buttons
+            m_zoomOutImage.set_from_icon_name("zoom-out-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_zoomInImage.set_from_icon_name("zoom-in-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            m_brightnessImage.set_from_icon_name("display-brightness-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+        }
+        else
+        {
+            // Toolbox buttons
+            m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
+            m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
+            m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize * 1.13, m_iconSize));
+            m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
+            m_searchIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("search", "basic"), m_iconSize, m_iconSize));
+            m_settingsIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("menu", "basic"), m_iconSize, m_iconSize));
+
+            // Settings pop-over buttons
+            m_zoomOutImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_out", "basic"), m_iconSize, m_iconSize));
+            m_zoomInImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_in", "basic"), m_iconSize, m_iconSize));
+            m_brightnessImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("brightness", "basic"), m_iconSize, m_iconSize));
+        }
+    }
+    catch (const Glib::FileError &error)
+    {
+        std::cerr << "ERROR: Icon could not be loaded: " << error.what() << ".\nContinue nevertheless..." << std::endl;
+    }
+
+    // Load toolbar status icon image separately
+    loadStatusIcon();
+}
+
+/**
+ * Dedicated function for loading the status icon in the toolbar.
+ * Because it will require some additional logic. It also returns the number of IPFS peers connected to.
+ * 
+ * @param reload Reloading pix buffer from disk again (only needed when the theme has changed)
+ * @return Number of IPFS peers
+ */
+std::size_t MainWindow::loadStatusIcon(bool reload)
+{
+    std::size_t nrPeers = ipfs.getNrPeers();
+    try
+    {
+        if (m_useCurrentGTKIconTheme)
+        {
+            if (nrPeers > 0) {
+                m_statusIcon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            } else {
+                m_statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+            }
+        } else { 
+            if (reload) {
+                m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
+                m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
+            }
+            if (nrPeers > 0) {
+                m_statusIcon.set(m_statusOnlineIcon);
+            } else {
+                m_statusIcon.set(m_statusOfflineIcon);
+            }
+        }
+    }
+    catch (const Glib::FileError &error)
+    {
+        std::cerr << "ERROR: Status icon could not be loaded: " << error.what() << ".\nContinue nevertheless..." << std::endl;
+    }
+    return nrPeers;
+}
+
+/**
+ * Init all buttons / comboboxes from the toolbars
+ */
+void MainWindow::initButtons()
+{
+    // Editor buttons
+    m_openButton.set_tooltip_text("Open document (Ctrl+O)");
+    m_openButton.add(m_openIcon);
+    m_openButton.set_relief(Gtk::RELIEF_NONE);
+    m_openButton.set_can_focus(false);
+    m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
+    m_saveButton.add(m_saveIcon);
+    m_saveButton.set_relief(Gtk::RELIEF_NONE);
+    m_saveButton.set_can_focus(false);
+    m_publishButton.set_tooltip_text("Publish document... (Ctrl+P)");
+    m_publishButton.add(m_publishIcon);
+    m_publishButton.set_relief(Gtk::RELIEF_NONE);
+    m_publishButton.set_can_focus(false);
+    m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
+    m_cutButton.add(m_cutIcon);
+    m_cutButton.set_relief(Gtk::RELIEF_NONE);
+    m_cutButton.set_can_focus(false);
+    m_copyButton.set_tooltip_text("Copy (Ctrl+C)");
+    m_copyButton.add(m_copyIcon);
+    m_copyButton.set_relief(Gtk::RELIEF_NONE);
+    m_copyButton.set_can_focus(false);
+    m_pasteButton.set_tooltip_text("Paste (Ctrl+V)");
+    m_pasteButton.add(m_pasteIcon);
+    m_pasteButton.set_relief(Gtk::RELIEF_NONE);
+    m_pasteButton.set_can_focus(false);
+    m_undoButton.set_tooltip_text("Undo text (Ctrl+Z)");
+    m_undoButton.add(m_undoIcon);
+    m_undoButton.set_relief(Gtk::RELIEF_NONE);
+    m_undoButton.set_can_focus(false);
+    m_redoButton.set_tooltip_text("Redo text (Ctrl+Y)");
+    m_redoButton.add(m_redoIcon);
+    m_redoButton.set_relief(Gtk::RELIEF_NONE);
+    m_redoButton.set_can_focus(false);
+    m_boldButton.set_tooltip_text("Add bold text");
+    m_boldButton.add(m_boldIcon);
+    m_boldButton.set_relief(Gtk::RELIEF_NONE);
+    m_boldButton.set_can_focus(false);
+    m_italicButton.set_tooltip_text("Add italic text");
+    m_italicButton.add(m_italicIcon);
+    m_italicButton.set_relief(Gtk::RELIEF_NONE);
+    m_italicButton.set_can_focus(false);
+    m_strikethroughButton.set_tooltip_text("Add strikethrough text");
+    m_strikethroughButton.add(m_strikethroughIcon);
+    m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
+    m_strikethroughButton.set_can_focus(false);
+    m_superButton.set_tooltip_text("Add superscript text");
+    m_superButton.add(m_superIcon);
+    m_superButton.set_relief(Gtk::RELIEF_NONE);
+    m_superButton.set_can_focus(false);
+    m_subButton.set_tooltip_text("Add subscript text");
+    m_subButton.add(m_subIcon);
+    m_subButton.set_relief(Gtk::RELIEF_NONE);
+    m_subButton.set_can_focus(false);
+    m_linkButton.set_tooltip_text("Add a link");
+    m_linkButton.add(m_linkIcon);
+    m_linkButton.set_relief(Gtk::RELIEF_NONE);
+    m_linkButton.set_can_focus(false);
+    m_imageButton.set_tooltip_text("Add an image");
+    m_imageButton.add(m_imageIcon);
+    m_imageButton.set_relief(Gtk::RELIEF_NONE);
+    m_imageButton.set_can_focus(false);
+    m_emojiButton.set_tooltip_text("Insert emoji");
+    m_emojiButton.add(m_emojiIcon);
+    m_emojiButton.set_relief(Gtk::RELIEF_NONE);
+    m_emojiButton.set_can_focus(false);
+    m_quoteButton.set_tooltip_text("Insert a quote");
+    m_quoteButton.add(m_quoteIcon);
+    m_quoteButton.set_relief(Gtk::RELIEF_NONE);
+    m_quoteButton.set_can_focus(false);
+    m_codeButton.set_tooltip_text("Insert code");
+    m_codeButton.add(m_codeIcon);
+    m_codeButton.set_relief(Gtk::RELIEF_NONE);
+    m_codeButton.set_can_focus(false);
+    m_bulletListButton.set_tooltip_text("Add a bullet list");
+    m_bulletListButton.add(m_bulletListIcon);
+    m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
+    m_bulletListButton.set_can_focus(false);
+    m_numberedListButton.set_tooltip_text("Add a numbered list");
+    m_numberedListButton.add(m_numberedListIcon);
+    m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
+    m_numberedListButton.set_can_focus(false);
+    m_highlightButton.set_tooltip_text("Add highlight text");
+    m_highlightButton.add(m_hightlightIcon);
+    m_highlightButton.set_relief(Gtk::RELIEF_NONE);
+    m_highlightButton.set_can_focus(false);
+
+    // Disable focus the other buttons as well
+    m_searchMatchCase.set_can_focus(false);
+    m_headingsComboBox.set_can_focus(false);
+    m_headingsComboBox.set_focus_on_click(false);
+
+    // Populate the heading comboboxtext
+    m_headingsComboBox.append("", "Select Heading");
+    m_headingsComboBox.append("1", "Heading 1");
+    m_headingsComboBox.append("2", "Heading 2");
+    m_headingsComboBox.append("3", "Heading 3");
+    m_headingsComboBox.append("4", "Heading 4");
+    m_headingsComboBox.append("5", "Heading 5");
+    m_headingsComboBox.append("6", "Heading 6");
+    m_headingsComboBox.set_active(0);
+
+    // Horizontal bar
+    auto styleBack = m_backButton.get_style_context();
+    styleBack->add_class("circular");
+    auto styleForward = m_forwardButton.get_style_context();
+    styleForward->add_class("circular");
+    auto styleRefresh = m_refreshButton.get_style_context();
+    styleRefresh->add_class("circular");
+    m_statusButton.set_popover(m_statusPopover);
+    m_settingsButton.set_popover(m_settingsPopover);
+    m_backButton.set_relief(Gtk::RELIEF_NONE);
+    m_forwardButton.set_relief(Gtk::RELIEF_NONE);
+    m_refreshButton.set_relief(Gtk::RELIEF_NONE);
+    m_homeButton.set_relief(Gtk::RELIEF_NONE);
+    m_searchButton.set_relief(Gtk::RELIEF_NONE);
+    m_statusButton.set_relief(Gtk::RELIEF_NONE);
+    m_settingsButton.set_relief(Gtk::RELIEF_NONE);
+
+    // Toolbar buttons
+    m_backButton.add(m_backIcon);
+    m_forwardButton.add(m_forwardIcon);
+    m_refreshButton.add(m_refreshIcon);
+    m_homeButton.add(m_homeIcon);
+    m_searchButton.add(m_searchIcon);
+    m_statusButton.add(m_statusIcon);
+    m_settingsButton.add(m_settingsIcon);
+    
+    // Add spinning CSS class to refresh icon
+    auto cssProvider = Gtk::CssProvider::create();
+    auto screen = Gdk::Screen::get_default();
+    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
+    if (!cssProvider->load_from_data(spinningCSS))
+    {
+        std::cerr << "ERROR: CSS data parsing went wrong." << std::endl;
+    }
+    auto refreshIconStyle = m_refreshIcon.get_style_context();
+    refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+
+    // Add tooltips to the toolbar buttons
+    m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
+    m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
+    m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
+    m_homeButton.set_tooltip_text("Home page (Alt+Home)");
+    m_searchButton.set_tooltip_text("Find");
+    m_statusButton.set_tooltip_text("IPFS Network Status");
+    m_settingsButton.set_tooltip_text("Settings");
+
+    // Disable back/forward buttons on start-up
+    m_backButton.set_sensitive(false);
+    m_forwardButton.set_sensitive(false);
+
+    /* 
+     * Adding the buttons to the boxes
+     */
+    // Browser Toolbar
+    m_backButton.set_margin_left(6);
+    m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);
+    m_hboxBrowserToolbar.pack_start(m_searchButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_statusButton, false, false, 0);
+    m_hboxBrowserToolbar.pack_start(m_settingsButton, false, false, 0);
+
+    // Standard editor toolbar
+    m_headingsComboBox.set_margin_left(4);
+    m_hboxStandardEditorToolbar.pack_start(m_openButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_saveButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_publishButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_separator1, false, false, 0);
+    m_hboxStandardEditorToolbar.pack_start(m_cutButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_copyButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_pasteButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_separator2, false, false, 0);
+    m_hboxStandardEditorToolbar.pack_start(m_undoButton, false, false, 2);
+    m_hboxStandardEditorToolbar.pack_start(m_redoButton, false, false, 2);
+
+    // Formatting toolbar
+    m_headingsComboBox.set_margin_left(4);
+    m_hboxFormattingEditorToolbar.pack_start(m_headingsComboBox, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_boldButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_italicButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_strikethroughButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_superButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_subButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
+    m_hboxFormattingEditorToolbar.pack_start(m_linkButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_imageButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_emojiButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_separator4, false, false, 0);
+    m_hboxFormattingEditorToolbar.pack_start(m_quoteButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_codeButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_bulletListButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_numberedListButton, false, false, 2);
+    m_hboxFormattingEditorToolbar.pack_start(m_highlightButton, false, false, 2);
+}
+
+/**
  * Init the IPFS status pop-over
  */
 void MainWindow::initStatusPopover()
@@ -193,34 +506,14 @@ void MainWindow::initStatusPopover()
  */
 void MainWindow::initSettingsPopover()
 {
-    // First start with loading the images
-    try
-    {
-        if (m_useCurrentGTKIconTheme)
-        {
-            m_zoomOutImage.set_from_icon_name("zoom-out-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_zoomInImage.set_from_icon_name("zoom-in-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_brightnessImage.set_from_icon_name("display-brightness-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        }
-        else
-        {
-            m_zoomOutImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_out", "basic"), m_iconSize, m_iconSize));
-            m_zoomInImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("zoom_in", "basic"), m_iconSize, m_iconSize));
-            m_brightnessImage.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("brightness", "basic"), m_iconSize, m_iconSize));
-        }
-        m_zoomOutButton.add(m_zoomOutImage);
-        m_zoomInButton.add(m_zoomInImage);
-
-        m_brightnessImage.set_tooltip_text("Brightness");
-        m_brightnessImage.set_margin_start(2);
-        m_brightnessImage.set_margin_end(2);
-        m_brightnessImage.set_margin_top(1);
-        m_brightnessImage.set_margin_bottom(1);
-    }
-    catch (const Glib::FileError &error)
-    {
-        std::cerr << "ERROR: Settings images could not be loaded: " << error.what() << std::endl;
-    }
+    // Toolbar buttons / images
+    m_zoomOutButton.add(m_zoomOutImage);
+    m_zoomInButton.add(m_zoomInImage);
+    m_brightnessImage.set_tooltip_text("Brightness");
+    m_brightnessImage.set_margin_start(2);
+    m_brightnessImage.set_margin_end(2);
+    m_brightnessImage.set_margin_top(1);
+    m_brightnessImage.set_margin_bottom(1);
 
     // Zoom buttons
     auto hboxZoomStyleContext = m_hboxSetingsZoom.get_style_context();
@@ -288,14 +581,22 @@ void MainWindow::initSettingsPopover()
     m_iconThemeBackButton.property_menu_name() = "main";
     m_iconThemeBackButton.property_inverted() = true;
     // List box
-    Gtk::Label *label = Gtk::manage(new Gtk::Label("Bla"));
-    Gtk::ListBoxRow *row = Gtk::manage(new Gtk::ListBoxRow());
-    row->add(*label);
-    Gtk::Label *label2 = Gtk::manage(new Gtk::Label("Hello"));
+    Gtk::Label *iconTheme1 = Gtk::manage(new Gtk::Label("Flat theme"));
+    Gtk::ListBoxRow *row1 = Gtk::manage(new Gtk::ListBoxRow());
+    row1->add(*iconTheme1);
+    row1->set_data("value", (void *)"flat");
+    Gtk::Label *iconTheme2 = Gtk::manage(new Gtk::Label("Filled theme"));
     Gtk::ListBoxRow *row2 = Gtk::manage(new Gtk::ListBoxRow());
-    row2->add(*label2);
-    m_iconThemeListBox.add(*row);
+    row2->add(*iconTheme2);
+    row2->set_data("value", (void *)"filled");
+    Gtk::Label *iconTheme3 = Gtk::manage(new Gtk::Label("Gtk default theme"));
+    Gtk::ListBoxRow *row3 = Gtk::manage(new Gtk::ListBoxRow());
+    row3->add(*iconTheme3);
+    row3->set_data("value", (void *)"none");
+    m_iconThemeListBox.add(*row1);
     m_iconThemeListBox.add(*row2);
+    m_iconThemeListBox.add(*row3);
+    m_iconThemeListBox.select_row(*row1);
     m_iconThemeListScrolledWindow.property_height_request() = 200;
     m_iconThemeListScrolledWindow.add(m_iconThemeListBox);
     auto iconThemeLabelContext = m_iconThemeLabel.get_style_context();
@@ -407,273 +708,8 @@ void MainWindow::initSignals()
     m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
     m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
     m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
+    m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
     m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
-}
-
-/**
- * Init all buttons / comboboxes from the toolbars
- */
-void MainWindow::initButtons()
-{
-    /*
-     * Load and add all the icons to the buttons
-     */
-    // Add icons to the editor buttons
-    try
-    {
-        m_openIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("open_folder", "folders"), m_iconSize, m_iconSize));
-        m_openButton.set_tooltip_text("Open document (Ctrl+O)");
-        m_openButton.add(m_openIcon);
-        m_openButton.set_relief(Gtk::RELIEF_NONE);
-        m_saveIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("floppy_disk", "basic"), m_iconSize, m_iconSize));
-        m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
-        m_saveButton.add(m_saveIcon);
-        m_saveButton.set_relief(Gtk::RELIEF_NONE);
-        m_publishIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("upload", "basic"), m_iconSize, m_iconSize));
-        m_publishButton.set_tooltip_text("Publish document... (Ctrl+P)");
-        m_publishButton.add(m_publishIcon);
-        m_publishButton.set_relief(Gtk::RELIEF_NONE);
-        m_cutIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("cut", "editor"), m_iconSize, m_iconSize));
-        m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
-        m_cutButton.add(m_cutIcon);
-        m_cutButton.set_relief(Gtk::RELIEF_NONE);
-        m_copyIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("copy", "editor"), m_iconSize, m_iconSize));
-        m_copyButton.set_tooltip_text("Copy (Ctrl+C)");
-        m_copyButton.add(m_copyIcon);
-        m_copyButton.set_relief(Gtk::RELIEF_NONE);
-        m_pasteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("clipboard", "editor"), m_iconSize, m_iconSize));
-        m_pasteButton.set_tooltip_text("Paste (Ctrl+V)");
-        m_pasteButton.add(m_pasteIcon);
-        m_pasteButton.set_relief(Gtk::RELIEF_NONE);
-        m_undoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("undo", "editor"), m_iconSize, m_iconSize));
-        m_undoButton.set_tooltip_text("Undo text (Ctrl+Z)");
-        m_undoButton.add(m_undoIcon);
-        m_undoButton.set_relief(Gtk::RELIEF_NONE);
-        m_redoIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("redo", "editor"), m_iconSize, m_iconSize));
-        m_redoButton.set_tooltip_text("Redo text (Ctrl+Y)");
-        m_redoButton.add(m_redoIcon);
-        m_redoButton.set_relief(Gtk::RELIEF_NONE);
-        m_boldIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bold", "editor"), m_iconSize, m_iconSize));
-        m_boldButton.set_tooltip_text("Add bold text");
-        m_boldButton.add(m_boldIcon);
-        m_boldButton.set_relief(Gtk::RELIEF_NONE);
-        m_italicIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("italic", "editor"), m_iconSize, m_iconSize));
-        m_italicButton.set_tooltip_text("Add italic text");
-        m_italicButton.add(m_italicIcon);
-        m_italicButton.set_relief(Gtk::RELIEF_NONE);
-        m_strikethroughIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("strikethrough", "editor"), m_iconSize, m_iconSize));
-        m_strikethroughButton.set_tooltip_text("Add strikethrough text");
-        m_strikethroughButton.add(m_strikethroughIcon);
-        m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
-        m_superIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("superscript", "editor"), m_iconSize, m_iconSize));
-        m_superButton.set_tooltip_text("Add superscript text");
-        m_superButton.add(m_superIcon);
-        m_superButton.set_relief(Gtk::RELIEF_NONE);
-        m_subIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("subscript", "editor"), m_iconSize, m_iconSize));
-        m_subButton.set_tooltip_text("Add subscript text");
-        m_subButton.add(m_subIcon);
-        m_subButton.set_relief(Gtk::RELIEF_NONE);
-        m_linkIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("link", "editor"), m_iconSize, m_iconSize));
-        m_linkButton.set_tooltip_text("Add a link");
-        m_linkButton.add(m_linkIcon);
-        m_linkButton.set_relief(Gtk::RELIEF_NONE);
-        m_imageIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("shapes", "editor"), m_iconSize, m_iconSize));
-        m_imageButton.set_tooltip_text("Add an image");
-        m_imageButton.add(m_imageIcon);
-        m_imageButton.set_relief(Gtk::RELIEF_NONE);
-        m_emojiIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("smile", "smiley"), m_iconSize, m_iconSize));
-        m_emojiButton.set_tooltip_text("Insert emoji");
-        m_emojiButton.add(m_emojiIcon);
-        m_emojiButton.set_relief(Gtk::RELIEF_NONE);
-        m_quoteIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("quote", "editor"), m_iconSize, m_iconSize));
-        m_quoteButton.set_tooltip_text("Insert a quote");
-        m_quoteButton.add(m_quoteIcon);
-        m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-        m_codeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("code", "editor"), m_iconSize, m_iconSize));
-        m_codeButton.set_tooltip_text("Insert code");
-        m_codeButton.add(m_codeIcon);
-        m_codeButton.set_relief(Gtk::RELIEF_NONE);
-        m_bulletListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("bullet_list", "editor"), m_iconSize, m_iconSize));
-        m_bulletListButton.set_tooltip_text("Add a bullet list");
-        m_bulletListButton.add(m_bulletListIcon);
-        m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
-        m_numberedListIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("number_list", "editor"), m_iconSize, m_iconSize));
-        m_numberedListButton.set_tooltip_text("Add a numbered list");
-        m_numberedListButton.add(m_numberedListIcon);
-        m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
-        m_hightlightIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("highlighter", "editor"), m_iconSize, m_iconSize));
-        m_highlightButton.set_tooltip_text("Add highlight text");
-        m_highlightButton.add(m_hightlightIcon);
-        m_highlightButton.set_relief(Gtk::RELIEF_NONE);
-    }
-    catch (const Glib::FileError &error)
-    {
-        std::cerr << "ERROR: Editor icons could not be loaded: " << error.what() << std::endl;
-    }
-
-    // Disable focus on editor buttons
-    m_openButton.set_can_focus(false);
-    m_saveButton.set_can_focus(false);
-    m_publishButton.set_can_focus(false);
-    m_cutButton.set_can_focus(false);
-    m_copyButton.set_can_focus(false);
-    m_pasteButton.set_can_focus(false);
-    m_undoButton.set_can_focus(false);
-    m_redoButton.set_can_focus(false);
-    m_headingsComboBox.set_can_focus(false);
-    m_headingsComboBox.set_focus_on_click(false);
-    m_boldButton.set_can_focus(false);
-    m_italicButton.set_can_focus(false);
-    m_strikethroughButton.set_can_focus(false);
-    m_superButton.set_can_focus(false);
-    m_subButton.set_can_focus(false);
-    m_linkButton.set_can_focus(false);
-    m_imageButton.set_can_focus(false);
-    m_emojiButton.set_can_focus(false);
-    m_quoteButton.set_can_focus(false);
-    m_codeButton.set_can_focus(false);
-    m_bulletListButton.set_can_focus(false);
-    m_numberedListButton.set_can_focus(false);
-    m_highlightButton.set_can_focus(false);
-    // And match case button
-    m_searchMatchCase.set_can_focus(false);
-
-    // Populate the heading comboboxtext
-    m_headingsComboBox.append("", "Select Heading");
-    m_headingsComboBox.append("1", "Heading 1");
-    m_headingsComboBox.append("2", "Heading 2");
-    m_headingsComboBox.append("3", "Heading 3");
-    m_headingsComboBox.append("4", "Heading 4");
-    m_headingsComboBox.append("5", "Heading 5");
-    m_headingsComboBox.append("6", "Heading 6");
-    m_headingsComboBox.set_active(0);
-
-    // Horizontal bar
-    auto styleBack = m_backButton.get_style_context();
-    styleBack->add_class("circular");
-    auto styleForward = m_forwardButton.get_style_context();
-    styleForward->add_class("circular");
-    auto styleRefresh = m_refreshButton.get_style_context();
-    styleRefresh->add_class("circular");
-    m_statusButton.set_popover(m_statusPopover);
-    m_settingsButton.set_popover(m_settingsPopover);
-    m_backButton.set_relief(Gtk::RELIEF_NONE);
-    m_forwardButton.set_relief(Gtk::RELIEF_NONE);
-    m_refreshButton.set_relief(Gtk::RELIEF_NONE);
-    m_homeButton.set_relief(Gtk::RELIEF_NONE);
-    m_searchButton.set_relief(Gtk::RELIEF_NONE);
-    m_statusButton.set_relief(Gtk::RELIEF_NONE);
-    m_settingsButton.set_relief(Gtk::RELIEF_NONE);
-
-    // Add icons to the toolbar buttons
-    try
-    {
-        m_statusOfflineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_disconnected", "network"), m_iconSize, m_iconSize);
-        m_statusOnlineIcon = Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("network_connected", "network"), m_iconSize, m_iconSize);
-
-        if (m_useCurrentGTKIconTheme)
-        {
-            m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_searchIcon.set_from_icon_name("edit-find-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-            m_statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU)); // fall-back
-            m_settingsIcon.set_from_icon_name("open-menu-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        }
-        else
-        {
-            m_backIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize)->flip());
-            m_forwardIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("right_arrow_1", "arrows"), m_iconSize, m_iconSize));
-            m_refreshIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("reload_centered", "arrows"), m_iconSize * 1.13, m_iconSize));
-            m_homeIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("home", "basic"), m_iconSize, m_iconSize));
-            m_searchIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("search", "basic"), m_iconSize, m_iconSize));
-            m_statusIcon.set(m_statusOfflineIcon); // fall-back
-            m_settingsIcon.set(Gdk::Pixbuf::create_from_file(this->getIconImageFromTheme("menu", "basic"), m_iconSize, m_iconSize));
-        }
-        m_backButton.add(m_backIcon);
-        m_forwardButton.add(m_forwardIcon);
-        m_refreshButton.add(m_refreshIcon);
-        m_homeButton.add(m_homeIcon);
-        m_searchButton.add(m_searchIcon);
-        m_statusButton.add(m_statusIcon);
-        m_settingsButton.add(m_settingsIcon);
-    }
-    catch (const Glib::FileError &error)
-    {
-        std::cerr << "ERROR: Toolbar icons could not be loaded: " << error.what() << std::endl;
-    }
-
-    // Add spinning CSS class to refresh icon
-    auto cssProvider = Gtk::CssProvider::create();
-    auto screen = Gdk::Screen::get_default();
-    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
-    if (!cssProvider->load_from_data(spinningCSS))
-    {
-        std::cerr << "ERROR: CSS parsing went wrong." << std::endl;
-    }
-    auto refreshIconStyle = m_refreshIcon.get_style_context();
-    refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
-    // Add tooltips to the toolbar buttons
-    m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
-    m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
-    m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
-    m_homeButton.set_tooltip_text("Home page (Alt+Home)");
-    m_searchButton.set_tooltip_text("Find");
-    m_statusButton.set_tooltip_text("IPFS Network Status");
-    m_settingsButton.set_tooltip_text("Settings");
-
-    // Disable back/forward buttons on start-up
-    m_backButton.set_sensitive(false);
-    m_forwardButton.set_sensitive(false);
-
-    /* 
-     * Adding the buttons to the boxes
-     */
-
-    // Browser Toolbar
-    m_backButton.set_margin_left(6);
-    m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_homeButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_addressBar, true, true, 4);
-    m_hboxBrowserToolbar.pack_start(m_searchButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_statusButton, false, false, 0);
-    m_hboxBrowserToolbar.pack_start(m_settingsButton, false, false, 0);
-
-    // Standard editor toolbar
-    m_headingsComboBox.set_margin_left(4);
-    m_hboxStandardEditorToolbar.pack_start(m_openButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_saveButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_publishButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_separator1, false, false, 0);
-    m_hboxStandardEditorToolbar.pack_start(m_cutButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_copyButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_pasteButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_separator2, false, false, 0);
-    m_hboxStandardEditorToolbar.pack_start(m_undoButton, false, false, 2);
-    m_hboxStandardEditorToolbar.pack_start(m_redoButton, false, false, 2);
-
-    // Formatting toolbar
-    m_headingsComboBox.set_margin_left(4);
-    m_hboxFormattingEditorToolbar.pack_start(m_headingsComboBox, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_boldButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_italicButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_strikethroughButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_superButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_subButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_separator3, false, false, 0);
-    m_hboxFormattingEditorToolbar.pack_start(m_linkButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_imageButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_emojiButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_separator4, false, false, 0);
-    m_hboxFormattingEditorToolbar.pack_start(m_quoteButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_codeButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_bulletListButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_numberedListButton, false, false, 2);
-    m_hboxFormattingEditorToolbar.pack_start(m_highlightButton, false, false, 2);
 }
 
 /**
@@ -741,18 +777,9 @@ bool MainWindow::update_connection_status()
     if (this->ipfsVersion.empty())
         this->ipfsVersion = ipfs.getVersion();
 
-    std::size_t nrPeers = ipfs.getNrPeers();
+    std::size_t nrPeers = loadStatusIcon(false); // No reloading of the image required
     if (nrPeers > 0)
     {
-        if (m_useCurrentGTKIconTheme)
-        {
-            m_statusIcon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        }
-        else
-        {
-            m_statusIcon.set(m_statusOnlineIcon);
-        }
-
         // Auto-refresh page if needed (when 'Please wait' page is shown)
         if (m_waitPageVisible)
             this->refresh();
@@ -776,14 +803,6 @@ bool MainWindow::update_connection_status()
     }
     else
     {
-        if (m_useCurrentGTKIconTheme)
-        {
-            m_statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-        }
-        else
-        {
-            m_statusIcon.set(m_statusOfflineIcon);
-        }
         m_statusLabel.set_text("IPFS Status: Connecting...");
     }
 
@@ -1875,4 +1894,17 @@ void MainWindow::on_margins_changed()
 void MainWindow::on_indent_changed()
 {
     this->m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
+}
+
+void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow *row)
+{
+    std::string themeName = static_cast<char *>(row->get_data("value"));
+    if (themeName != "none") {
+        this->m_iconTheme = themeName;
+        this->m_useCurrentGTKIconTheme = false;
+    } else {
+        this->m_useCurrentGTKIconTheme = true;
+    }
+    // Reload images
+    this->loadIcons();
 }
