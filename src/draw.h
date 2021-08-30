@@ -10,19 +10,13 @@
 class MainWindow;
 
 /**
- * \struct DispatchData
- * \brief Data struct for dispatching calls to GTK thread (on idle)
- */
-struct DispatchData;
-
-/**
  * \struct UndoRedoData
  * \brief Data structure for undo/redo text
  */
 struct UndoRedoData
 {
     bool isInsert;
-    std::string text;
+    Glib::ustring text;
     int beginOffset;
     int endOffset;
 };
@@ -43,13 +37,13 @@ public:
     };
 
     explicit Draw(MainWindow &mainWindow);
-    void showMessage(const std::string &message, const std::string &detailed_info = "");
+    void showMessage(const Glib::ustring &message, const Glib::ustring &detailed_info = "");
     void showStartPage();
     void processDocument(cmark_node *root_node);
     void setViewSourceMenuItem(bool isEnabled);
     void newDocument();
-    std::string getText();
-    void setText(const std::string &content);
+    Glib::ustring getText();
+    void setText(const Glib::ustring &content);
     void clearText();
     void undo();
     void redo();
@@ -88,8 +82,6 @@ private:
     MainWindow &mainWindow;
     GtkTextBuffer *buffer;
     bool addViewSourceMenuItem;
-    int fontSize;
-    std::string fontFamily;
     int headingLevel;
     int listLevel;
     bool isBold;
@@ -103,13 +95,12 @@ private:
     int orderedListLevel;
     bool isOrderedList;
     bool isLink;
-    std::string linkURL;
+    Glib::ustring linkURL;
     std::map<int, int> orderedListCounters;
     Glib::RefPtr<Gdk::Cursor> normalCursor;
     Glib::RefPtr<Gdk::Cursor> linkCursor;
     Glib::RefPtr<Gdk::Cursor> textCursor;
     bool hovingOverLink;
-    Pango::FontDescription defaultFont;
     bool isUserAction;
 
     std::vector<UndoRedoData> undoPool;
@@ -119,25 +110,30 @@ private:
     sigc::connection insertTextSignalHandler;
     sigc::connection deleteTextSignalHandler;
 
+    void addTags();
     void enableEdit();
     void disableEdit();
     void followLink(Gtk::TextBuffer::iterator &iter);
     void processNode(cmark_node *node, cmark_event_type ev_type);
     // Helper functions for inserting text (thread-safe)
-    void insertText(std::string text, const std::string &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
-    void insertLink(const std::string &text, const std::string &url, const std::string &urlFont = "");
-    void truncateText(int charsTruncated);
     void encodeText(std::string &string);
-
-    void insertMarkupTextOnThread(const std::string &text);
+    void insertText(std::string text, const Glib::ustring &url = "", CodeTypeEnum codeType = CodeTypeEnum::NONE);
+    void insertTagText(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertTagText(const Glib::ustring &text, const Glib::ustring &tagName);
+    void insertMarkupText(const Glib::ustring &text);
+    void insertLink(const Glib::ustring &text, const Glib::ustring &url);
+    void truncateText(int charsTruncated);
     void clearOnThread();
+
     void changeCursor(int x, int y);
-    static gboolean insertTextIdle(struct DispatchData *data);
-    static gboolean insertPlainTextIdle(struct DispatchData *data);
-    static gboolean insertLinkIdle(struct DispatchData *data);
-    static gboolean truncateTextIdle(struct DispatchData *data);
-    static gboolean clearBufferIdle(GtkTextBuffer *textBuffer);
-    static std::string const intToRoman(int num);
+    void insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames);
+    void insertSingleTagTextIdle(const Glib::ustring &text, const Glib::ustring &tagName);    
+    void insertMarupTextIdle(const Glib::ustring &text);
+    void insertPlainTextIdle(const Glib::ustring &text);
+    void insertLinkIdle(const Glib::ustring &text, const Glib::ustring &url);
+    void truncateTextIdle(int charsTruncated);
+    void clearBufferIdle();
+    static Glib::ustring const intToRoman(int num);
 };
 
 #endif

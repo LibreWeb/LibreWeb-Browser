@@ -6,32 +6,18 @@
 #include <gdk/gdkthreads.h>
 #include <gdk/gdkselection.h>
 #include <gtkmm/textiter.h>
+#include <gtkmm/texttag.h>
 #include <gdkmm/window.h>
+#include <glibmm.h>
 #include <iostream>
 #include <regex>
 #include <algorithm>
 #include <stdexcept>
 
-#define PANGO_SCALE_XXX_LARGE ((double)1.98)
-
-struct DispatchData
-{
-    GtkTextBuffer *buffer;
-    // For inserting text
-    std::string text;
-    std::string url;
-    // For removing text
-    int charsTruncated;
-    // Optional URL formatting
-    std::string urlFont;
-};
-
 Draw::Draw(MainWindow &mainWindow)
     : mainWindow(mainWindow),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
-      fontSize(10 * PANGO_SCALE),
-      fontFamily("Ubuntu Monospace"),
       headingLevel(0),
       listLevel(0),
       isBold(false),
@@ -46,16 +32,14 @@ Draw::Draw(MainWindow &mainWindow)
       isOrderedList(false),
       isLink(false),
       hovingOverLink(false),
-      defaultFont(fontFamily),
       isUserAction(false)
 {
     this->disableEdit();
-    set_indent(15);
-    set_left_margin(10);
-    set_right_margin(10);
     set_top_margin(12);
+    set_left_margin(10); // fallback
+    set_right_margin(10); // fallback
     set_bottom_margin(0);
-    set_monospace(true);
+    set_monospace(false);
     set_app_paintable(true);
     set_pixels_above_lines(1);
     set_pixels_below_lines(2);
@@ -68,10 +52,77 @@ Draw::Draw(MainWindow &mainWindow)
     linkCursor = Gdk::Cursor::create(display, "grab");
     textCursor = Gdk::Cursor::create(display, "text");
 
+    // Create text-tags
+    addTags();
+
     // Connect Signals
     signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
     signal_motion_notify_event().connect(sigc::mem_fun(this, &Draw::motion_notify_event));
     signal_populate_popup().connect(sigc::mem_fun(this, &Draw::populate_popup));
+}
+
+/**
+ * See also: https://gitlab.gnome.org/GNOME/gtkmm/-/blob/master/demos/gtk-demo/example_textview.cc#L100
+ */
+void Draw::addTags()
+{
+    auto buffer = get_buffer();
+    Glib::RefPtr<Gtk::TextBuffer::Tag> tmpTag;
+
+    // Italic / bold
+    buffer->create_tag("italic")->property_style() = Pango::Style::STYLE_ITALIC;
+    buffer->create_tag("bold")->property_weight() = Pango::Weight::WEIGHT_BOLD;
+
+    // Add headings
+    tmpTag = buffer->create_tag("heading1");
+    tmpTag->property_scale() = 2.3;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading2");
+    tmpTag->property_scale() = 2.0;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading3");
+    tmpTag->property_scale() = 1.8;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading4");
+    tmpTag->property_scale() = 1.6;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading5");
+    tmpTag->property_scale() = 1.4;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag = buffer->create_tag("heading6");
+    tmpTag->property_scale() = 1.3;
+    tmpTag->property_weight() = Pango::Weight::WEIGHT_BOLD;
+    tmpTag->property_foreground() = "gray";
+
+    // Strikethrough, underline, double underline
+    buffer->create_tag("strikethrough")->property_strikethrough() = true;
+    buffer->create_tag("underline")->property_underline() = Pango::Underline::UNDERLINE_SINGLE;
+    buffer->create_tag("double_underline")->property_underline() = Pango::Underline::UNDERLINE_DOUBLE;
+
+    // Superscript/subscript
+    tmpTag = buffer->create_tag("superscript");
+    tmpTag->property_rise() = 6 * Pango::SCALE;
+    tmpTag->property_scale() = 0.8;
+    tmpTag = buffer->create_tag("subscript");
+    tmpTag->property_rise() = -6 * Pango::SCALE;
+    tmpTag->property_scale() = 0.8;
+
+    // code block
+    tmpTag = buffer->create_tag("code");
+    tmpTag->property_family() = "monospace";
+    tmpTag->property_foreground() = "#323232";
+    tmpTag->property_background() = "#e0e0e0";
+
+    // quote
+    tmpTag = buffer->create_tag("quote");
+    tmpTag->property_foreground() = "blue";
+    tmpTag->property_wrap_mode() = Gtk::WrapMode::WRAP_WORD;
+    tmpTag->property_indent() = 15;
+
+    // highlight
+    tmpTag = buffer->create_tag("highlight");
+    tmpTag->property_foreground() = "black";
+    tmpTag->property_background() = "#FFFF00";
 }
 
 /**
@@ -129,7 +180,7 @@ void Draw::populate_popup(Gtk::Menu *menu)
     for (auto *item : items)
     {
         Gtk::MenuItem *menuItem = static_cast<Gtk::MenuItem *>(item);
-        std::string name = menuItem->get_label();
+        Glib::ustring name = menuItem->get_label();
         if (name.compare("Cu_t") == 0)
         {
             menuItem->set_label("Cu_t (Ctrl+X)");
@@ -169,7 +220,7 @@ void Draw::populate_popup(Gtk::Menu *menu)
  * \param message Headliner
  * \param detailed_info Additional text info
  */
-void Draw::showMessage(const std::string &message, const std::string &detailed_info)
+void Draw::showMessage(const Glib::ustring &message, const Glib::ustring &detailed_info)
 {
     if (get_editable())
         this->disableEdit();
@@ -178,7 +229,7 @@ void Draw::showMessage(const std::string &message, const std::string &detailed_i
     this->headingLevel = 1;
     this->insertText(message);
     this->headingLevel = 0;
-    this->insertMarkupTextOnThread("\n\n");
+    this->insertMarkupText("\n\n");
     this->insertText(detailed_info);
 }
 
@@ -194,12 +245,12 @@ void Draw::showStartPage()
     this->headingLevel = 1;
     this->insertText("🚀🌍 Welcome to the Decentralized Web (DWeb)");
     this->headingLevel = 0;
-    this->insertMarkupTextOnThread("\n\n");
+    this->insertMarkupText("\n\n");
     this->insertText("You can surf the web as intended via LibreWeb, by using IPFS as a decentralized solution. This is also the fastest browser in the world.\n\n\
 The content is fully written in markdown format, allowing you to easily publish your own site, blog article or e-book.\n\
 This browser has even a built-in editor. Check it out in the menu: File->New Document!\n\n");
     this->insertText("See an example page hosted on IPFS: ");
-    this->insertLink("Click here for the example page", "ipfs://QmQQQyYm8GcLBEE7H3NMQWfkyfU5yHiT5i1J98gbfDGRuX", defaultFont.to_string());
+    this->insertLink("Click here for the example page", "ipfs://QmQQQyYm8GcLBEE7H3NMQWfkyfU5yHiT5i1J98gbfDGRuX");
 }
 
 /**
@@ -251,7 +302,7 @@ void Draw::newDocument()
 /**
  * \brief Retrieve the current text buffer (not thread-safe)
  */
-std::string Draw::getText()
+Glib::ustring Draw::getText()
 {
     return get_buffer().get()->get_text();
 }
@@ -260,12 +311,9 @@ std::string Draw::getText()
  * \brief Set text in text buffer (for example plain text) - thead-safe
  * \param content Content string that needs to be set as buffer text
  */
-void Draw::setText(const std::string &content)
+void Draw::setText(const Glib::ustring &content)
 {
-    DispatchData *data = new DispatchData();
-    data->buffer = buffer;
-    data->text = content;
-    gdk_threads_add_idle((GSourceFunc)insertPlainTextIdle, data);
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertPlainTextIdle), content));
 }
 
 /**
@@ -395,7 +443,7 @@ void Draw::make_heading(int headingLevel)
     Gtk::TextBuffer::iterator start, start_line, end_line, _;
     auto buffer = get_buffer();
     buffer->begin_user_action();
-    std::string heading = std::string(headingLevel, '#');
+    Glib::ustring heading = Glib::ustring(headingLevel, '#');
     buffer->get_selection_bounds(start, _);
 
     start_line = buffer->get_iter_at_line(start.get_line());
@@ -408,7 +456,7 @@ void Draw::make_heading(int headingLevel)
         std::size_t countHashes = 0;
         bool hasSpace = false;
         std::size_t len = text.size();
-        for (std::string::size_type i = 0; i < len; i++)
+        for (Glib::ustring::size_type i = 0; i < len; i++)
         {
             if (text[i] == '#')
                 countHashes++;
@@ -428,7 +476,7 @@ void Draw::make_heading(int headingLevel)
         Gtk::TextBuffer::iterator new_start = buffer->get_iter_at_offset(insertLocation);
 
         // Finally, insert the new heading (add additional space indeed needed)
-        std::string insertHeading = (hasSpace) ? heading : heading + " ";
+        Glib::ustring insertHeading = (hasSpace) ? heading : heading + " ";
         buffer->insert(new_start, insertHeading);
     }
     else
@@ -445,7 +493,7 @@ void Draw::make_bold()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("**" + text + "**");
     }
@@ -466,7 +514,7 @@ void Draw::make_italic()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("*" + text + "*");
     }
@@ -487,7 +535,7 @@ void Draw::make_strikethrough()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("~~" + text + "~~");
     }
@@ -508,7 +556,7 @@ void Draw::make_super()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("^" + text + "^");
     }
@@ -529,7 +577,7 @@ void Draw::make_sub()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("%" + text + "%");
     }
@@ -574,7 +622,7 @@ void Draw::insert_link()
     if (buffer->get_selection_bounds(start, end))
     {
         int insertOffset = buffer->get_insert()->get_iter().get_offset();
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("[" + text + "](ipfs://url)");
         auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 10);
@@ -599,7 +647,7 @@ void Draw::insert_image()
     buffer->begin_user_action();
     if (buffer->get_selection_bounds(start, end))
     {
-        std::string text = buffer->get_text(start, end);
+        Glib::ustring text = buffer->get_text(start, end);
         buffer->erase_selection();
         buffer->insert_at_cursor("![](" + text + "]");
     }
@@ -614,6 +662,7 @@ void Draw::insert_image()
     buffer->end_user_action();
 }
 
+// TODO: set_monospace(true)
 void Draw::make_code()
 {
     Gtk::TextBuffer::iterator start, end;
@@ -1030,7 +1079,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         {
             // Replace last quote '|'-sign with a normal blank line
             this->truncateText(2);
-            this->insertMarkupTextOnThread("\n");
+            this->insertMarkupText("\n");
         }
         break;
 
@@ -1053,7 +1102,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             orderedListLevel = 0;
             isOrderedList = false;
             if (!entering)
-                this->insertMarkupTextOnThread("\n");
+                this->insertMarkupText("\n");
         }
         else if (listLevel > 0)
         {
@@ -1102,16 +1151,16 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
             {
                 if (bulletListLevel % 2 == 0)
                 {
-                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u25e6 ");
+                    this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u25e6 ");
                 }
                 else
                 {
-                    this->insertText(std::string(bulletListLevel, '\u0009') + "\u2022 ");
+                    this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u2022 ");
                 }
             }
             else if (orderedListLevel > 0)
             {
-                std::string number;
+                Glib::ustring number;
                 if (orderedListLevel % 2 == 0)
                 {
                     number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
@@ -1120,7 +1169,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
                 {
                     number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
                 }
-                this->insertText(std::string(orderedListLevel, '\u0009') + number);
+                this->insertText(Glib::ustring(orderedListLevel, '\u0009') + number);
             }
         }
         break;
@@ -1133,15 +1182,15 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         else
         {
             // Insert line break after heading
-            this->insertMarkupTextOnThread("\n\n");
+            this->insertMarkupText("\n\n");
             headingLevel = 0; // reset
         }
         break;
 
     case CMARK_NODE_CODE_BLOCK:
     {
-        std::string code = cmark_node_get_literal(node);
-        std::string newline = (isQuote) ? "" : "\n";
+        Glib::ustring code = cmark_node_get_literal(node);
+        Glib::ustring newline = (isQuote) ? "" : "\n";
         this->insertText(code + newline, "", CodeTypeEnum::CODE_BLOCK);
     }
     break;
@@ -1164,7 +1213,7 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // For listings only insert a single new line
         if (!entering && (listLevel > 0))
         {
-            this->insertMarkupTextOnThread("\n");
+            this->insertMarkupText("\n");
         }
         // Dealing with paragraphs in quotes
         else if (entering && isQuote)
@@ -1178,13 +1227,13 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
         // Normal paragraph, just blank line
         else if (!entering)
         {
-            this->insertMarkupTextOnThread("\n\n");
+            this->insertMarkupText("\n\n");
         }
         break;
 
     case CMARK_NODE_TEXT:
     {
-        std::string text = cmark_node_get_literal(node);
+        Glib::ustring text = cmark_node_get_literal(node);
         // URL
         if (isLink)
         {
@@ -1201,17 +1250,17 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
 
     case CMARK_NODE_LINEBREAK:
         // Hard brake
-        this->insertMarkupTextOnThread("\n");
+        this->insertMarkupText("\n");
         break;
 
     case CMARK_NODE_SOFTBREAK:
         // only insert space
-        this->insertMarkupTextOnThread(" ");
+        this->insertMarkupText(" ");
         break;
 
     case CMARK_NODE_CODE:
     {
-        std::string code = cmark_node_get_literal(node);
+        Glib::ustring code = cmark_node_get_literal(node);
         this->insertText(code, "", CodeTypeEnum::INLINE_CODE);
     }
     break;
@@ -1247,157 +1296,14 @@ void Draw::processNode(cmark_node *node, cmark_event_type ev_type)
     case CMARK_NODE_FOOTNOTE_DEFINITION:
         break;
     default:
-        throw std::runtime_error("Node type '" + std::string(cmark_node_get_type_string(node)) + "' not found.");
+        throw std::runtime_error("Node type '" + Glib::ustring(cmark_node_get_type_string(node)) + "' not found.");
         break;
     }
 }
 
-/**
- * Insert markup text - thread safe
- */
-void Draw::insertText(std::string text, const std::string &url, CodeTypeEnum codeType)
-{
-    auto font = defaultFont;
-    std::string span;
-    span.reserve(80);
-    std::string foreground;
-    std::string background;
-
-    // Use by reference to replace the string
-    this->encodeText(text);
-
-    if (isStrikethrough)
-    {
-        span.append("strikethrough=\"true\" ");
-    }
-    if (isSuperscript)
-    {
-        font.set_size(8000);
-        span.append("rise=\"6000\" ");
-    }
-    // You can not have superscript & subscript applied together
-    else if (isSubscript)
-    {
-        font.set_size(8000);
-        span.append("rise=\"-6000\" ");
-    }
-    if (isBold)
-    {
-        font.set_weight(Pango::WEIGHT_BOLD);
-    }
-    if (isItalic)
-    {
-        font.set_style(Pango::STYLE_ITALIC);
-    }
-    if (isHighlight)
-    {
-        foreground = "black";
-        background = "#FFFF00";
-    }
-    if (codeType != Draw::CodeTypeEnum::NONE)
-    {
-        foreground = "#323232";
-        background = "#e0e0e0";
-    }
-    if (headingLevel > 0)
-    {
-        font.set_weight(Pango::WEIGHT_BOLD);
-        switch (headingLevel)
-        {
-        case 1:
-            font.set_size(fontSize * PANGO_SCALE_XXX_LARGE);
-            break;
-        case 2:
-            font.set_size(fontSize * PANGO_SCALE_XX_LARGE);
-            break;
-        case 3:
-            font.set_size(fontSize * PANGO_SCALE_X_LARGE);
-            break;
-        case 4:
-            font.set_size(fontSize * PANGO_SCALE_LARGE);
-            break;
-        case 5:
-            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
-            break;
-        case 6:
-            font.set_size(fontSize * PANGO_SCALE_MEDIUM);
-            foreground = "gray";
-            break;
-        default:
-            break;
-        }
-    }
-    if (isQuote)
-    {
-        foreground = "blue";
-    }
-    if (!foreground.empty())
-    {
-        span.append("foreground=\"" + foreground + "\" ");
-    }
-    if (!background.empty())
-    {
-        span.append("background=\"" + background + "\" ");
-    }
-    span.append("font_desc=\"" + font.to_string() + "\"");
-
-    // Insert URL
-    if (!url.empty())
-    {
-        this->insertLink(text, url, font.to_string());
-    }
-    // Insert text/heading
-    else
-    {
-        // Special case for code blocks within quote
-        if ((codeType == Draw::CodeTypeEnum::CODE_BLOCK) && isQuote)
-        {
-            std::istringstream iss(text);
-            std::string line;
-            // Add a quote for each new code line
-            while (getline(iss, line))
-            {
-                insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + line + "</span>\n");
-            }
-            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C\n</span>");
-        }
-        // Special case for heading within quote
-        else if ((headingLevel > 0) && isQuote)
-        {
-            insertMarkupTextOnThread("<span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\uFF5C </span><span " + span + ">" + text + "</span><span font_desc=\"" + defaultFont.to_string() + "\" foreground=\"blue\">\n\uFF5C\n</span>");
-        }
-        // Just insert text/heading the normal way
-        else
-        {
-            insertMarkupTextOnThread("<span " + span + ">" + text + "</span>");
-        }
-    }
-}
-
-/**
- * Insert url link - thread safe
- */
-void Draw::insertLink(const std::string &text, const std::string &url, const std::string &urlFont)
-{
-    DispatchData *data = new DispatchData();
-    data->buffer = buffer;
-    data->text = text;
-    data->url = url;
-    data->urlFont = urlFont;
-    gdk_threads_add_idle((GSourceFunc)insertLinkIdle, data);
-}
-
-/**
- * Remove nr. chars from the end of the text buffer - thread safe
- */
-void Draw::truncateText(int charsTruncated)
-{
-    DispatchData *data = new DispatchData();
-    data->buffer = buffer;
-    data->charsTruncated = charsTruncated;
-    gdk_threads_add_idle((GSourceFunc)truncateTextIdle, data);
-}
-
+/******************************************************
+ * Helper functions below
+ *****************************************************/
 /**
  * Encode text string (eg. ampersand-character)
  * @param[in/out] string
@@ -1421,19 +1327,149 @@ void Draw::encodeText(std::string &string)
     string.swap(buffer);
 }
 
-/******************************************************
- * Helper functions below
- *****************************************************/
+/**
+ * Insert markup text - thread safe
+ */
+void Draw::insertText(std::string text, const Glib::ustring &url, CodeTypeEnum codeType)
+{
+    std::vector<Glib::ustring> tagNames;
+
+    // Use by reference to replace the string
+    this->encodeText(text);
+
+    if (isStrikethrough)
+    {
+        tagNames.push_back("strikethrough");
+    }
+    if (isSuperscript)
+    {
+        tagNames.push_back("superscript");
+    }
+    // You can not have superscript & subscript applied together
+    else if (isSubscript)
+    {
+        tagNames.push_back("subscript");
+    }
+    if (isBold)
+    {
+        tagNames.push_back("bold");
+    }
+    if (isItalic)
+    {
+        tagNames.push_back("italic");
+    }
+    if (isHighlight)
+    {
+        tagNames.push_back("highlight");
+    }
+    if (codeType != Draw::CodeTypeEnum::NONE)
+    {
+        tagNames.push_back("code");
+    }
+    if (headingLevel > 0)
+    {
+        switch (headingLevel)
+        {
+        case 1:
+            tagNames.push_back("heading1");
+            break;
+        case 2:
+            tagNames.push_back("heading2");
+            break;
+        case 3:
+            tagNames.push_back("heading3");
+            break;
+        case 4:
+            tagNames.push_back("heading4");
+            break;
+        case 5:
+            tagNames.push_back("heading5");
+            break;
+        case 6:
+            tagNames.push_back("heading6");
+            break;
+        default:
+            break;
+        }
+    }
+    if (isQuote)
+    {
+        tagNames.push_back("quote");
+    }
+
+    // Insert URL
+    if (!url.empty())
+    {
+        this->insertLink(text, url);
+    }
+    // Insert text/heading
+    else
+    {
+        // Special case for code blocks within quote
+        if ((codeType == Draw::CodeTypeEnum::CODE_BLOCK) && isQuote)
+        {
+            std::istringstream iss(text);
+            std::string line;
+            // Add a quote for each new code line
+            while (getline(iss, line))
+            {
+                insertTagText("\uFF5C ", "quote");
+                insertTagText(line + "\n", tagNames);
+            }
+            insertTagText("\uFF5C\n", "quote");
+        }
+        // Special case for heading within quote
+        else if ((headingLevel > 0) && isQuote)
+        {
+            insertTagText("\uFF5C ", "quote");
+            insertTagText(text, tagNames);
+        }
+        // Just insert text/heading the normal way
+        else
+        {
+            insertTagText(text, tagNames);
+        }
+    }
+}
+
+/**
+ * Insert pango text with tags - thread safe
+ */
+void Draw::insertTagText(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
+{
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertTagTextIdle), text, tagNames));
+}
+
+/**
+ * Insert pango text with a single tag name - thread safe
+ */
+void Draw::insertTagText(const Glib::ustring &text, const Glib::ustring &tagName)
+{
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertSingleTagTextIdle), text, tagName));
+}
 
 /**
  * Insert markup pango text - thread safe
  */
-void Draw::insertMarkupTextOnThread(const std::string &text)
+void Draw::insertMarkupText(const Glib::ustring &text)
 {
-    DispatchData *data = new DispatchData();
-    data->buffer = buffer;
-    data->text = text;
-    gdk_threads_add_idle((GSourceFunc)insertTextIdle, data);
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertMarupTextIdle), text));
+}
+
+/**
+ * Insert url link - thread safe
+ */
+void Draw::insertLink(const Glib::ustring &text, const Glib::ustring &url)
+{
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::insertLinkIdle), text, url));
+}
+
+/**
+ * Remove nr. chars from the end of the text buffer - thread safe
+ */
+void Draw::truncateText(int charsTruncated)
+{
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(*this, &Draw::truncateTextIdle), charsTruncated));
 }
 
 /**
@@ -1441,7 +1477,8 @@ void Draw::insertMarkupTextOnThread(const std::string &text)
  */
 void Draw::clearOnThread()
 {
-    gdk_threads_add_idle((GSourceFunc)clearBufferIdle, buffer);
+
+    Glib::signal_idle().connect_once(sigc::mem_fun(*this, &Draw::clearBufferIdle));
 }
 
 /**
@@ -1479,80 +1516,91 @@ void Draw::changeCursor(int x, int y)
 }
 
 /**
- * Insert markup text on Idle call function
+ * Insert text with tags on signal idle
  */
-gboolean Draw::insertTextIdle(struct DispatchData *data)
+
+void Draw::insertTagTextIdle(const Glib::ustring &text, std::vector<Glib::ustring> const &tagNames)
 {
-    GtkTextIter end_iter;
-    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
-    gtk_text_buffer_insert_markup(data->buffer, &end_iter, data->text.c_str(), -1);
-    g_free(data);
-    return FALSE;
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    buffer->insert_with_tags_by_name(endIter, text, tagNames);
 }
 
 /**
- * Insert plain text on Idle call function
+ * Insert text with a single tag name on signal idle
  */
-gboolean Draw::insertPlainTextIdle(struct DispatchData *data)
+
+void Draw::insertSingleTagTextIdle(const Glib::ustring &text, const Glib::ustring &tagName)
 {
-    gtk_text_buffer_set_text(data->buffer, data->text.c_str(), -1);
-    g_free(data);
-    return FALSE;
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    buffer->insert_with_tag(endIter, text, tagName);
 }
 
 /**
- * Insert link url on Idle call function
+ * Insert markup text on signal idle
  */
-gboolean Draw::insertLinkIdle(struct DispatchData *data)
+void Draw::insertMarupTextIdle(const Glib::ustring &text)
 {
-    GtkTextIter end_iter;
-    GtkTextTag *tag;
-    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
-    tag = gtk_text_buffer_create_tag(data->buffer, NULL,
-                                     "font", data->urlFont.c_str(),
-                                     "foreground", "#569cd6",
-                                     "underline", PANGO_UNDERLINE_SINGLE,
-                                     NULL);
-    g_object_set_data(G_OBJECT(tag), "url", g_strdup(data->url.c_str()));
-    gtk_text_buffer_insert_with_tags(data->buffer, &end_iter, data->text.c_str(), -1, tag, NULL);
-    g_free(data);
-    return FALSE;
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    buffer->insert_markup(endIter, text);
 }
 
 /**
- * Truncate text from the end of the buffer
+ * Insert plain text on signal idle
  */
-gboolean Draw::truncateTextIdle(struct DispatchData *data)
+void Draw::insertPlainTextIdle(const Glib::ustring &text)
 {
-    GtkTextIter end_iter;
-    gtk_text_buffer_get_end_iter(data->buffer, &end_iter);
-    GtkTextIter begin_iter = end_iter;
-    gtk_text_iter_backward_chars(&begin_iter, data->charsTruncated);
-    gtk_text_buffer_delete(data->buffer, &begin_iter, &end_iter);
-    g_free(data);
-    return FALSE;
+    get_buffer()->set_text(text);
 }
 
 /**
- * clearOnThread Text on Idle Call function
+ * Insert link url on signal idle
  */
-gboolean Draw::clearBufferIdle(GtkTextBuffer *textBuffer)
+void Draw::insertLinkIdle(const Glib::ustring &text, const Glib::ustring &url)
 {
-    GtkTextIter start_iter, end_iter;
-    gtk_text_buffer_get_start_iter(textBuffer, &start_iter);
-    gtk_text_buffer_get_end_iter(textBuffer, &end_iter);
-    gtk_text_buffer_delete(textBuffer, &start_iter, &end_iter);
-    return FALSE;
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    auto tag = buffer->create_tag();
+    // TODO: Create a tag name with name "url" and reuse tag if possible.
+    tag->property_foreground() = "#569cd6";
+    tag->property_underline() = Pango::Underline::UNDERLINE_SINGLE;
+    tag->set_data("url", g_strdup(url.c_str()));
+    buffer->insert_with_tag(endIter, text, tag);
+}
+
+/**
+ * Truncate text from the end of the buffer on signal idle
+ */
+void Draw::truncateTextIdle(int charsTruncated)
+{
+    auto buffer = get_buffer();
+    auto endIter = buffer->end();
+    auto beginIter = endIter;
+    beginIter.backward_chars(charsTruncated);
+    buffer->erase(beginIter, endIter);
+}
+
+/**
+ * clearOnThread Text on signal idle
+ */
+void Draw::clearBufferIdle()
+{
+    auto buffer = get_buffer();
+    auto beginIter = buffer->begin();
+    auto endIter = buffer->end();
+    buffer->erase(beginIter, endIter);
 }
 
 /**
  * Convert number to roman numerals
  */
-std::string const Draw::intToRoman(int num)
+Glib::ustring const Draw::intToRoman(int num)
 {
     static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
-    static const std::string numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
-    std::string res;
+    static const Glib::ustring numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+    Glib::ustring res;
     for (int i = 0; i < 13; ++i)
     {
         while (num >= values[i])

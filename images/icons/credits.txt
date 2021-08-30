@@ -1,4 +1,4 @@
-Credits (Downloade):
+Credits of the flat & flled icons:
 
 * https://www.flaticon.com/packs/text-editor-36
 * https://www.flaticon.com/packs/basic-ui-5
@@ -7,12 +7,12 @@ Credits (Downloade):
 * https://www.flaticon.com/packs/folders-20 (filled)
 * https://www.flaticon.com/packs/network-31 (flat)
 * https://www.flaticon.com/packs/network-22 (filled)
+* https://www.flaticon.com/packs/basic-ui-28 (similar to basic-ui-5)
+* https://www.flaticon.com/packs/alignment-and-paragraph-5
 
 Still wanted (flat & filled icon packs):
 
     * https://www.flaticon.com/packs/tables-83
     * https://www.flaticon.com/packs/selection-and-cursors-27
-    * https://www.flaticon.com/packs/basic-ui-28
     * https://www.flaticon.com/packs/email-6
-    * https://www.flaticon.com/packs/alignment-and-paragraph-5
     * https://www.flaticon.com/packs/image-files-3
