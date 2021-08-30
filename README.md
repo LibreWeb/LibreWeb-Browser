@@ -14,14 +14,18 @@ I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as p
 
 * [Download the latest release](https://gitlab.melroy.org/libreweb/browser/-/releases)
 
-## Screens
+## Documentation
+
+Visit the [dedicated documentation site](https://docs.libreweb.org) for *user* documentation.
+
+## Screenshots
 
 ![Browser Screenshot](./misc/browser_screenshot.png)  
 ![Browser Markdown Editor](./misc/browser_screenshot_2.png)
 
-## Documentation
+## Community
 
-Visit the [dedicated documentation site](https://docs.libreweb.org) for user documentation.
+Join our [Telegram group](https://t.me/libreweb) or [Matrix channel](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) and become part of our community!
 
 ## Ideas/Features
 
