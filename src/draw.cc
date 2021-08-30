@@ -36,6 +36,8 @@ Draw::Draw(MainWindow &mainWindow)
 {
     this->disableEdit();
     set_top_margin(12);
+    set_left_margin(10); // fallback
+    set_right_margin(10); // fallback
     set_bottom_margin(0);
     set_monospace(false);
     set_app_paintable(true);
