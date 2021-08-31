@@ -135,7 +135,9 @@ protected:
     Gtk::ModelButton m_iconThemeButton;
     Gtk::ModelButton m_aboutButton;
     Gtk::ModelButton m_iconThemeBackButton;
-    Gtk::Grid m_gridSetings;
+    Gtk::Grid m_statusGrid;
+    Gtk::Grid m_activityStatusGrid;
+    Gtk::Grid m_settingsGrid;
     Gtk::Button m_backButton;
     Gtk::Button m_forwardButton;
     Gtk::Button m_refreshButton;
@@ -203,12 +205,28 @@ protected:
     Gtk::PopoverMenu m_settingsPopover;
     Gtk::Button m_copyIDButton;
     Gtk::Button m_copyPublicKeyButton;
+    Gtk::Label m_networkHeadingLabel;
+    Gtk::Label m_networkRateHeadingLabel;
+    Gtk::Label m_connectivityLabel;
+    Gtk::Label m_connectivityStatusLabel;
+    Gtk::Label m_peersLabel;
+    Gtk::Label m_peersStatusLabel;
+    Gtk::Label m_repoSizeLabel;
+    Gtk::Label m_repoSizeStatusLabel;
+    Gtk::Label m_repoPathLabel;
+    Gtk::Label m_repoPathStatusLabel;
+    Gtk::Label m_ipfsVersionLabel;
+    Gtk::Label m_ipfsVersionStatusLabel;
+    Gtk::Label m_networkIncomingLabel;
+    Gtk::Label m_networkIncomingStatusLabel;
+    Gtk::Label m_networkOutcomingLabel;
+    Gtk::Label m_networkOutcomingStatusLabel;
+    Gtk::Label m_networkKiloBytesLabel;
     Gtk::Label m_fontLabel;
     Gtk::Label m_spacingLabel;
     Gtk::Label m_marginsLabel;
     Gtk::Label m_indentLabel;
     Gtk::Label m_iconThemeLabel;
-    Gtk::Label m_statusLabel;
     std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
     Gtk::ScrolledWindow m_scrolledWindowMain;
     Gtk::ScrolledWindow m_scrolledWindowSecondary;
@@ -221,6 +239,8 @@ protected:
     Gtk::Separator m_separator6;
     Gtk::Separator m_separator7;
     Gtk::Separator m_separator8;
+    Gtk::Separator m_separator9;
+    Gtk::Separator m_separator10;
 
 private:
     std::string m_appName;
@@ -241,9 +261,15 @@ private:
     sigc::connection textChangedSignalHandler;
     sigc::connection statusTimerHandler;
     bool m_waitPageVisible;
-    std::string ipfsVersion;
-    std::string clientID;
-    std::string clientPublicKey;
+    std::string m_ipfsNetworkStatus;
+    std::size_t m_ipfsNumberOfPeers;
+    int m_ipfsRepoSize;
+    std::string m_ipfsRepoPath;
+    std::string m_ipfsIncomingRate;
+    std::string m_ipfsOutcomingRate;
+    std::string m_ipfsVersion;
+    std::string m_ipfsClientID;
+    std::string m_ipfsClientPublicKey;
     std::string ipfsHost;
     int ipfsPort;
     std::string ipfsTimeout;
@@ -255,6 +281,7 @@ private:
     void initButtons();
     void initStatusPopover();
     void initSettingsPopover();
+    void updateStatusPopover();
     void initSignals();
     bool isInstalled();
     void enableEdit();
@@ -266,6 +293,7 @@ private:
     void openFromDisk(bool isParseContent);
     std::string getIconImageFromTheme(const std::string &iconName, const std::string &typeofIcon);
     void updateCSS();
+    void showNotification(const Glib::ustring &title, const Glib::ustring &message = "");
 };
 
 #endif
