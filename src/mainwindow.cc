@@ -8,6 +8,8 @@
 #include <gtkmm/image.h>
 #include <gtkmm/listboxrow.h>
 #include <giomm/file.h>
+#include <giomm/notification.h>
+#include <giomm/themedicon.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/main.h>
@@ -39,6 +41,16 @@ MainWindow::MainWindow(const std::string &timeout)
       m_searchMatchCase("Match _Case", true),
       m_copyIDButton("Copy your ID"),
       m_copyPublicKeyButton("Copy Public Key"),
+      m_networkHeadingLabel("IPFS Network"),
+      m_networkRateHeadingLabel("Network rate"),
+      m_connectivityLabel("Status:"),
+      m_peersLabel("Connected peers:"),
+      m_repoSizeLabel("Repo size:"),
+      m_repoPathLabel("Repo path:"),
+      m_ipfsVersionLabel("IPFS version:"),
+      m_networkIncomingLabel("Incoming"),
+      m_networkOutcomingLabel("Outcoming"),
+      m_networkKiloBytesLabel("Kilobytes/s"),
       m_fontLabel("Font"),
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
@@ -52,6 +64,10 @@ MainWindow::MainWindow(const std::string &timeout)
       m_requestThread(nullptr),
       currentHistoryIndex(0),
       m_waitPageVisible(false),
+      m_ipfsNetworkStatus("Disconnected"),
+      m_ipfsRepoSize(0),
+      m_ipfsIncomingRate("0.0"),
+      m_ipfsOutcomingRate("0.0"),
       ipfsHost("localhost"),
       ipfsPort(5001),
       ipfsTimeout(timeout),
@@ -498,22 +514,82 @@ void MainWindow::initButtons()
  */
 void MainWindow::initStatusPopover()
 {
-    m_statusLabel.set_text("Network is still starting..."); // fallback text
-    m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
+    m_connectivityLabel.set_xalign(0.0);
+    m_peersLabel.set_xalign(0.0);
+    m_repoSizeLabel.set_xalign(0.0);
+    m_repoPathLabel.set_xalign(0.0);
+    m_ipfsVersionLabel.set_xalign(0.0);
+    m_connectivityStatusLabel.set_xalign(1.0);
+    m_peersStatusLabel.set_xalign(1.0);
+    m_repoSizeStatusLabel.set_xalign(1.0);
+    m_repoPathStatusLabel.set_xalign(1.0);
+    m_ipfsVersionStatusLabel.set_xalign(1.0);
+    m_connectivityLabel.get_style_context()->add_class("dim-label");
+    m_peersLabel.get_style_context()->add_class("dim-label");
+    m_repoSizeLabel.get_style_context()->add_class("dim-label");
+    m_repoPathLabel.get_style_context()->add_class("dim-label");
+    m_ipfsVersionLabel.get_style_context()->add_class("dim-label");
+
+    m_statusGrid.set_column_homogeneous(true);
+    m_statusGrid.set_margin_start(6);
+    m_statusGrid.set_margin_top(6);
+    m_statusGrid.set_margin_bottom(6);
+    m_statusGrid.set_margin_end(12);
+    m_statusGrid.set_row_spacing(10);
+    m_statusGrid.set_column_spacing(6);
+    m_statusGrid.attach(m_connectivityLabel, 0, 0);
+    m_statusGrid.attach(m_connectivityStatusLabel, 1, 0);
+    m_statusGrid.attach(m_peersLabel, 0, 1);
+    m_statusGrid.attach(m_peersStatusLabel, 1, 1);
+    m_statusGrid.attach(m_repoSizeLabel, 0, 2);
+    m_statusGrid.attach(m_repoSizeStatusLabel, 1, 2);
+    m_statusGrid.attach(m_repoPathLabel, 0, 3);
+    m_statusGrid.attach(m_repoPathStatusLabel, 1, 3);
+    m_statusGrid.attach(m_ipfsVersionLabel, 0, 4);
+    m_statusGrid.attach(m_ipfsVersionStatusLabel, 1, 4);
+
+    m_networkKiloBytesLabel.get_style_context()->add_class("dim-label");
+    m_activityStatusGrid.set_column_homogeneous(true);
+    m_activityStatusGrid.set_margin_start(6);
+    m_activityStatusGrid.set_margin_top(6);
+    m_activityStatusGrid.set_margin_bottom(6);
+    m_activityStatusGrid.set_margin_end(6);
+    m_activityStatusGrid.set_row_spacing(10);
+    m_activityStatusGrid.set_column_spacing(6);    
+    m_activityStatusGrid.attach(m_networkIncomingLabel, 1, 0);
+    m_activityStatusGrid.attach(m_networkOutcomingLabel, 2, 0);
+    m_activityStatusGrid.attach(m_networkKiloBytesLabel, 0, 1);
+    m_activityStatusGrid.attach(m_networkIncomingStatusLabel, 1, 1);
+    m_activityStatusGrid.attach(m_networkOutcomingStatusLabel, 2, 1);
+
+    m_networkHeadingLabel.get_style_context()->add_class("dim-label");
+    m_networkRateHeadingLabel.get_style_context()->add_class("dim-label");
     m_copyIDButton.set_margin_start(6);
     m_copyIDButton.set_margin_end(6);
-    m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
     m_copyPublicKeyButton.set_margin_start(6);
     m_copyPublicKeyButton.set_margin_end(6);
 
-    m_vboxStatus.pack_start(m_statusLabel, Gtk::PACK_EXPAND_WIDGET, 4);
-    m_vboxStatus.pack_end(m_copyPublicKeyButton, Gtk::PACK_EXPAND_WIDGET, 4);
-    m_vboxStatus.pack_end(m_copyIDButton, Gtk::PACK_EXPAND_WIDGET, 4);
+    m_vboxStatus.set_margin_start(10);
+    m_vboxStatus.set_margin_end(10);
+    m_vboxStatus.set_margin_top(10);
+    m_vboxStatus.set_margin_bottom(10);
+    m_vboxStatus.set_spacing(6);
+    m_vboxStatus.add(m_networkHeadingLabel);
+    m_vboxStatus.add(m_statusGrid);
+    m_vboxStatus.add(m_separator9);
+    m_vboxStatus.add(m_networkRateHeadingLabel);
+    m_vboxStatus.add(m_activityStatusGrid);
+    m_vboxStatus.add(m_separator10);
+    m_vboxStatus.add(m_copyPublicKeyButton);
+    m_vboxStatus.add(m_copyIDButton);
     m_statusPopover.set_position(Gtk::POS_BOTTOM);
-    m_statusPopover.set_size_request(240, 120);
+    m_statusPopover.set_size_request(100, 250);
     m_statusPopover.set_margin_end(2);
     m_statusPopover.add(m_vboxStatus);
     m_statusPopover.show_all_children();
+
+    // Set fallback values for all status fields
+    this->updateStatusPopover();
 }
 
 /**
@@ -559,27 +635,23 @@ void MainWindow::initSettingsPopover()
     m_spacingLabel.set_xalign(1);
     m_marginsLabel.set_xalign(1);
     m_indentLabel.set_xalign(1);
-    auto fontLabelContext = m_fontLabel.get_style_context();
-    fontLabelContext->add_class("dim-label");
-    auto spacingLabelContext = m_spacingLabel.get_style_context();
-    spacingLabelContext->add_class("dim-label");
-    auto marginsLabelContext = m_marginsLabel.get_style_context();
-    marginsLabelContext->add_class("dim-label");
-    auto indentLabelContext = m_indentLabel.get_style_context();
-    indentLabelContext->add_class("dim-label");
-    m_gridSetings.set_margin_start(6);
-    m_gridSetings.set_margin_top(6);
-    m_gridSetings.set_margin_bottom(6);
-    m_gridSetings.set_row_spacing(10);
-    m_gridSetings.set_column_spacing(10);
-    m_gridSetings.attach(m_fontLabel, 0, 0);
-    m_gridSetings.attach(m_fontButton, 1, 0);
-    m_gridSetings.attach(m_spacingLabel, 0, 1);
-    m_gridSetings.attach(m_spacingSpinButton, 1, 1);
-    m_gridSetings.attach(m_marginsLabel, 0, 2);
-    m_gridSetings.attach(m_marginsSpinButton, 1, 2);
-    m_gridSetings.attach(m_indentLabel, 0, 3);
-    m_gridSetings.attach(m_indentSpinButton, 1, 3);
+    m_fontLabel.get_style_context()->add_class("dim-label");
+    m_spacingLabel.get_style_context()->add_class("dim-label");
+    m_marginsLabel.get_style_context()->add_class("dim-label");
+    m_indentLabel.get_style_context()->add_class("dim-label");
+    m_settingsGrid.set_margin_start(6);
+    m_settingsGrid.set_margin_top(6);
+    m_settingsGrid.set_margin_bottom(6);
+    m_settingsGrid.set_row_spacing(10);
+    m_settingsGrid.set_column_spacing(10);
+    m_settingsGrid.attach(m_fontLabel, 0, 0);
+    m_settingsGrid.attach(m_fontButton, 1, 0);
+    m_settingsGrid.attach(m_spacingLabel, 0, 1);
+    m_settingsGrid.attach(m_spacingSpinButton, 1, 1);
+    m_settingsGrid.attach(m_marginsLabel, 0, 2);
+    m_settingsGrid.attach(m_marginsSpinButton, 1, 2);
+    m_settingsGrid.attach(m_indentLabel, 0, 3);
+    m_settingsGrid.attach(m_indentSpinButton, 1, 3);
 
     // Icon theme (+ submenu)
     m_iconThemeButton.set_label("Icon Theme");
@@ -614,7 +686,6 @@ void MainWindow::initSettingsPopover()
     m_iconThemeListBox.select_row(*row1); // TODO: Select the correct theme on loading
     m_iconThemeListScrolledWindow.property_height_request() = 200;
     m_iconThemeListScrolledWindow.add(m_iconThemeListBox);
-    m_iconThemeLabel.set_xalign(0.0);
     m_iconThemeLabel.get_style_context()->add_class("dim-label");
     m_vboxIconTheme.add(m_iconThemeBackButton);
     m_vboxIconTheme.add(m_separator8);
@@ -634,7 +705,7 @@ void MainWindow::initSettingsPopover()
     m_vboxSettings.add(m_hboxSetingsZoom);
     // m_vboxSettings.add(m_hboxSetingsBrightness); // TODO
     m_vboxSettings.add(m_separator5);
-    m_vboxSettings.add(m_gridSetings);
+    m_vboxSettings.add(m_settingsGrid);
     m_vboxSettings.add(m_separator6);
     m_vboxSettings.add(m_iconThemeButton);
     m_vboxSettings.add(m_separator7);
@@ -647,7 +718,21 @@ void MainWindow::initSettingsPopover()
 }
 
 /**
- * Init all signals and connect them to functions
+ * \brief Update all status fields in status pop-over menu
+ */
+void MainWindow::updateStatusPopover()
+{
+    m_connectivityStatusLabel.set_markup("<b>" + m_ipfsNetworkStatus + "</b>");
+    m_peersStatusLabel.set_text(std::to_string(m_ipfsNumberOfPeers));
+    m_repoSizeStatusLabel.set_text(std::to_string(m_ipfsRepoSize) + " MB");
+    m_repoPathStatusLabel.set_text(m_ipfsRepoPath);
+    m_ipfsVersionStatusLabel.set_text(m_ipfsVersion);
+    m_networkIncomingStatusLabel.set_text(m_ipfsIncomingRate);
+    m_networkOutcomingStatusLabel.set_text(m_ipfsOutcomingRate);
+}
+
+/**
+ * \brief Init all signals and connect them to functions
  */
 void MainWindow::initSignals()
 {
@@ -716,6 +801,10 @@ void MainWindow::initSignals()
     m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
     m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
     m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
+
+    // Status pop-over buttons
+    m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
+    m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
 
     // Settings pop-over buttons
     m_zoomOutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
@@ -793,41 +882,41 @@ bool MainWindow::delete_window(GdkEventAny *any_event __attribute__((unused)))
 bool MainWindow::update_connection_status()
 {
     // Try to set the client ID & Public key and version
-    if (this->clientID.empty())
-        this->clientID = ipfs.getClientID();
-    if (this->clientPublicKey.empty())
-        this->clientPublicKey = ipfs.getClientPublicKey();
-    if (this->ipfsVersion.empty())
-        this->ipfsVersion = ipfs.getVersion();
+    if (this->m_ipfsClientID.empty())
+        this->m_ipfsClientID = ipfs.getClientID();
+    if (this->m_ipfsClientPublicKey.empty())
+        this->m_ipfsClientPublicKey = ipfs.getClientPublicKey();
+    if (this->m_ipfsVersion.empty())
+        this->m_ipfsVersion = ipfs.getVersion();
 
-    std::size_t nrPeers = loadStatusIcon(false); // No reloading of the image required
-    if (nrPeers > 0)
+    this->m_ipfsNumberOfPeers = loadStatusIcon(false); // No reloading of the image required
+    if (this->m_ipfsNumberOfPeers > 0)
     {
         // Auto-refresh page if needed (when 'Please wait' page is shown)
-        if (m_waitPageVisible)
+        if (this->m_waitPageVisible)
             this->refresh();
+
+        this->m_ipfsNetworkStatus = "Connected";
+        std::map<std::string, std::variant<int, std::string>> repoStats = ipfs.getRepoStats();
+        this->m_ipfsRepoSize = std::get<int>(repoStats.at("total_size"));
+        this->m_ipfsRepoPath = std::get<std::string>(repoStats.at("path"));
 
         std::map<std::string, float> rates = ipfs.getBandwidthRates();
         char buf[32];
-        std::string in = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
-        std::string out = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("out") / 1000.0));
-
-        std::map<std::string, std::variant<int, std::string>> repoStats = ipfs.getRepoStats();
-        int totalRepoSize = std::get<int>(repoStats.at("total_size"));
-        std::string repoPath = std::get<std::string>(repoStats.at("path"));
-
-        // And also update text
-        m_statusLabel.set_text("IPFS Network Stats:\n\nConnected peers: " + std::to_string(nrPeers) +
-                               "\nRate in:    " + in + " kB/s" +
-                               "\nRate out: " + out + " kB/s" +
-                               "\n\nTotal repo size: " + std::to_string(totalRepoSize) + " MB" +
-                               "\nRepo path: " + repoPath +
-                               "\n\nIPFS version: " + this->ipfsVersion);
+        this->m_ipfsIncomingRate = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
+        this->m_ipfsOutcomingRate = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("out") / 1000.0));
     }
     else
     {
-        m_statusLabel.set_text("IPFS Status: Connecting...");
+        this->m_ipfsNetworkStatus = "Disconnected";
+        this->m_ipfsRepoSize = 0;
+        this->m_ipfsRepoPath = "";
+        this->m_ipfsIncomingRate = "0.0";
+        this->m_ipfsOutcomingRate = "0.0";
     }
+
+    // Trigger update of all status fields
+    this->updateStatusPopover();
 
     // Keep going (never disconnect the timer)
     return true;
@@ -1379,22 +1468,31 @@ void MainWindow::go_home()
  */
 void MainWindow::copy_client_id()
 {
-    if (!this->clientID.empty())
-        get_clipboard("CLIPBOARD")->set_text(this->clientID);
-    else
+    if (!this->m_ipfsClientID.empty()) {
+        get_clipboard("CLIPBOARD")->set_text(this->m_ipfsClientID);
+        this->showNotification("Copied to clipboard", "Your client ID is now copied to your clipboard.");
+    }
+    else {
         std::cerr << "WARNING: IPFS client ID has not been set yet. Skip clipboard action." << std::endl;
-}
-
-void MainWindow::copy_client_public_key()
-{
-    if (!this->clientPublicKey.empty())
-        get_clipboard("CLIPBOARD")->set_text(this->clientPublicKey);
-    else
-        std::cerr << "WARNING: IPFS client public key has not been set yet. Skip clipboard action." << std::endl;
+    }
 }
 
 /**
- * Trigger when pressed enter in the search entry
+ * \brief Copy IPFS Client public key to clipboard
+ */
+void MainWindow::copy_client_public_key()
+{
+    if (!this->m_ipfsClientPublicKey.empty()) {
+        get_clipboard("CLIPBOARD")->set_text(this->m_ipfsClientPublicKey);
+        this->showNotification("Copied to clipboard", "Your client public key is now copied to your clipboard.");
+    }
+    else {
+        std::cerr << "WARNING: IPFS client public key has not been set yet. Skip clipboard action." << std::endl;
+    }
+}
+
+/**
+ * \brief Trigger when pressed enter in the search entry
  */
 void MainWindow::on_search()
 {
@@ -1428,7 +1526,7 @@ void MainWindow::on_search()
 }
 
 /**
- * Trigger when user pressed enter in the replace entry
+ * \brief Trigger when user pressed enter in the replace entry
  */
 void MainWindow::on_replace()
 {
@@ -1451,7 +1549,7 @@ void MainWindow::on_replace()
 }
 
 /**
- * Triggers when pressed enter in the address bar
+ * \brief Triggers when pressed enter in the address bar
  */
 void MainWindow::address_bar_activate()
 {
@@ -1461,7 +1559,7 @@ void MainWindow::address_bar_activate()
 }
 
 /**
- * Triggers when user tries to search or replace text
+ * \brief Triggers when user tries to search or replace text
  */
 void MainWindow::show_search(bool replace)
 {
@@ -1550,6 +1648,9 @@ bool MainWindow::isInstalled()
     }
 }
 
+/**
+ * \brief Enable editor mode. Allowing to create or edit existing documents.
+ */
 void MainWindow::enableEdit()
 {
     // Inform the Draw class that we are creating a new document
@@ -1588,6 +1689,9 @@ void MainWindow::enableEdit()
     this->m_refreshIcon.get_style_context()->remove_class("spinning");
 }
 
+/**
+ * \brief Disable editor mode.
+ */
 void MainWindow::disableEdit()
 {
     if (this->isEditorEnabled())
@@ -1813,6 +1917,21 @@ void MainWindow::updateCSS()
                                       "font-size: " + std::to_string(m_currentFontSize) + "pt;"
                                       "letter-spacing: " + std::to_string(m_fontSpacing) + "px;"
                                       "}");
+}
+
+/**
+ * \brief Show Gio notification
+ * @param title Title of the notification
+ * @param message The message displayed along with the notificiation
+ */
+void MainWindow::showNotification(const Glib::ustring &title, const Glib::ustring &message)
+{
+    auto app = get_application();
+    auto notification = Gio::Notification::create(title);
+    auto icon = Gio::ThemedIcon::create("dialog-information");
+    notification->set_body(message);
+    notification->set_icon(icon);
+    app->send_notification(notification);
 }
 
 void MainWindow::editor_changed_text()
