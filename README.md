@@ -65,6 +65,7 @@ For the build you need at least:
 * GCC 9 or higher (`build-essential`, `g++-9`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
+* Libcurl (Package: `libcurl4-openssl-dev`)
 * GTK & Pango (including C++ bindings):
   * Package: `libgtkmm-3.0-dev` under Debian based distros
 
