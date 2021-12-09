@@ -24,8 +24,6 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 
-add_definitions(${GTKMM_CFLAGS_OTHER})
-
 # Add JSON Parser via CMake Fetch Content feature
 include(FetchContent)
 
@@ -139,12 +137,17 @@ target_include_directories(${PROJECT_TARGET} PRIVATE
     ${GTKMM_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/lib/ipfs-http-client/include
 )
-
-target_link_directories(${PROJECT_TARGET} PRIVATE
-  ${GTKMM_LIBRARY_DIRS}
+target_link_directories(${PROJECT_TARGET} PRIVATE ${GTKMM_LIBRARY_DIRS})
+target_link_libraries(${PROJECT_TARGET} PRIVATE
+    LibCommonMarker
+    LibCommonMarkerExtensions
+    ipfs-http-client
+    Threads::Threads 
+    ${CXX_FILESYSTEM_LIBRARIES}
+    ${GTKMM_LIBRARIES}
+    nlohmann_json::nlohmann_json
 )
-
-target_link_libraries(${PROJECT_TARGET} PRIVATE LibCommonMarker LibCommonMarkerExtensions ipfs-http-client Threads::Threads ${CXX_FILESYSTEM_LIBRARIES} ${GTKMM_LIBRARIES} nlohmann_json::nlohmann_json)
+target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})
 
 # Install browser binary
 install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
