@@ -79,6 +79,7 @@
         "render.h": "c",
         "node.h": "c",
         "*.in": "cpp",
-        "superscript.h": "c"
+        "superscript.h": "c",
+        "cmark-gfm.h": "c"
     }
 }

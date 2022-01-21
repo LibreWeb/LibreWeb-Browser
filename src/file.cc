@@ -1,7 +1,7 @@
 #include "file.h"
+#include <fstream>
 #include <ipfs/client.h>
 #include <stdexcept>
-#include <fstream>
 
 #ifdef LEGACY_CXX
 #include <experimental/filesystem>
@@ -18,22 +18,22 @@ namespace n_fs = ::std::filesystem;
  *        or std::ios_base::failure when file can't be read
  * \return Contents as string
  */
-std::string const File::read(const std::string &path)
+std::string File::read(const std::string& path)
 {
-    if (n_fs::exists(path) && n_fs::is_regular_file(path))
-    {
-        std::ifstream inFile;
-        inFile.open(path, std::ifstream::in);
+  if (n_fs::exists(path) && n_fs::is_regular_file(path))
+  {
+    std::ifstream inFile;
+    inFile.open(path, std::ifstream::in);
 
-        std::stringstream strStream;
-        strStream << inFile.rdbuf();
-        return strStream.str();
-    }
-    else
-    {
-        // File doesn't exists or isn't a file
-        throw std::runtime_error("File does not exists or isn't a regular file.");
-    }
+    std::stringstream strStream;
+    strStream << inFile.rdbuf();
+    return strStream.str();
+  }
+  else
+  {
+    // File doesn't exists or isn't a file
+    throw std::runtime_error("File does not exists or isn't a regular file.");
+  }
 }
 
 /**
@@ -42,20 +42,20 @@ std::string const File::read(const std::string &path)
  * \param content Content that needs to be written to file
  * \throw std::ios_base::failure when file can't be written to
  */
-void File::write(const std::string &path, const std::string &content)
+void File::write(const std::string& path, const std::string& content)
 {
-    std::ofstream file;
-    file.open(path.c_str());
-    file << content;
-    file.close();
+  std::ofstream file;
+  file.open(path.c_str());
+  file << content;
+  file.close();
 }
 
 /**
  * \brief Retrieve filename from file path
- * \param path Full path 
+ * \param path Full path
  * \return filename
  */
-std::string const File::getFilename(const std::string &path)
+std::string File::getFilename(const std::string& path)
 {
-    return n_fs::path(path).filename();
+  return n_fs::path(path).filename().string();
 }

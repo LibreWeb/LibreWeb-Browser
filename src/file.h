@@ -10,8 +10,8 @@
 class File
 {
 public:
-    static std::string const read(const std::string &path);
-    static void write(const std::string &path, const std::string &content);
-    static std::string const getFilename(const std::string &path);
+  static std::string read(const std::string& path);
+  static void write(const std::string& path, const std::string& content);
+  static std::string getFilename(const std::string& path);
 };
 #endif

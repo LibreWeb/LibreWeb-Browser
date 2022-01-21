@@ -1,4 +1,4 @@
-image: danger89/gtk3-docker-cmake-ninja:2.3
+image: danger89/gtk3-docker-cmake-ninja:2.5
 
 stages:
   - build
@@ -12,21 +12,20 @@ variables:
 
 doxygen:
   stage: build
-  before_script:
-    - mkdir -p build/docs
   script:
-    - doxygen misc/Doxyfile
+    - ./scripts/build-docs.sh
   artifacts:
+    name: "Doxygen"
     paths:
-      - build/docs/html/
+      - build_docs/docs/html/
 
-build:
+linux_build:
   stage: build
   script: 
-    - ./scripts/build_prod.sh
+    - ./scripts/build-lnx-prod.sh
   artifacts:
     name: "Packages"
-    expire_in: 1 week
+    expire_in: 4 weeks
     paths:
     - build_prod/libreweb-browser-*.deb
     - build_prod/libreweb-browser-*.rpm
@@ -34,7 +33,11 @@ build:
 
 static_code_analysis:
   stage: build
-  script: ./check.sh
+  script: ./scripts/cpp-check.sh
+
+code_style_guidelines:
+  stage: build
+  script: ./scripts/check-format.sh
 
 #unit_test:
 #  stage: test
