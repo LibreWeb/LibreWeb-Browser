@@ -1,10 +1,14 @@
+if(${CMAKE_VERSION} VERSION_GREATER "3.3")
+    cmake_policy(SET CMP0063 NEW)
+endif()
+# Set version within this CMake file
 set(PROJECT_VERSION_MAJOR 0)
 set(PROJECT_VERSION_MINOR 29)
 set(PROJECT_VERSION_PATCH 0)
-set(PROJECT_VERSION_GFM 0)
+set(PROJECT_VERSION_GFM 2)
 
+# Rename the libary to our needs
 set(LIBRARY "LibCommonMarker")
-
 set(HEADERS
   cmark-gfm.h
   cmark-gfm-extension_api.h
@@ -25,7 +29,7 @@ set(HEADERS
   registry.h
   syntax_extension.h
   plugin.h
-)
+  )
 set(LIBRARY_SOURCES
   cmark.c
   node.c
@@ -56,7 +60,7 @@ set(LIBRARY_SOURCES
   registry.c
   plugin.c
   ${HEADERS}
-)
+  )
 
 set_property(GLOBAL PROPERTY COMMONMARKER_BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR})
 
@@ -70,12 +74,9 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/cmark-gfm_version.h.in
 
 include (GenerateExportHeader)
 
-# Disable the PUBLIC declarations when compiling the executable:
-set_target_properties(${PROGRAM} PROPERTIES
-  COMPILE_FLAGS "-DCMARK_STATIC_DEFINE -DCMARKEXTENSIONS_STATIC_DEFINE")
-
-set(CMAKE_C_FLAGS_PROFILE "${CMAKE_C_FLAGS_RELEASE} -pg")
-set(CMAKE_LINKER_PROFILE "${CMAKE_LINKER_FLAGS_RELEASE} -pg")
+# -fvisibility=hidden
+set(CMAKE_C_VISIBILITY_PRESET hidden)
+set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
 
 # Feature tests
 include(CheckIncludeFile)
@@ -91,7 +92,7 @@ CHECK_C_SOURCE_COMPILES("
   int main() { return 0; }
 " HAVE___ATTRIBUTE__)
 
-configure_file(
+CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/config.h.in
   ${CMAKE_CURRENT_BINARY_DIR}/config.h)
 
