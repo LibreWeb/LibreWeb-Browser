@@ -9,6 +9,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/dweb-browser/${CI_COMMIT_TAG}"
   RELEASE_LINKS_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
+  SAST_EXCLUDED_ANALYZERS: "bandit,brakeman,eslint,gosec,kubesec,nodejs-scan,phpcs-security-audit,pmd-apex,security-code-scan,sobelow,spotbugs"
   SAST_EXCLUDED_PATHS: "lib"
 
 doxygen:
@@ -47,15 +48,11 @@ code_style_guidelines:
 
 sast:
   stage: test
-  artifacts:
-    reports:
-      sast: gl-sast-report.json
   variables:
     SEARCH_MAX_DEPTH: 3
 
 include:
   - template: Security/SAST.gitlab-ci.yml
-  - template: Security/Secret-Detection.gitlab-ci.yml
 
 # Upload artifacts & Create new release
 upload_and_release:
