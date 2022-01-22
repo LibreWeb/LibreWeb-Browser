@@ -50,7 +50,7 @@ sast:
   artifacts:
     reports:
       sast: gl-sast-report.json
- variables:
+  variables:
     SEARCH_MAX_DEPTH: 3
 
 include:
