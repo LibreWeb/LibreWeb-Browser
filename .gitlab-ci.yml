@@ -14,7 +14,7 @@ variables:
 doxygen:
   stage: build
   script:
-    - ""./scripts/build-docs.sh"
+    - "./scripts/build-docs.sh"
   artifacts:
     name: Doxygen
     paths:
@@ -23,7 +23,7 @@ doxygen:
 linux_build:
   stage: build
   script: 
-    - ""./scripts/build-lnx-prod.sh"
+    - "./scripts/build-lnx-prod.sh"
   artifacts:
     name: Packages
     expire_in: 4 weeks
