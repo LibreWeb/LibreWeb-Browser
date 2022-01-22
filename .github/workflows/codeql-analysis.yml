@@ -23,7 +23,7 @@ jobs:
           submodules: true
 
       - name: Install dep packages
-        run: sudo apt install libcurl4-openssl-dev libgtkmm-3.0-dev
+        run: sudo apt install libcurl4-openssl-dev libgtkmm-3.0-dev doxygen graphviz
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
