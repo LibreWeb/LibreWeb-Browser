@@ -21,6 +21,7 @@ set(HEADERS
     file.h
     ipfs.h
     middleware.h
+    toolbar-button.h
     mainwindow.h
     md-parser.h
     menu.h
@@ -35,6 +36,7 @@ set(SOURCES
   file.cc
   ipfs.cc
   middleware.cc
+  toolbar-button.cc
   mainwindow.cc
   md-parser.cc
   menu.cc

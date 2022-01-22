@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "middleware.h"
 #include "source-code-dialog.h"
+#include "toolbar-button.h"
 
 #include <giomm/settings.h>
 #include <gtkmm/adjustment.h>
@@ -151,35 +152,35 @@ protected:
   Gtk::Grid m_statusGrid;
   Gtk::Grid m_activityStatusGrid;
   Gtk::Grid m_settingsGrid;
-  Gtk::Button m_backButton;
-  Gtk::Button m_forwardButton;
-  Gtk::Button m_refreshButton;
-  Gtk::Button m_homeButton;
+  ToolbarButton m_backButton;
+  ToolbarButton m_forwardButton;
+  ToolbarButton m_refreshButton;
+  ToolbarButton m_homeButton;
   Gtk::MenuButton m_searchButton;
   Gtk::MenuButton m_statusButton;
   Gtk::MenuButton m_settingsButton;
-  Gtk::Button m_openButton;
-  Gtk::Button m_saveButton;
-  Gtk::Button m_publishButton;
-  Gtk::Button m_cutButton;
-  Gtk::Button m_copyButton;
-  Gtk::Button m_pasteButton;
-  Gtk::Button m_undoButton;
-  Gtk::Button m_redoButton;
+  ToolbarButton m_openButton;
+  ToolbarButton m_saveButton;
+  ToolbarButton m_publishButton;
+  ToolbarButton m_cutButton;
+  ToolbarButton m_copyButton;
+  ToolbarButton m_pasteButton;
+  ToolbarButton m_undoButton;
+  ToolbarButton m_redoButton;
   Gtk::ComboBoxText m_headingsComboBox;
-  Gtk::Button m_boldButton;
-  Gtk::Button m_italicButton;
-  Gtk::Button m_strikethroughButton;
-  Gtk::Button m_superButton;
-  Gtk::Button m_subButton;
-  Gtk::Button m_linkButton;
-  Gtk::Button m_imageButton;
-  Gtk::Button m_emojiButton;
-  Gtk::Button m_quoteButton;
-  Gtk::Button m_codeButton;
-  Gtk::Button m_bulletListButton;
-  Gtk::Button m_numberedListButton;
-  Gtk::Button m_highlightButton;
+  ToolbarButton m_boldButton;
+  ToolbarButton m_italicButton;
+  ToolbarButton m_strikethroughButton;
+  ToolbarButton m_superButton;
+  ToolbarButton m_subButton;
+  ToolbarButton m_linkButton;
+  ToolbarButton m_imageButton;
+  ToolbarButton m_emojiButton;
+  ToolbarButton m_quoteButton;
+  ToolbarButton m_codeButton;
+  ToolbarButton m_bulletListButton;
+  ToolbarButton m_numberedListButton;
+  ToolbarButton m_highlightButton;
   Gtk::Image m_zoomOutImage;
   Gtk::Image m_zoomInImage;
   Gtk::Image m_brightnessImage;

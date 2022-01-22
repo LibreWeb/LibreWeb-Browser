@@ -36,6 +36,31 @@ MainWindow::MainWindow(const std::string& timeout)
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
+      m_backButton("Go back one page (Alt+Left arrow)", true),
+      m_forwardButton("Go forward one page (Alt+Right arrow)", true),
+      m_refreshButton("Reload current page (Ctrl+R)", true),
+      m_homeButton("Home page (Alt+Home)", true),
+      m_openButton("Open document (Ctrl+O)"),
+      m_saveButton("Save document (Ctrl+S)"),
+      m_publishButton("Publish document... (Ctrl+P)"),
+      m_cutButton("Cut (Ctrl+X)"),
+      m_copyButton("Copy (Ctrl+C)"),
+      m_pasteButton("Paste (Ctrl+V)"),
+      m_undoButton("Undo text (Ctrl+Z)"),
+      m_redoButton("Redo text (Ctrl+Y)"),
+      m_boldButton("Add bold text"),
+      m_italicButton("Add italic text"),
+      m_strikethroughButton("Add strikethrough text"),
+      m_superButton("Add superscript text"),
+      m_subButton("Add subscript text"),
+      m_linkButton("Add a link"),
+      m_imageButton("Add an image"),
+      m_emojiButton("Insert emoji"),
+      m_quoteButton("Insert a quote"),
+      m_codeButton("Insert code"),
+      m_bulletListButton("Add a bullet list"),
+      m_numberedListButton("Add a numbered list"),
+      m_highlightButton("Add highlight text"),
       m_networkHeadingLabel("IPFS Network"),
       m_networkRateHeadingLabel("Network rate"),
       m_connectivityLabel("Status:"),
@@ -95,7 +120,6 @@ MainWindow::MainWindow(const std::string& timeout)
   m_draw_secondary.setViewSourceMenuItem(false);
   m_scrolledWindowSecondary.add(m_draw_secondary);
   m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-
   m_paned.pack1(m_scrolledWindowMain, true, false);
   m_paned.pack2(m_scrolledWindowSecondary, true, true);
 
@@ -104,7 +128,6 @@ MainWindow::MainWindow(const std::string& timeout)
   m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
   m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
   m_vbox.pack_start(m_paned, true, true, 0);
-
   add(m_vbox);
   show_all_children();
 
@@ -122,7 +145,7 @@ MainWindow::MainWindow(const std::string& timeout)
   go_home();
 #else
   std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
-  // Load test file when developing
+  // Load test file during development
   middleware_.doRequest("file://../../test.md");
 #endif
 }
@@ -139,12 +162,10 @@ void MainWindow::preRequest(const std::string& path, const std::string& title, b
 {
   if (isSetAddressBar)
     m_addressBar.set_text(path);
-
   if (!title.empty())
     set_title(title + " - " + appName_);
   else
     set_title(appName_);
-
   if (isDisableEditor && isEditorEnabled())
     disableEdit();
 
@@ -439,91 +460,28 @@ void MainWindow::loadIcons()
  */
 void MainWindow::initButtons()
 {
-  // Editor buttons
-  m_openButton.set_tooltip_text("Open document (Ctrl+O)");
+  // Add icons to the toolbar editor buttons
   m_openButton.add(m_openIcon);
-  m_openButton.set_relief(Gtk::RELIEF_NONE);
-  m_openButton.set_can_focus(false);
-  m_saveButton.set_tooltip_text("Save document (Ctrl+S)");
   m_saveButton.add(m_saveIcon);
-  m_saveButton.set_relief(Gtk::RELIEF_NONE);
-  m_saveButton.set_can_focus(false);
-  m_publishButton.set_tooltip_text("Publish document... (Ctrl+P)");
   m_publishButton.add(m_publishIcon);
-  m_publishButton.set_relief(Gtk::RELIEF_NONE);
-  m_publishButton.set_can_focus(false);
-  m_cutButton.set_tooltip_text("Cut (Ctrl+X)");
   m_cutButton.add(m_cutIcon);
-  m_cutButton.set_relief(Gtk::RELIEF_NONE);
-  m_cutButton.set_can_focus(false);
-  m_copyButton.set_tooltip_text("Copy (Ctrl+C)");
   m_copyButton.add(m_copyIcon);
-  m_copyButton.set_relief(Gtk::RELIEF_NONE);
-  m_copyButton.set_can_focus(false);
-  m_pasteButton.set_tooltip_text("Paste (Ctrl+V)");
   m_pasteButton.add(m_pasteIcon);
-  m_pasteButton.set_relief(Gtk::RELIEF_NONE);
-  m_pasteButton.set_can_focus(false);
-  m_undoButton.set_tooltip_text("Undo text (Ctrl+Z)");
   m_undoButton.add(m_undoIcon);
-  m_undoButton.set_relief(Gtk::RELIEF_NONE);
-  m_undoButton.set_can_focus(false);
-  m_redoButton.set_tooltip_text("Redo text (Ctrl+Y)");
   m_redoButton.add(m_redoIcon);
-  m_redoButton.set_relief(Gtk::RELIEF_NONE);
-  m_redoButton.set_can_focus(false);
-  m_boldButton.set_tooltip_text("Add bold text");
   m_boldButton.add(m_boldIcon);
-  m_boldButton.set_relief(Gtk::RELIEF_NONE);
-  m_boldButton.set_can_focus(false);
-  m_italicButton.set_tooltip_text("Add italic text");
   m_italicButton.add(m_italicIcon);
-  m_italicButton.set_relief(Gtk::RELIEF_NONE);
-  m_italicButton.set_can_focus(false);
-  m_strikethroughButton.set_tooltip_text("Add strikethrough text");
   m_strikethroughButton.add(m_strikethroughIcon);
-  m_strikethroughButton.set_relief(Gtk::RELIEF_NONE);
-  m_strikethroughButton.set_can_focus(false);
-  m_superButton.set_tooltip_text("Add superscript text");
   m_superButton.add(m_superIcon);
-  m_superButton.set_relief(Gtk::RELIEF_NONE);
-  m_superButton.set_can_focus(false);
-  m_subButton.set_tooltip_text("Add subscript text");
   m_subButton.add(m_subIcon);
-  m_subButton.set_relief(Gtk::RELIEF_NONE);
-  m_subButton.set_can_focus(false);
-  m_linkButton.set_tooltip_text("Add a link");
   m_linkButton.add(m_linkIcon);
-  m_linkButton.set_relief(Gtk::RELIEF_NONE);
-  m_linkButton.set_can_focus(false);
-  m_imageButton.set_tooltip_text("Add an image");
   m_imageButton.add(m_imageIcon);
-  m_imageButton.set_relief(Gtk::RELIEF_NONE);
-  m_imageButton.set_can_focus(false);
-  m_emojiButton.set_tooltip_text("Insert emoji");
   m_emojiButton.add(m_emojiIcon);
-  m_emojiButton.set_relief(Gtk::RELIEF_NONE);
-  m_emojiButton.set_can_focus(false);
-  m_quoteButton.set_tooltip_text("Insert a quote");
   m_quoteButton.add(m_quoteIcon);
-  m_quoteButton.set_relief(Gtk::RELIEF_NONE);
-  m_quoteButton.set_can_focus(false);
-  m_codeButton.set_tooltip_text("Insert code");
   m_codeButton.add(m_codeIcon);
-  m_codeButton.set_relief(Gtk::RELIEF_NONE);
-  m_codeButton.set_can_focus(false);
-  m_bulletListButton.set_tooltip_text("Add a bullet list");
   m_bulletListButton.add(m_bulletListIcon);
-  m_bulletListButton.set_relief(Gtk::RELIEF_NONE);
-  m_bulletListButton.set_can_focus(false);
-  m_numberedListButton.set_tooltip_text("Add a numbered list");
   m_numberedListButton.add(m_numberedListIcon);
-  m_numberedListButton.set_relief(Gtk::RELIEF_NONE);
-  m_numberedListButton.set_can_focus(false);
-  m_highlightButton.set_tooltip_text("Add highlight text");
   m_highlightButton.add(m_hightlightIcon);
-  m_highlightButton.set_relief(Gtk::RELIEF_NONE);
-  m_highlightButton.set_can_focus(false);
 
   // Disable focus the other buttons as well
   m_searchMatchCase.set_can_focus(false);
@@ -541,30 +499,22 @@ void MainWindow::initButtons()
   m_headingsComboBox.set_active(0);
 
   // Horizontal bar
-  auto styleBack = m_backButton.get_style_context();
-  styleBack->add_class("circular");
-  auto styleForward = m_forwardButton.get_style_context();
-  styleForward->add_class("circular");
-  auto styleRefresh = m_refreshButton.get_style_context();
-  styleRefresh->add_class("circular");
+  m_backButton.get_style_context()->add_class("circular");
+  m_forwardButton.get_style_context()->add_class("circular");
+  m_refreshButton.get_style_context()->add_class("circular");
   m_searchButton.set_popover(m_searchPopover);
   m_statusButton.set_popover(m_statusPopover);
   m_settingsButton.set_popover(m_settingsPopover);
-  m_backButton.set_relief(Gtk::RELIEF_NONE);
-  m_forwardButton.set_relief(Gtk::RELIEF_NONE);
-  m_refreshButton.set_relief(Gtk::RELIEF_NONE);
-  m_homeButton.set_relief(Gtk::RELIEF_NONE);
   m_searchButton.set_relief(Gtk::RELIEF_NONE);
   m_statusButton.set_relief(Gtk::RELIEF_NONE);
   m_settingsButton.set_relief(Gtk::RELIEF_NONE);
 
-  // Toolbar buttons
+  // Add icons to the toolbar buttons
   m_backButton.add(m_backIcon);
   m_forwardButton.add(m_forwardIcon);
   m_refreshButton.add(m_refreshIcon);
   m_homeButton.add(m_homeIcon);
   m_searchButton.add(m_searchIcon);
-
   m_statusButton.add(m_statusIcon);
   m_settingsButton.add(m_settingsIcon);
 
@@ -581,14 +531,9 @@ void MainWindow::initButtons()
   refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   // Add tooltips to the toolbar buttons
-  m_backButton.set_tooltip_text("Go back one page (Alt+Left arrow)");
-  m_forwardButton.set_tooltip_text("Go forward one page (Alt+Right arrow)");
-  m_refreshButton.set_tooltip_text("Reload current page (Ctrl+R)");
-  m_homeButton.set_tooltip_text("Home page (Alt+Home)");
   m_searchButton.set_tooltip_text("Find");
   m_statusButton.set_tooltip_text("IPFS Network Status");
   m_settingsButton.set_tooltip_text("Settings");
-
   // Disable back/forward buttons on start-up
   m_backButton.set_sensitive(false);
   m_forwardButton.set_sensitive(false);
@@ -695,7 +640,7 @@ void MainWindow::initStatusPopover()
   m_repoSizeLabel.get_style_context()->add_class("dim-label");
   m_repoPathLabel.get_style_context()->add_class("dim-label");
   m_ipfsVersionLabel.get_style_context()->add_class("dim-label");
-
+  // Status popover grid
   m_statusGrid.set_column_homogeneous(true);
   m_statusGrid.set_margin_start(6);
   m_statusGrid.set_margin_top(6);
@@ -713,7 +658,7 @@ void MainWindow::initStatusPopover()
   m_statusGrid.attach(m_repoPathStatusLabel, 1, 3);
   m_statusGrid.attach(m_ipfsVersionLabel, 0, 4);
   m_statusGrid.attach(m_ipfsVersionStatusLabel, 1, 4);
-
+  // IPFS Network activity status grid
   m_networkKiloBytesLabel.get_style_context()->add_class("dim-label");
   m_activityStatusGrid.set_column_homogeneous(true);
   m_activityStatusGrid.set_margin_start(6);
@@ -730,14 +675,14 @@ void MainWindow::initStatusPopover()
 
   m_networkHeadingLabel.get_style_context()->add_class("dim-label");
   m_networkRateHeadingLabel.get_style_context()->add_class("dim-label");
-
+  // Copy ID & public key buttons
   m_copyIDButton.set_label("Copy your ID");
   m_copyPublicKeyButton.set_label("Copy Public Key");
   m_copyIDButton.set_margin_start(6);
   m_copyIDButton.set_margin_end(6);
   m_copyPublicKeyButton.set_margin_start(6);
   m_copyPublicKeyButton.set_margin_end(6);
-
+  // Add all items to status box & status popover
   m_vboxStatus.set_margin_start(10);
   m_vboxStatus.set_margin_end(10);
   m_vboxStatus.set_margin_top(10);
@@ -756,7 +701,6 @@ void MainWindow::initStatusPopover()
   m_statusPopover.set_margin_end(2);
   m_statusPopover.add(m_vboxStatus);
   m_statusPopover.show_all_children();
-
   // Set fallback values for all status fields + status icon
   updateStatusPopoverAndIcon();
 }
@@ -774,7 +718,6 @@ void MainWindow::initSettingsPopover()
   m_brightnessImage.set_margin_end(2);
   m_brightnessImage.set_margin_top(1);
   m_brightnessImage.set_margin_bottom(1);
-
   // Zoom buttons
   auto hboxZoomStyleContext = m_hboxSetingsZoom.get_style_context();
   hboxZoomStyleContext->add_class("linked");
@@ -788,7 +731,6 @@ void MainWindow::initSettingsPopover()
   m_hboxSetingsZoom.pack_start(m_zoomOutButton);
   m_hboxSetingsZoom.pack_start(m_zoomRestoreButton);
   m_hboxSetingsZoom.pack_end(m_zoomInButton);
-
   // Brightness slider
   m_brightnessAdjustment->set_value(brightnessScale_); // Override with current loaded brightness setting
   m_scaleSettingsBrightness.set_adjustment(m_brightnessAdjustment);
@@ -797,10 +739,8 @@ void MainWindow::initSettingsPopover()
   m_scaleSettingsBrightness.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_brightness_changed));
   m_hboxSetingsBrightness.pack_start(m_brightnessImage, false, false);
   m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
-
   // Dark theme switch
   m_themeSwitch.set_active(useDarkTheme_); // Override with current dark theme preference
-
   // Spin buttons
   m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
   m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
@@ -830,7 +770,6 @@ void MainWindow::initSettingsPopover()
   m_settingsGrid.attach(m_indentSpinButton, 1, 3);
   m_settingsGrid.attach(m_themeLabel, 0, 4);
   m_settingsGrid.attach(m_themeSwitch, 1, 4);
-
   // Icon theme (+ submenu)
   m_iconThemeButton.set_label("Icon Theme");
   m_iconThemeButton.property_menu_name() = "icon-theme";
@@ -840,7 +779,6 @@ void MainWindow::initSettingsPopover()
   Gtk::Label* aboutButtonLabel = dynamic_cast<Gtk::Label*>(m_aboutButton.get_child());
   iconThemeButtonlabel->set_xalign(0.0);
   aboutButtonLabel->set_xalign(0.0);
-
   // Add Settings vbox to popover menu
   m_vboxSettings.set_margin_start(10);
   m_vboxSettings.set_margin_end(10);
@@ -859,7 +797,6 @@ void MainWindow::initSettingsPopover()
   m_settingsPopover.set_size_request(200, 300);
   m_settingsPopover.set_margin_end(2);
   m_settingsPopover.add(m_vboxSettings);
-
   // Add Theme vbox to popover menu
   m_iconThemeBackButton.set_label("Icon Theme");
   m_iconThemeBackButton.property_menu_name() = "main";
@@ -935,8 +872,7 @@ void MainWindow::initSignals()
   m_homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
   m_searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));           /*!< Execute the text search */
   m_searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));   /*!< Execute the text replace */
-
-  // Editor buttons
+  // Editor toolbar buttons
   m_openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
   m_saveButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
   m_publishButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::publish));
@@ -959,11 +895,9 @@ void MainWindow::initSignals()
   m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
   m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
   m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
-
   // Status pop-over buttons
   m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
   m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
-
   // Settings pop-over buttons
   m_zoomOutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
   m_zoomRestoreButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
@@ -992,10 +926,8 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     // because the secondary draw window is hidden by default, resulting into a zero value.
     if (m_paned.get_position() > 0)
       m_settings->set_int("position-divider", m_paned.get_position());
-
     // Fullscreen will be availible with gtkmm-4.0
     // m_settings->set_boolean("fullscreen", is_fullscreen());
-
     m_settings->set_string("font-family", fontFamily_);
     m_settings->set_int("font-size", currentFontSize_);
     m_settings->set_int("spacing", m_spacingSpinButton.get_value_as_int());
@@ -1185,7 +1117,6 @@ void MainWindow::open()
   dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_dialog_response), dialog));
   dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
   dialog->add_button("_Open", Gtk::ResponseType::RESPONSE_OK);
-
   // Add filters, so that only certain file types can be selected:
 #ifdef __linux__
   auto filterMarkdown = Gtk::FileFilter::create();
@@ -1193,23 +1124,19 @@ void MainWindow::open()
   filterMarkdown->add_mime_type("text/markdown");
   dialog->add_filter(filterMarkdown);
 #endif
-
   auto filterMarkdownExt = Gtk::FileFilter::create();
   filterMarkdownExt->set_name("All Markdown files extension (*.md)");
   filterMarkdownExt->add_pattern("*.md");
   dialog->add_filter(filterMarkdownExt);
-
   auto filterTextFiles = Gtk::FileFilter::create();
   filterTextFiles->set_name("All text files");
   filterTextFiles->add_mime_type("text/plain");
   dialog->add_filter(filterTextFiles);
-
   auto filterAny = Gtk::FileFilter::create();
   filterAny->set_name("Any files");
   filterAny->add_pattern("*");
   dialog->add_filter(filterAny);
-
-  dialog->show();
+  dialog->show(); // Finally, show the open dialog
 }
 
 /**
@@ -1223,7 +1150,6 @@ void MainWindow::open_and_edit()
   dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_open_edit_dialog_response), dialog));
   dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
   dialog->add_button("_Open", Gtk::ResponseType::RESPONSE_OK);
-
   // Add filters, so that only certain file types can be selected:
 #ifdef __linux__
   auto filterMarkdown = Gtk::FileFilter::create();
@@ -1231,23 +1157,19 @@ void MainWindow::open_and_edit()
   filterMarkdown->add_mime_type("text/markdown");
   dialog->add_filter(filterMarkdown);
 #endif
-
   auto filterMarkdownExt = Gtk::FileFilter::create();
   filterMarkdownExt->set_name("All Markdown files extension (*.md)");
   filterMarkdownExt->add_pattern("*.md");
   dialog->add_filter(filterMarkdownExt);
-
   auto filterTextFiles = Gtk::FileFilter::create();
   filterTextFiles->set_name("All text files");
   filterTextFiles->add_mime_type("text/plain");
   dialog->add_filter(filterTextFiles);
-
   auto filterAny = Gtk::FileFilter::create();
   filterAny->set_name("Any files");
   filterAny->add_pattern("*");
   dialog->add_filter(filterAny);
-
-  dialog->show();
+  dialog->show(); // Finally, show the open & edit dialog
 }
 
 /**
@@ -1361,29 +1283,24 @@ void MainWindow::save_as()
 {
   auto dialog = new Gtk::FileChooserDialog("Save", Gtk::FILE_CHOOSER_ACTION_SAVE);
   dialog->set_transient_for(*this);
-
   dialog->set_modal(true);
   dialog->set_do_overwrite_confirmation(true);
   dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_save_as_dialog_response), dialog));
   dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
   dialog->add_button("_Save", Gtk::ResponseType::RESPONSE_OK);
-
   // Add filters, so that only certain file types can be selected:
   auto filterMarkdownExt = Gtk::FileFilter::create();
   filterMarkdownExt->set_name("All Markdown files");
   filterMarkdownExt->add_pattern("*.md");
   dialog->add_filter(filterMarkdownExt);
-
   auto filterTextFiles = Gtk::FileFilter::create();
   filterTextFiles->set_name("All text files");
   filterTextFiles->add_mime_type("text/plain");
   dialog->add_filter(filterTextFiles);
-
   auto filterAny = Gtk::FileFilter::create();
   filterAny->set_name("Any files");
   filterAny->add_pattern("*");
   dialog->add_filter(filterAny);
-
   // If user is saving as an existing file, set the current uri path
   if (!currentFileSavedPath_.empty())
   {
@@ -1396,7 +1313,7 @@ void MainWindow::save_as()
       std::cerr << "ERROR: Incorrect filename most likely. Message: " << error.what() << ". Error Code: " << error.code() << std::endl;
     }
   }
-  dialog->show();
+  dialog->show(); // Finally, show save as dialog
 }
 
 /**
@@ -1880,16 +1797,14 @@ void MainWindow::showNotification(const Glib::ustring& title, const Glib::ustrin
 void MainWindow::editor_changed_text()
 {
   // TODO: Just execute the code below in a signal_idle call?
-  // So it will never block the GUI thread
+  // So it will never block the GUI thread. Or is this already running in another context
 
   // Retrieve text from editor and parse the markdown contents
   middleware_.setContent(m_draw_main.getText());
   cmark_node* doc = middleware_.parseContent();
-
-  /* Can be enabled to show the markdown format in terminal:
+  /* // Can be enabled to show the markdown format in terminal:
   std::string md = Parser::renderMarkdown(doc);
   std::cout << "Markdown:\n" << md << std::endl;*/
-
   // Show the document as a preview on the right side text-view panel
   m_draw_secondary.setDocument(doc);
 }
