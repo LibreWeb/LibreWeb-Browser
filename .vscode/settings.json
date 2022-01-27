@@ -80,6 +80,7 @@
         "node.h": "c",
         "*.in": "cpp",
         "superscript.h": "c",
-        "cmark-gfm.h": "c"
+        "cmark-gfm.h": "c",
+        "any": "cpp"
     }
 }

@@ -2,15 +2,14 @@
 #define MIDDLEWARE_H
 
 #include "ipfs.h"
+#include "middleware-i.h"
 #include <atomic>
 #include <glibmm/dispatcher.h>
 #include <glibmm/ustring.h>
-#include <map>
 #include <mutex>
 #include <sigc++/connection.h>
 #include <string>
 #include <thread>
-#include <variant>
 
 /* Forward declarations */
 struct cmark_node;
@@ -20,7 +19,7 @@ class MainWindow;
  * \class Middleware
  * \brief Handles (IPFS) network requests and File IO from disk towards the GUI
  */
-class Middleware
+class Middleware : public MiddlewareInterface
 {
 public:
   explicit Middleware(MainWindow& mainWindow, const std::string& timeout);
@@ -29,21 +28,21 @@ public:
                  bool isSetAddressBar = true,
                  bool isHistoryRequest = false,
                  bool isDisableEditor = true,
-                 bool isParseContent = true);
-  std::string doAdd(const std::string& path);
-  void doWrite(const std::string& path, bool isSetAddressAndTitle = true);
-  void setContent(const Glib::ustring& content);
-  Glib::ustring getContent() const;
-  cmark_node* parseContent() const;
-  void resetContentAndPath();
-  std::size_t getIPFSNumberOfPeers() const;
-  int getIPFSRepoSize() const;
-  std::string getIPFSRepoPath() const;
-  std::string getIPFSIncomingRate() const;
-  std::string getIPFSOutcomingRate() const;
-  std::string getIPFSVersion() const;
-  std::string getIPFSClientId() const;
-  std::string getIPFSClientPublicKey() const;
+                 bool isParseContent = true) override;
+  std::string doAdd(const std::string& path) override;
+  void doWrite(const std::string& path, bool isSetAddressAndTitle = true) override;
+  void setContent(const Glib::ustring& content) override;
+  Glib::ustring getContent() const override;
+  cmark_node* parseContent() const override;
+  void resetContentAndPath() override;
+  std::size_t getIPFSNumberOfPeers() const override;
+  int getIPFSRepoSize() const override;
+  std::string getIPFSRepoPath() const override;
+  std::string getIPFSIncomingRate() const override;
+  std::string getIPFSOutcomingRate() const override;
+  std::string getIPFSVersion() const override;
+  std::string getIPFSClientId() const override;
+  std::string getIPFSClientPublicKey() const override;
 
 private:
   MainWindow& mainWindow;

@@ -1,4 +1,4 @@
-image: danger89/gtk3-docker-cmake-ninja:2.5
+image: danger89/gtk3-docker-cmake-ninja:3.0
 stages:
   - build
   #- upload
@@ -41,10 +41,9 @@ code_style_guidelines:
   stage: build
   script: "./scripts/check-format.sh"
 
-# TODO: Testing!
-#unit_test:
-#  stage: test
-#  script :
+unit_test:
+  stage: test
+  script: "./scripts/build-run-tests.sh"
 
 sast:
   stage: test
