@@ -79,9 +79,13 @@ For the GNU/Linux build you need at least:
 * Libcurl (Package: `libcurl4-openssl-dev`)
 * GTK & Pango (including C++ bindings):
   * Package: `libgtkmm-3.0-dev` under Debian based distros
+
+Depedencies for tests:
+
+* X virtual framebuffer (Package: `xvfb`)
 * Clang-format (Package: `clang-format`)
 
-*Note:* For cross-compiling towards Windows, see the cross-compile section below.
+*Note:* For cross-compiling towards Windows, see the cross-compile section down below.
 
 ### Build
 
@@ -99,9 +103,23 @@ Start the Linux build, which is using CMake and Ninja build system, using the wr
 
 Optionally, use the VSCode `CMake Tools` extension to start the build or build with debug targets.
 
-Build a release target, including packaging under GNU/Linux, using: `./scripts/build-lnx-prod.sh`
+#### Linux Packaging
 
-*Note:* Root access is required for Linux packaging; add `/opt/mxe/usr/bin` to the secure_path using: `sudo visudo`.
+*Note:* (Linux) Packages are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+
+To build a release target yourself including packaging under GNU/Linux, use: `./scripts/build-lnx-prod.sh`
+
+Root access is required when building Linux packages; add `/opt/mxe/usr/bin` to the secure_path using: `sudo visudo`.
+
+### Unit testing
+
+To execute the **unit tests** you can configure with `cmake -DUNITTEST:BOOL=TRUE` and build. Execute: `ctest` command in the `tst` target directory.
+
+Or just use script:
+
+```sh
+./scripts/build-run-tests.sh
+```
 
 ### C++ Coding Style Guidelines
 

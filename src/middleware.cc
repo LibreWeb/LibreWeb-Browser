@@ -130,7 +130,8 @@ Glib::ustring Middleware::getContent() const
 }
 
 /**
- * \brief Current content parser middleware
+ * \brief Current content parser middleware.
+ * Note: Do not forget to free the document: cmark_node_free(root_node;
  * \return AST structure (of type cmark_node)
  */
 cmark_node* Middleware::parseContent() const

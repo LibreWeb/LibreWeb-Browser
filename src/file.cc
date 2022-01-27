@@ -1,6 +1,5 @@
 #include "file.h"
 #include <fstream>
-#include <ipfs/client.h>
 #include <stdexcept>
 
 #ifdef LEGACY_CXX

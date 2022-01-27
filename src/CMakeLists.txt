@@ -1,6 +1,7 @@
 include(${CMAKE_SOURCE_DIR}/cmake/GSettings.cmake)
 
 set(PROJECT_TARGET libreweb-browser)
+set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Find required dependencies
@@ -11,7 +12,7 @@ pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 # Generate Project version header file
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/project_config.h)
 
-# In order to find project_config.h
+# Include the binary dir, in order to find project_config.h
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Source code
@@ -20,6 +21,7 @@ set(HEADERS
     draw.h
     file.h
     ipfs.h
+    middleware-i.h
     middleware.h
     toolbar-button.h
     mainwindow.h
@@ -76,52 +78,83 @@ if(WIN32)
 	set_source_files_properties(${WINDOWS_RES} PROPERTIES LANGUAGE RC)
 endif()
 
-add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
-
-## Definitions just in case
-# Define _WIN32 for Windows platforms
-if(WIN32)
-    target_compile_definitions(${PROJECT_TARGET} PRIVATE _WIN32)
-endif()
-# Define __linux__ for Unix platforms
-if (UNIX)
-    target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
-endif()
-
-# Add fallback for std filesystem in older GCC versions
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
-        message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
-    elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
-        message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
-        # Add stdc++fs library in older GCC compiler versions
-        set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
-        target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
-    endif()
-endif()
-
 # Get include list the cmark binary directory for the generated config.h, .._version.h & .._export.h files
 # Get include list the cmark extensions binary directory for the generated ..._export.h file
-get_property(CMAKE_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
-get_property(CMAKE_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
+get_property(CMARK_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
+get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
-target_include_directories(${PROJECT_TARGET} PRIVATE
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_EXTENSIONS_BINARY_DIR}
-    ${GTKMM_INCLUDE_DIRS}
-)
-target_link_directories(${PROJECT_TARGET} PRIVATE ${GTKMM_LIBRARY_DIRS})
-target_link_libraries(${PROJECT_TARGET} PRIVATE
-    LibCommonMarker
-    LibCommonMarkerExtensions
-    ipfs-http-client
-    whereami
-    Threads::Threads
-    ${CXX_FILESYSTEM_LIBRARIES}
-    ${GTKMM_LIBRARIES}
-    nlohmann_json::nlohmann_json
-)
-target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})
+if(NOT UNITTEST)
+    # LibreWeb binary
+    add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
 
-# Install browser binary
-install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
+    ## Definitions just in case
+    # Define _WIN32 for Windows platforms
+    if(WIN32)
+        target_compile_definitions(${PROJECT_TARGET} PRIVATE _WIN32)
+    endif()
+    # Define __linux__ for Unix platforms
+    if (UNIX)
+        target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
+    endif()
+
+    # Add fallback for std filesystem in older GCC versions
+    if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+        if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
+            message(FATAL_ERROR "You are on an extremely old version of GCC. Please update your compiler to at least GCC 8.0, preferably latest")
+        elseif (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
+            message(WARNING "Old Version of GCC detected. Using Legacy C++ support")
+            # Add stdc++fs library in older GCC compiler versions
+            set(CXX_FILESYSTEM_LIBRARIES "stdc++fs")
+            target_compile_definitions(${PROJECT_TARGET} PUBLIC LEGACY_CXX)
+        endif()
+    endif()
+
+    target_include_directories(${PROJECT_TARGET} PRIVATE
+        ${CMARK_BINARY_DIR}
+        ${CMARK_EXTENSIONS_BINARY_DIR}
+        ${GTKMM_INCLUDE_DIRS}
+    )
+    target_link_directories(${PROJECT_TARGET} PRIVATE ${GTKMM_LIBRARY_DIRS})
+    target_link_libraries(${PROJECT_TARGET} PRIVATE
+        LibCommonMarker
+        LibCommonMarkerExtensions
+        ipfs-http-client
+        whereami
+        Threads::Threads
+        ${CXX_FILESYSTEM_LIBRARIES}
+        ${GTKMM_LIBRARIES}
+        nlohmann_json::nlohmann_json
+    )
+    target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})
+
+    # Install browser binary
+    install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
+else()
+    # Build libraries for unit testing
+    add_library(${PROJECT_TARGET_LIB}-file STATIC file.h file.cc)
+    add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)
+    add_library(${PROJECT_TARGET_LIB}-parser STATIC md-parser.h md-parser.cc)
+
+    # Only link/include external libs we really need for the unittest libaries
+    target_include_directories(${PROJECT_TARGET_LIB}-draw PRIVATE
+        ${CMARK_BINARY_DIR}
+        ${CMARK_EXTENSIONS_BINARY_DIR}
+        ${GTKMM_INCLUDE_DIRS}
+    )
+    target_link_libraries(${PROJECT_TARGET_LIB}-draw PRIVATE
+        LibCommonMarker
+        LibCommonMarkerExtensions
+        ${GTKMM_LIBRARIES}
+    )
+    target_compile_options(${PROJECT_TARGET_LIB}-draw PRIVATE ${GTKMM_CFLAGS_OTHER})
+    target_include_directories(${PROJECT_TARGET_LIB}-parser PRIVATE
+        ${CMARK_BINARY_DIR}
+        ${CMARK_EXTENSIONS_BINARY_DIR}
+        ${GTKMM_INCLUDE_DIRS}
+    )
+    target_link_directories(${PROJECT_TARGET_LIB}-parser PRIVATE ${GTKMM_LIBRARY_DIRS})
+    target_link_libraries(${PROJECT_TARGET_LIB}-parser PRIVATE
+        LibCommonMarker
+        LibCommonMarkerExtensions
+    )
+endif()

@@ -1,7 +1,6 @@
 #include "draw.h"
-#include "middleware.h"
+#include "middleware-i.h"
 #include "node.h"
-#include "strikethrough.h"
 #include "syntax_extension.h"
 #include <cmark-gfm.h>
 #include <gdkmm/window.h>
@@ -11,7 +10,7 @@
 #include <regex>
 #include <stdexcept>
 
-Draw::Draw(Middleware& middleware)
+Draw::Draw(MiddlewareInterface& middleware)
     : middleware(middleware),
       buffer(Glib::unwrap(this->get_buffer())),
       addViewSourceMenuItem(true),
@@ -351,7 +350,7 @@ void Draw::newDocument()
  */
 Glib::ustring Draw::getText() const
 {
-  return get_buffer().get()->get_text();
+  return get_buffer()->get_text();
 }
 
 /**

@@ -1,0 +1,40 @@
+{
+  "buildType": {
+    "default": "debug",
+    "choices": {
+      "debug": {
+        "short": "Debug",
+        "long": "Emit debug information without performing optimizations",
+        "buildType": "Debug",
+        "settings": {
+          "UNITTEST": false
+        }
+      },
+      "release": {
+        "short": "Release",
+        "long": "Enable optimizations, omit debug info",
+        "buildType": "Release",
+        "settings": {
+          "UNITTEST": false
+        }
+      },
+      "reldeb": {
+        "short": "RelWithDebInfo",
+        "long": "Perform optimizations AND include debugging information",
+        "buildType": "RelWithDebInfo",
+        "settings": {
+          "UNITTEST": false
+        }
+      },
+      "test": {
+        "short": "UnitTests",
+        "long": "Build + run unit tests",
+        "buildType": "Debug",
+        "settings": {
+          "UNITTEST": true,
+          "DOXYGEN": false
+        }
+      }
+    }
+  }
+}

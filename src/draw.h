@@ -8,7 +8,7 @@
 #include <gtkmm/tooltip.h>
 #include <pangomm/layout.h>
 
-class Middleware;
+class MiddlewareInterface;
 
 /**
  * \struct UndoRedoData
@@ -37,7 +37,7 @@ public:
     CODE_TYPE_CODE_BLOCK
   };
 
-  explicit Draw(Middleware& middleware);
+  explicit Draw(MiddlewareInterface& middleware);
   void setMessage(const Glib::ustring& message, const Glib::ustring& details = "");
   void showStartPage();
   void setDocument(cmark_node* rootNode);
@@ -81,7 +81,7 @@ protected:
   void populate_popup(Gtk::Menu* menu);
 
 private:
-  Middleware& middleware;
+  MiddlewareInterface& middleware;
   GtkTextBuffer* buffer;
   bool addViewSourceMenuItem;
   int headingLevel;

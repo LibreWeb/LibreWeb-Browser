@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # By: Melroy van den Berg
-# Descriptiopn: Only build the documentation (used in CI/CD)
+# Description: Only build the documentation (used in CI/CD)
 
 mkdir build_docs
 cd build_docs
