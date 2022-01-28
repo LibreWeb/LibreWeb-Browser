@@ -11,6 +11,6 @@ target_compile_definitions(${LIBARY_NAME} PUBLIC _XOPEN_SOURCE=500)
 # Use PUBLIC iso INTERFACE, so the library itself also finds it's own header file
 target_include_directories(
     ${LIBARY_NAME}
-    PUBLIC
+    SYSTEM PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
