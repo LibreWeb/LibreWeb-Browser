@@ -3,7 +3,7 @@ project(whereami)
 set(LIBARY_NAME ${PROJECT_NAME})
 
 # Create static library
-add_library(${LIBARY_NAME} STATIC whereami.c)
+add_library(${LIBARY_NAME} STATIC whereami.c whereami.h)
 
 # Add X/Open definition for realpath
 target_compile_definitions(${LIBARY_NAME} PUBLIC _XOPEN_SOURCE=500)
