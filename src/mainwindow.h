@@ -27,6 +27,7 @@
 #include <gtkmm/paned.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/popovermenu.h>
+#include <gtkmm/radiobutton.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/searchbar.h>
@@ -106,6 +107,7 @@ protected:
   void on_spacing_changed();
   void on_margins_changed();
   void on_indent_changed();
+  void on_wrap_toggled(Gtk::WrapMode mode);
   void on_brightness_changed();
   void on_theme_changed();
   void on_icon_theme_activated(Gtk::ListBoxRow* row);
@@ -155,6 +157,11 @@ protected:
   Gtk::SpinButton m_spacingSpinButton;
   Gtk::SpinButton m_marginsSpinButton;
   Gtk::SpinButton m_indentSpinButton;
+  Gtk::RadioButton::Group m_wrappingGroup;
+  Gtk::RadioButton m_wrapNone;
+  Gtk::RadioButton m_wrapChar;
+  Gtk::RadioButton m_wrapWord;
+  Gtk::RadioButton m_wrapWordChar;
   Gtk::ModelButton m_iconThemeButton;
   Gtk::ModelButton m_aboutButton;
   Gtk::ModelButton m_iconThemeBackButton;
@@ -252,6 +259,7 @@ protected:
   Gtk::Label m_spacingLabel;
   Gtk::Label m_marginsLabel;
   Gtk::Label m_indentLabel;
+  Gtk::Label m_textWrappingLabel;
   Gtk::Label m_themeLabel;
   Gtk::Label m_iconThemeLabel;
   std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;

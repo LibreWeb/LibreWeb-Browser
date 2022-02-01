@@ -36,6 +36,10 @@ MainWindow::MainWindow(const std::string& timeout)
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
+      m_wrapNone(m_wrappingGroup, "None"),
+      m_wrapChar(m_wrappingGroup, "Char"),
+      m_wrapWord(m_wrappingGroup, "Word"),
+      m_wrapWordChar(m_wrappingGroup, "Word+Char"),
       m_tocButton("Show table of contents (Ctrl+Shift+T)", true),
       m_backButton("Go back one page (Alt+Left arrow)", true),
       m_forwardButton("Go forward one page (Alt+Right arrow)", true),
@@ -76,6 +80,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
+      m_textWrappingLabel("Wrapping"),
       m_themeLabel("Dark Theme"),
       m_iconThemeLabel("Active Theme"),
       // Private members
@@ -774,7 +779,17 @@ void MainWindow::initSettingsPopover()
   m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
   // Dark theme switch
   m_themeSwitch.set_active(useDarkTheme_); // Override with current dark theme preference
-  // Spin buttons
+  // Settings buttons
+  m_wrapWordChar.set_active(true); // Default wrapping mode
+  m_fontLabel.set_tooltip_text("Font familiy");
+  m_spacingLabel.set_tooltip_text("Text spacing");
+  m_marginsLabel.set_tooltip_text("Text margins");
+  m_indentLabel.set_tooltip_text("Text indentation");
+  m_textWrappingLabel.set_tooltip_text("Text wrapping");
+  m_wrapNone.set_tooltip_text("No wrapping");
+  m_wrapChar.set_tooltip_text("Character wrapping");
+  m_wrapWord.set_tooltip_text("Word wrapping");
+  m_wrapWordChar.set_tooltip_text("Word wrapping (+ character)");
   m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
   m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
   m_indentSpinButton.set_adjustment(m_indentAdjustment);
@@ -782,27 +797,34 @@ void MainWindow::initSettingsPopover()
   m_spacingLabel.set_xalign(1);
   m_marginsLabel.set_xalign(1);
   m_indentLabel.set_xalign(1);
+  m_textWrappingLabel.set_xalign(1);
   m_themeLabel.set_xalign(1);
   m_fontLabel.get_style_context()->add_class("dim-label");
   m_spacingLabel.get_style_context()->add_class("dim-label");
   m_marginsLabel.get_style_context()->add_class("dim-label");
   m_indentLabel.get_style_context()->add_class("dim-label");
+  m_textWrappingLabel.get_style_context()->add_class("dim-label");
   m_themeLabel.get_style_context()->add_class("dim-label");
   m_settingsGrid.set_margin_start(6);
   m_settingsGrid.set_margin_top(6);
   m_settingsGrid.set_margin_bottom(6);
   m_settingsGrid.set_row_spacing(10);
   m_settingsGrid.set_column_spacing(10);
-  m_settingsGrid.attach(m_fontLabel, 0, 0);
-  m_settingsGrid.attach(m_fontButton, 1, 0);
-  m_settingsGrid.attach(m_spacingLabel, 0, 1);
-  m_settingsGrid.attach(m_spacingSpinButton, 1, 1);
-  m_settingsGrid.attach(m_marginsLabel, 0, 2);
-  m_settingsGrid.attach(m_marginsSpinButton, 1, 2);
-  m_settingsGrid.attach(m_indentLabel, 0, 3);
-  m_settingsGrid.attach(m_indentSpinButton, 1, 3);
-  m_settingsGrid.attach(m_themeLabel, 0, 4);
-  m_settingsGrid.attach(m_themeSwitch, 1, 4);
+  m_settingsGrid.attach(m_fontLabel, 0, 0, 1);
+  m_settingsGrid.attach(m_fontButton, 1, 0, 2);
+  m_settingsGrid.attach(m_spacingLabel, 0, 1, 1);
+  m_settingsGrid.attach(m_spacingSpinButton, 1, 1, 2);
+  m_settingsGrid.attach(m_marginsLabel, 0, 2, 1);
+  m_settingsGrid.attach(m_marginsSpinButton, 1, 2, 2);
+  m_settingsGrid.attach(m_indentLabel, 0, 3, 1);
+  m_settingsGrid.attach(m_indentSpinButton, 1, 3, 2);
+  m_settingsGrid.attach(m_textWrappingLabel, 0, 4, 1);
+  m_settingsGrid.attach(m_wrapNone, 1, 4, 1);
+  m_settingsGrid.attach(m_wrapChar, 2, 4, 1);
+  m_settingsGrid.attach(m_wrapWord, 1, 5, 1);
+  m_settingsGrid.attach(m_wrapWordChar, 2, 5, 1);
+  m_settingsGrid.attach(m_themeLabel, 0, 6, 1);
+  m_settingsGrid.attach(m_themeSwitch, 1, 6, 2);
   // Icon theme (+ submenu)
   m_iconThemeButton.set_label("Icon Theme");
   m_iconThemeButton.property_menu_name() = "icon-theme";
@@ -942,6 +964,11 @@ void MainWindow::initSignals()
   m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
   m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
   m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
+  m_wrapNone.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_NONE));
+  m_wrapChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_CHAR));
+  m_wrapWord.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
+  m_wrapWordChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
+  // TODO word_char..
   m_themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
   m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
   m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
@@ -1960,6 +1987,11 @@ void MainWindow::on_margins_changed()
 void MainWindow::on_indent_changed()
 {
   m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
+}
+
+void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
+{
+  m_draw_main.set_wrap_mode(mode);
 }
 
 void MainWindow::on_brightness_changed()
