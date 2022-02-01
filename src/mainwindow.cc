@@ -36,6 +36,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
+      m_tocButton("Show table of contents (Ctrl+Shift+T)", true),
       m_backButton("Go back one page (Alt+Left arrow)", true),
       m_forwardButton("Go forward one page (Alt+Right arrow)", true),
       m_refreshButton("Reload current page (Ctrl+R)", true),
@@ -113,32 +114,58 @@ MainWindow::MainWindow(const std::string& timeout)
   // Load the default font family and font size
   updateCSS();
 
-  // Browser text main drawing area
+  // Table of contents
+  tocTreeView.append_column("Name", m_tocColumns.m_col_heading);
+  tocTreeView.set_activate_on_single_click(true);
+  tocTreeView.set_headers_visible(false);
+  tocTreeView.set_tooltip_column(1);
+
+  m_scrolledToc.add(tocTreeView);
+  m_scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  m_tocTreeModel = Gtk::TreeStore::create(m_tocColumns);
+  tocTreeView.set_model(m_tocTreeModel);
+  // Browser main drawing area
   m_scrolledWindowMain.add(m_draw_main);
   m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
   // Secondary drawing area
   m_draw_secondary.setViewSourceMenuItem(false);
   m_scrolledWindowSecondary.add(m_draw_secondary);
   m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  m_paned.pack1(m_scrolledWindowMain, true, false);
-  m_paned.pack2(m_scrolledWindowSecondary, true, true);
+  m_panedDraw.pack1(m_scrolledWindowMain, true, false);
+  m_panedDraw.pack2(m_scrolledWindowSecondary, true, true);
+
+  // Add table of contents to horizontal paned
+  m_panedRoot.pack1(m_scrolledToc, true, false);
+  m_panedRoot.pack2(m_panedDraw, true, false);
 
   m_vbox.pack_start(m_menu, false, false, 0);
   m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
   m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
   m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
-  m_vbox.pack_start(m_paned, true, true, 0);
+  m_vbox.pack_start(m_panedRoot, true, true, 0);
   add(m_vbox);
   show_all_children();
 
-  // Hide by default the replace entry, editor box & secondary text view
+  // Hide by default the replace entry, editor box, ToC & secondary text view
   m_searchReplaceEntry.hide();
   m_hboxStandardEditorToolbar.hide();
   m_hboxFormattingEditorToolbar.hide();
+  m_scrolledToc.hide();
   m_scrolledWindowSecondary.hide();
 
   // Grap focus to input field by default
   m_addressBar.grab_focus();
+
+  // Example of TOC filling
+  auto row = *(m_tocTreeModel->append());
+  row[m_tocColumns.m_col_id] = 1;
+  row[m_tocColumns.m_col_heading] = "Billy Bob";
+
+  auto childrow = *(m_tocTreeModel->append(row.children()));
+  childrow[m_tocColumns.m_col_id] = 11;
+  childrow[m_tocColumns.m_col_heading] = "Billy Bob Junior";
+
+  tocTreeView.expand_all();
 
 // Show homepage if debugging is disabled
 #ifdef NDEBUG
@@ -317,9 +344,9 @@ void MainWindow::loadStoredSettings()
   if (!isInstalled())
   {
     // Relative to the binary path
-    std::vector<std::string> relativePath{"..", "src", "gsettings"};
+    std::vector<std::string> relativePath{".."};
     std::string schemaDir = Glib::build_path(G_DIR_SEPARATOR_S, relativePath);
-    std::cout << "INFO: Try to find the schema file using the following directory first: " << schemaDir << std::endl;
+    std::cout << "INFO: Binary not installed. Try to find the gschema file one directory up (..)." << std::endl;
     Glib::setenv("GSETTINGS_SCHEMA_DIR", schemaDir);
   }
 
@@ -346,7 +373,8 @@ void MainWindow::loadStoredSettings()
     m_draw_main.set_left_margin(margins);
     m_draw_main.set_right_margin(margins);
     m_draw_main.set_indent(indent);
-
+    int tocDividerPosition = m_settings->get_int("position-divider-toc");
+    m_panedRoot.set_position(tocDividerPosition);
     iconTheme_ = m_settings->get_string("icon-theme");
     useCurrentGTKIconTheme_ = m_settings->get_boolean("icon-gtk-theme");
     brightnessScale_ = m_settings->get_double("brightness");
@@ -355,8 +383,7 @@ void MainWindow::loadStoredSettings()
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
-    // Fallback settings if schema isn't found,
-    // for adjustment controls
+    // Adjustment controls
     int margins = 20;
     int indent = 0;
     m_spacingAdjustment->set_value(0);
@@ -366,6 +393,8 @@ void MainWindow::loadStoredSettings()
     m_draw_main.set_left_margin(margins);
     m_draw_main.set_right_margin(margins);
     m_draw_main.set_indent(indent);
+    // ToC paned divider
+    m_panedRoot.set_position(300);
   }
 }
 
@@ -375,6 +404,7 @@ void MainWindow::loadStoredSettings()
 void MainWindow::setGTKIcons()
 {
   // Toolbox buttons
+  m_tocIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
@@ -424,6 +454,7 @@ void MainWindow::loadIcons()
     else
     {
       // Toolbox buttons
+      m_tocIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("square_list", "editor"), iconSize_, iconSize_));
       m_backIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("right_arrow_1", "arrows"), iconSize_, iconSize_)->flip());
       m_forwardIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("right_arrow_1", "arrows"), iconSize_, iconSize_));
       m_refreshIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("reload_centered", "arrows"), iconSize_ * 1.13, iconSize_));
@@ -510,6 +541,7 @@ void MainWindow::initButtons()
   m_settingsButton.set_relief(Gtk::RELIEF_NONE);
 
   // Add icons to the toolbar buttons
+  m_tocButton.add(m_tocIcon);
   m_backButton.add(m_backIcon);
   m_forwardButton.add(m_forwardIcon);
   m_refreshButton.add(m_refreshIcon);
@@ -542,7 +574,8 @@ void MainWindow::initButtons()
    * Adding the buttons to the boxes
    */
   // Browser Toolbar
-  m_backButton.set_margin_left(6);
+  m_tocButton.set_margin_left(6);
+  m_hboxBrowserToolbar.pack_start(m_tocButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
@@ -837,7 +870,8 @@ void MainWindow::initSignals()
 {
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
-
+  // Table of contents
+  tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
   // Menu & toolbar signals
   m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                       /*!< Menu item for new document */
   m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                             /*!< Menu item for opening existing document */
@@ -860,12 +894,14 @@ void MainWindow::initSignals()
   m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                       /*!< Menu item for next page */
   m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refreshRequest));                 /*!< Menu item for reloading the page */
   m_menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                          /*!< Menu item for home page */
+  m_menu.toc.connect(sigc::mem_fun(this, &MainWindow::show_toc));                          /*!< Menu item for table of contents */
   m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
   m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
   m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
   m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
   m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
+  m_tocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));               /*!< Button for showing Table of Contents */
   m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
   m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
   m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refreshRequest));     /*!< Button for reloading the page */
@@ -922,10 +958,12 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     m_settings->set_int("width", get_width());
     m_settings->set_int("height", get_height());
     m_settings->set_boolean("maximized", is_maximized());
+    if (m_panedRoot.get_position() > 0)
+      m_settings->set_int("position-divider-toc", m_panedRoot.get_position());
     // Only store a divider value bigger than zero,
     // because the secondary draw window is hidden by default, resulting into a zero value.
-    if (m_paned.get_position() > 0)
-      m_settings->set_int("position-divider", m_paned.get_position());
+    if (m_panedDraw.get_position() > 0)
+      m_settings->set_int("position-divider-draw", m_panedDraw.get_position());
     // Fullscreen will be availible with gtkmm-4.0
     // m_settings->set_boolean("fullscreen", is_fullscreen());
     m_settings->set_string("font-family", fontFamily_);
@@ -1088,6 +1126,19 @@ void MainWindow::selectAll()
   else if (m_searchReplaceEntry.has_focus())
   {
     m_searchReplaceEntry.select_region(0, -1);
+  }
+}
+
+/**
+ * \brief Triggered when user clicked on the column in TOC
+ */
+void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attribute__((unused)) Gtk::TreeViewColumn* column)
+{
+  const auto iter = m_tocTreeModel->get_iter(path);
+  if (iter)
+  {
+    const auto row = *iter;
+    std::cout << "Row activated: ID=" << row[m_tocColumns.m_col_id] << ", Name=" << row[m_tocColumns.m_col_heading] << std::endl;
   }
 }
 
@@ -1431,6 +1482,17 @@ void MainWindow::go_home()
 }
 
 /**
+ * \brief Show/hide table of contents
+ */
+void MainWindow::show_toc()
+{
+  if (m_scrolledToc.is_visible())
+    m_scrolledToc.hide();
+  else
+    m_scrolledToc.show();
+}
+
+/**
  * \brief Copy the IPFS Client ID to clipboard
  */
 void MainWindow::copy_client_id()
@@ -1644,7 +1706,7 @@ void MainWindow::enableEdit()
   int location = 0;
   int positionSettings = 42;
   if (m_settings)
-    positionSettings = m_settings->get_int("position-divider");
+    positionSettings = m_settings->get_int("position-divider-draw");
   int currentWidth, _ = 0;
   get_size(currentWidth, _);
   // If position from settings is still default (42) or too big,
@@ -1657,8 +1719,10 @@ void MainWindow::enableEdit()
   {
     location = positionSettings;
   }
-  m_paned.set_position(location);
+  m_panedDraw.set_position(location);
 
+  // Disable Table of Contents during edit
+  m_scrolledToc.hide();
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
   // Disable "view source" menu item

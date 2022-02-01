@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "middleware.h"
 #include "source-code-dialog.h"
+#include "toc-model-cols.h"
 #include "toolbar-button.h"
 
 #include <giomm/settings.h>
@@ -34,6 +35,9 @@
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/switch.h>
 #include <gtkmm/togglebutton.h>
+#include <gtkmm/treemodel.h>
+#include <gtkmm/treestore.h>
+#include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
 
@@ -67,6 +71,7 @@ protected:
   void paste();
   void del();
   void selectAll();
+  void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
   void open_and_edit();
@@ -78,6 +83,7 @@ protected:
   void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
   void go_home();
+  void show_toc();
   void copy_client_id();
   void copy_client_public_key();
   void address_bar_activate();
@@ -118,7 +124,10 @@ protected:
   Draw m_draw_secondary;
   SourceCodeDialog m_sourceCodeDialog;
   About m_about;
-  Gtk::HPaned m_paned;
+  Gtk::TreeView tocTreeView;
+  Glib::RefPtr<Gtk::TreeStore> m_tocTreeModel;
+  Gtk::HPaned m_panedRoot;
+  Gtk::HPaned m_panedDraw;
   Gtk::SearchBar m_search;
   Gtk::SearchBar m_searchReplace;
   Gtk::SearchEntry m_searchEntry;
@@ -152,6 +161,7 @@ protected:
   Gtk::Grid m_statusGrid;
   Gtk::Grid m_activityStatusGrid;
   Gtk::Grid m_settingsGrid;
+  ToolbarButton m_tocButton;
   ToolbarButton m_backButton;
   ToolbarButton m_forwardButton;
   ToolbarButton m_refreshButton;
@@ -184,6 +194,7 @@ protected:
   Gtk::Image m_zoomOutImage;
   Gtk::Image m_zoomInImage;
   Gtk::Image m_brightnessImage;
+  Gtk::Image m_tocIcon;
   Gtk::Image m_backIcon;
   Gtk::Image m_forwardIcon;
   Gtk::Image m_refreshIcon;
@@ -244,6 +255,7 @@ protected:
   Gtk::Label m_themeLabel;
   Gtk::Label m_iconThemeLabel;
   std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
+  Gtk::ScrolledWindow m_scrolledToc;
   Gtk::ScrolledWindow m_scrolledWindowMain;
   Gtk::ScrolledWindow m_scrolledWindowSecondary;
   Gtk::SeparatorMenuItem m_separator1;
@@ -256,6 +268,7 @@ protected:
   Gtk::Separator m_separator8;
   Gtk::Separator m_separator9;
   Gtk::Separator m_separator10;
+  TocModelCols m_tocColumns;
 
 private:
   Middleware middleware_;
