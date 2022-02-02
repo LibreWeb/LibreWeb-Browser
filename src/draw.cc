@@ -3,6 +3,7 @@
 #include "node.h"
 #include "syntax_extension.h"
 #include <cmark-gfm.h>
+#include <cstdint>
 #include <gdkmm/window.h>
 #include <glibmm.h>
 #include <gtkmm/textiter.h>
@@ -339,7 +340,7 @@ void Draw::newDocument()
 {
   this->undoPool.clear();
   this->redoPool.clear();
-  this->clearText();
+  this->clear();
 
   enableEdit();
   grab_focus(); // Claim focus on text view
@@ -363,12 +364,17 @@ void Draw::setText(const Glib::ustring& text)
 }
 
 /**
- * \brief Clear all text on the screen
+ * Clear text-buffer & clear marks
  */
-void Draw::clearText()
+void Draw::clear()
 {
   auto buffer = get_buffer();
   buffer->erase(buffer->begin(), buffer->end());
+  for (const Glib::RefPtr<Gtk::TextMark> mark : headingsToc)
+  {
+    buffer->delete_mark(mark);
+  }
+  headingsToc.clear();
 }
 
 /**
@@ -425,6 +431,9 @@ void Draw::redo()
   }
 }
 
+/**
+ * \brief Cut text into clipboard
+ */
 void Draw::cut()
 {
   if (get_editable())
@@ -439,12 +448,18 @@ void Draw::cut()
   }
 }
 
+/**
+ * \brief Copy text into clipboard
+ */
 void Draw::copy()
 {
   auto clipboard = get_clipboard("CLIPBOARD");
   get_buffer()->copy_clipboard(clipboard);
 }
 
+/**
+ * \brief Paste text from clipboard
+ */
 void Draw::paste()
 {
   if (get_editable())
@@ -454,6 +469,9 @@ void Draw::paste()
   }
 }
 
+/**
+ * \brief Delete selected text (only if textview is editable)
+ */
 void Draw::del()
 {
   if (get_editable())
@@ -474,10 +492,21 @@ void Draw::del()
   }
 }
 
+/**
+ * \brief Select all text
+ */
 void Draw::selectAll()
 {
   auto buffer = get_buffer();
   buffer->select_range(buffer->begin(), buffer->end());
+}
+
+/**
+ * \brief Return the Texr mark headings for Table of contents
+ */
+std::vector<Glib::RefPtr<Gtk::TextMark>> Draw::getHeadings()
+{
+  return headingsToc;
 }
 
 /*************************************************************
@@ -1440,19 +1469,16 @@ void Draw::insertText(std::string text, const Glib::ustring& url, CodeTypeEnum c
     default:
       break;
     }
+    // Already add the mark for the heading
+    addHeadingMark(text, headingLevel);
   }
   if (isQuote)
   {
     tagNames.push_back("quote");
   }
 
-  // Insert URL
-  if (!url.empty())
-  {
-    this->insertLink(text, url);
-  }
-  // Insert text/heading
-  else
+  // Insert text (+ headings)
+  if (url.empty())
   {
     // Special case for code blocks within quote
     if ((codeType == Draw::CodeTypeEnum::CODE_TYPE_CODE_BLOCK) && isQuote)
@@ -1473,22 +1499,42 @@ void Draw::insertText(std::string text, const Glib::ustring& url, CodeTypeEnum c
       insertTagText("\uFF5C ", "quote");
       insertTagText(text, tagNames);
     }
-    // Just insert text/heading the normal way
     else
     {
+      // Just insert text (default) - which includes headings as well
       insertTagText(text, tagNames);
     }
+  }
+  // Insert URL
+  else
+  {
+    insertLink(text, url);
   }
 }
 
 /**
- * Insert pango text with tags
+ * Insert pango text with multiple tags
  */
 void Draw::insertTagText(const Glib::ustring& text, std::vector<Glib::ustring> const& tagNames)
 {
   auto buffer = get_buffer();
   auto endIter = buffer->end();
   buffer->insert_with_tags_by_name(endIter, text, tagNames);
+}
+
+/**
+ * \brief Add mark for heading (ToC)
+ */
+void Draw::addHeadingMark(const Glib::ustring& text, int headingLevel)
+{
+  auto buffer = get_buffer();
+  auto endIter = buffer->end();
+  // Make anonymous marks, to avoid existing naming conflicts
+  Glib::RefPtr<Gtk::TextMark> textMark = Gtk::TextMark::create();
+  textMark->set_data("name", g_strdup(text.c_str()));
+  textMark->set_data("level", (void*)(intptr_t)headingLevel);
+  buffer->add_mark(textMark, endIter);
+  headingsToc.push_back(textMark);
 }
 
 /**
@@ -1535,17 +1581,6 @@ void Draw::truncateText(int charsTruncated)
   auto endIter = buffer->end();
   auto beginIter = endIter;
   beginIter.backward_chars(charsTruncated);
-  buffer->erase(beginIter, endIter);
-}
-
-/**
- * Clear text-buffer
- */
-void Draw::clear()
-{
-  auto buffer = get_buffer();
-  auto beginIter = buffer->begin();
-  auto endIter = buffer->end();
   buffer->erase(beginIter, endIter);
 }
 

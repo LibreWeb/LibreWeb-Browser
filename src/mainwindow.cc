@@ -2,6 +2,7 @@
 
 #include "menu.h"
 #include "project_config.h"
+#include <cstdint>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <giomm/file.h>
 #include <giomm/notification.h>
@@ -120,10 +121,11 @@ MainWindow::MainWindow(const std::string& timeout)
   updateCSS();
 
   // Table of contents
+  tocTreeView.append_column("Level", m_tocColumns.m_col_level);
   tocTreeView.append_column("Name", m_tocColumns.m_col_heading);
   tocTreeView.set_activate_on_single_click(true);
   tocTreeView.set_headers_visible(false);
-  tocTreeView.set_tooltip_column(1);
+  tocTreeView.set_tooltip_column(2);
 
   m_scrolledToc.add(tocTreeView);
   m_scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -161,24 +163,13 @@ MainWindow::MainWindow(const std::string& timeout)
   // Grap focus to input field by default
   m_addressBar.grab_focus();
 
-  // Example of TOC filling
-  auto row = *(m_tocTreeModel->append());
-  row[m_tocColumns.m_col_id] = 1;
-  row[m_tocColumns.m_col_heading] = "Billy Bob";
-
-  auto childrow = *(m_tocTreeModel->append(row.children()));
-  childrow[m_tocColumns.m_col_id] = 11;
-  childrow[m_tocColumns.m_col_heading] = "Billy Bob Junior";
-
-  tocTreeView.expand_all();
-
 // Show homepage if debugging is disabled
 #ifdef NDEBUG
   go_home();
 #else
   std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
   // Load test file during development
-  middleware_.doRequest("file://../../test.md");
+  middleware_.doRequest("file://../../invalid_headers.md");
 #endif
 }
 
@@ -220,6 +211,9 @@ void MainWindow::preRequest(const std::string& path, const std::string& title, b
   m_menu.setBackMenuSensitive(currentHistoryIndex_ > 0);
   m_forwardButton.set_sensitive(currentHistoryIndex_ < history_.size() - 1);
   m_menu.setForwardMenuSensitive(currentHistoryIndex_ < history_.size() - 1);
+
+  // Clear table of contents (ToC)
+  m_tocTreeModel->clear();
 }
 
 /**
@@ -287,6 +281,145 @@ void MainWindow::setText(const Glib::ustring& content)
 void MainWindow::setDocument(cmark_node* rootNode)
 {
   m_draw_main.setDocument(rootNode);
+
+  // Retrieve headings for ToC
+  auto headings = m_draw_main.getHeadings();
+  Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
+  int previousLevel = 1; // Default heading 1
+  for (const Glib::RefPtr<Gtk::TextMark> headerMark : headings)
+  {
+    Glib::ustring heading = static_cast<char*>(headerMark->get_data("name"));
+    auto level = reinterpret_cast<std::intptr_t>(headerMark->get_data("level"));
+    switch (level)
+    {
+    case 1:
+    {
+      heading1Row = *(m_tocTreeModel->append());
+      heading1Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading1Row[m_tocColumns.m_col_level] = level;
+      heading1Row[m_tocColumns.m_col_heading] = heading;
+      heading1Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 1)
+      {
+        heading2Row = Gtk::TreeRow();
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 2:
+    {
+      if (heading1Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading1Row = *(m_tocTreeModel->append());
+        heading1Row[m_tocColumns.m_col_level] = 1;
+        heading1Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading1Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+      heading2Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading2Row[m_tocColumns.m_col_level] = level;
+      heading2Row[m_tocColumns.m_col_heading] = heading;
+      heading2Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 2)
+      {
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 3:
+    {
+      if (heading2Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+        heading2Row[m_tocColumns.m_col_level] = 2;
+        heading2Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading2Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+      heading3Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading3Row[m_tocColumns.m_col_level] = level;
+      heading3Row[m_tocColumns.m_col_heading] = heading;
+      heading3Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 3)
+      {
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 4:
+    {
+      if (heading3Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+        heading3Row[m_tocColumns.m_col_level] = 3;
+        heading3Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading3Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+      heading4Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading4Row[m_tocColumns.m_col_level] = level;
+      heading4Row[m_tocColumns.m_col_heading] = heading;
+      heading4Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 4)
+      {
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 5:
+    {
+      if (heading4Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+        heading4Row[m_tocColumns.m_col_level] = 4;
+        heading4Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading4Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+      heading5Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading5Row[m_tocColumns.m_col_level] = level;
+      heading5Row[m_tocColumns.m_col_heading] = heading;
+      heading5Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    case 6:
+    {
+      if (heading5Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+        heading5Row[m_tocColumns.m_col_level] = 5;
+        heading5Row[m_tocColumns.m_col_heading] = "- Missing heading -";
+        heading5Row[m_tocColumns.m_col_valid] = false;
+      }
+      auto heading6Row = *(m_tocTreeModel->append(heading5Row.children()));
+      heading6Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading6Row[m_tocColumns.m_col_level] = level;
+      heading6Row[m_tocColumns.m_col_heading] = heading;
+      heading6Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    default:
+      std::cerr << "ERROR: Out of range heading level detected." << std::endl;
+      break;
+    }
+    previousLevel = level;
+  }
+  tocTreeView.columns_autosize();
+  tocTreeView.expand_all();
 }
 
 /**
@@ -968,7 +1101,6 @@ void MainWindow::initSignals()
   m_wrapChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_CHAR));
   m_wrapWord.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
   m_wrapWordChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
-  // TODO word_char..
   m_themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
   m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
   m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
@@ -1157,7 +1289,7 @@ void MainWindow::selectAll()
 }
 
 /**
- * \brief Triggered when user clicked on the column in TOC
+ * \brief Triggered when user clicked on the column in ToC
  */
 void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attribute__((unused)) Gtk::TreeViewColumn* column)
 {
@@ -1165,7 +1297,12 @@ void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attrib
   if (iter)
   {
     const auto row = *iter;
-    std::cout << "Row activated: ID=" << row[m_tocColumns.m_col_id] << ", Name=" << row[m_tocColumns.m_col_heading] << std::endl;
+    if (row[m_tocColumns.m_col_valid])
+    {
+      Gtk::TextIter textIter = row[m_tocColumns.m_col_iter];
+      // Scroll to to mark iterator
+      m_draw_main.scroll_to(textIter);
+    }
   }
 }
 
@@ -1748,14 +1885,15 @@ void MainWindow::enableEdit()
   }
   m_panedDraw.set_position(location);
 
-  // Disable Table of Contents during edit
+  // Disable Table of Contents during edit & clear ToC
   m_scrolledToc.hide();
+  m_tocTreeModel->clear();
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
   // Disable "view source" menu item
   m_draw_main.setViewSourceMenuItem(false);
   // Connect changed signal
-  textChangedSignalHandler_ = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
+  textChangedSignalHandler_ = m_draw_main.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
   // Enable publish menu item
   m_menu.setPublishMenuSensitive(true);
   // Disable edit menu item (you are already editing)
@@ -1778,7 +1916,7 @@ void MainWindow::disableEdit()
     textChangedSignalHandler_.disconnect();
     // Show "view source" menu item again
     m_draw_main.setViewSourceMenuItem(true);
-    m_draw_secondary.clearText();
+    m_draw_secondary.clear();
     // Disable publish menu item
     m_menu.setPublishMenuSensitive(false);
     // Enable edit menu item

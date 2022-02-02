@@ -12,12 +12,16 @@ class TocModelCols : public Gtk::TreeModel::ColumnRecord
 public:
   TocModelCols()
   {
-    add(m_col_id);
+    add(m_col_iter);
+    add(m_col_level);
     add(m_col_heading);
+    add(m_col_valid);
   }
 
-  Gtk::TreeModelColumn<int> m_col_id;
+  Gtk::TreeModelColumn<Gtk::TextIter> m_col_iter;
+  Gtk::TreeModelColumn<int> m_col_level;
   Gtk::TreeModelColumn<Glib::ustring> m_col_heading;
+  Gtk::TreeModelColumn<bool> m_col_valid;
 };
 
 #endif

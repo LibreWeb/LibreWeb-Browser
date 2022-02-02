@@ -45,7 +45,7 @@ public:
   void newDocument();
   Glib::ustring getText() const;
   void setText(const Glib::ustring& text);
-  void clearText();
+  void clear();
   void undo();
   void redo();
   void cut();
@@ -53,6 +53,7 @@ public:
   void paste();
   void del();
   void selectAll();
+  std::vector<Glib::RefPtr<Gtk::TextMark>> getHeadings();
 
   // Signals editor calls
   void make_heading(int headingLevel);
@@ -104,6 +105,7 @@ private:
   Glib::RefPtr<Gdk::Cursor> textCursor;
   bool hovingOverLink;
   bool isUserAction;
+  std::vector<Glib::RefPtr<Gtk::TextMark>> headingsToc;
 
   std::vector<UndoRedoData> undoPool;
   std::vector<UndoRedoData> redoPool;
@@ -120,11 +122,11 @@ private:
   void encodeText(std::string& string) const;
   void insertText(std::string text, const Glib::ustring& url = "", CodeTypeEnum codeType = CodeTypeEnum::CODE_TYPE_NONE);
   void insertTagText(const Glib::ustring& text, std::vector<Glib::ustring> const& tagNames);
+  void addHeadingMark(const Glib::ustring& text, int headingLevel);
   void insertTagText(const Glib::ustring& text, const Glib::ustring& tagName);
   void insertMarkupText(const Glib::ustring& text);
   void insertLink(const Glib::ustring& text, const Glib::ustring& url);
   void truncateText(int charsTruncated);
-  void clear();
   void changeCursor(int x, int y);
   static Glib::ustring intToRoman(int num);
 };
