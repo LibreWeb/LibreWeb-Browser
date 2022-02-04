@@ -134,11 +134,13 @@ protected:
   Gtk::SearchBar m_searchReplace;
   Gtk::SearchEntry m_searchEntry;
   Gtk::Entry m_searchReplaceEntry;
-  Gtk::Box m_vbox;
+  Gtk::Box m_vboxMain;
   Gtk::Box m_hboxBrowserToolbar;
   Gtk::Box m_hboxStandardEditorToolbar;
   Gtk::Box m_hboxFormattingEditorToolbar;
   Gtk::Box m_hboxSearch;
+  Gtk::Box m_hboxToc;
+  Gtk::Box m_vboxToc;
   Gtk::Box m_vboxSearch;
   Gtk::Box m_vboxStatus;
   Gtk::Box m_vboxSettings;
@@ -168,7 +170,8 @@ protected:
   Gtk::Grid m_statusGrid;
   Gtk::Grid m_activityStatusGrid;
   Gtk::Grid m_settingsGrid;
-  ToolbarButton m_tocButton;
+  ToolbarButton m_closeTocWindowButton;
+  ToolbarButton m_openTocButton;
   ToolbarButton m_backButton;
   ToolbarButton m_forwardButton;
   ToolbarButton m_refreshButton;
@@ -238,6 +241,7 @@ protected:
   Gtk::ModelButton m_copyIDButton;
   Gtk::ModelButton m_copyPublicKeyButton;
   Gtk::Switch m_themeSwitch;
+  Gtk::Label m_tableOfContentsLabel;
   Gtk::Label m_networkHeadingLabel;
   Gtk::Label m_networkRateHeadingLabel;
   Gtk::Label m_connectivityLabel;
@@ -298,11 +302,12 @@ private:
   void loadStoredSettings();
   void setGTKIcons();
   void loadIcons();
-  void initButtons();
+  void initToolbarButtons();
   void setTheme();
   void initSearchPopover();
   void initStatusPopover();
   void initSettingsPopover();
+  void initTableofContents();
   void initSignals();
   bool isInstalled();
   void enableEdit();

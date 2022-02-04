@@ -31,7 +31,8 @@ MainWindow::MainWindow(const std::string& timeout)
       m_draw_main(middleware_),
       m_draw_secondary(middleware_),
       m_about(*this),
-      m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
+      m_vboxMain(Gtk::ORIENTATION_VERTICAL, 0),
+      m_vboxToc(Gtk::ORIENTATION_VERTICAL),
       m_vboxSearch(Gtk::ORIENTATION_VERTICAL),
       m_vboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
@@ -41,7 +42,8 @@ MainWindow::MainWindow(const std::string& timeout)
       m_wrapChar(m_wrappingGroup, "Char"),
       m_wrapWord(m_wrappingGroup, "Word"),
       m_wrapWordChar(m_wrappingGroup, "Word+Char"),
-      m_tocButton("Show table of contents (Ctrl+Shift+T)", true),
+      m_closeTocWindowButton("Close table of contents"),
+      m_openTocButton("Show table of contents (Ctrl+Shift+T)", true),
       m_backButton("Go back one page (Alt+Left arrow)", true),
       m_forwardButton("Go forward one page (Alt+Right arrow)", true),
       m_refreshButton("Reload current page (Ctrl+R)", true),
@@ -67,6 +69,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_bulletListButton("Add a bullet list"),
       m_numberedListButton("Add a numbered list"),
       m_highlightButton("Add highlight text"),
+      m_tableOfContentsLabel("Table of Contents"),
       m_networkHeadingLabel("IPFS Network"),
       m_networkRateHeadingLabel("Network rate"),
       m_connectivityLabel("Status:"),
@@ -105,11 +108,12 @@ MainWindow::MainWindow(const std::string& timeout)
 
   loadStoredSettings();
   loadIcons();
-  initButtons();
+  initToolbarButtons();
   setTheme();
   initSearchPopover();
   initStatusPopover();
   initSettingsPopover();
+  initTableofContents();
   initSignals();
 
   // Add custom CSS Provider to draw textviews
@@ -120,17 +124,6 @@ MainWindow::MainWindow(const std::string& timeout)
   // Load the default font family and font size
   updateCSS();
 
-  // Table of contents
-  tocTreeView.append_column("Level", m_tocColumns.m_col_level);
-  tocTreeView.append_column("Name", m_tocColumns.m_col_heading);
-  tocTreeView.set_activate_on_single_click(true);
-  tocTreeView.set_headers_visible(false);
-  tocTreeView.set_tooltip_column(2);
-
-  m_scrolledToc.add(tocTreeView);
-  m_scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  m_tocTreeModel = Gtk::TreeStore::create(m_tocColumns);
-  tocTreeView.set_model(m_tocTreeModel);
   // Browser main drawing area
   m_scrolledWindowMain.add(m_draw_main);
   m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
@@ -140,25 +133,25 @@ MainWindow::MainWindow(const std::string& timeout)
   m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
   m_panedDraw.pack1(m_scrolledWindowMain, true, false);
   m_panedDraw.pack2(m_scrolledWindowSecondary, true, true);
-
-  // Add table of contents to horizontal paned
-  m_panedRoot.pack1(m_scrolledToc, true, false);
+  // Left the vbox for the table of contents,
+  // right the main drawing paned windows (primary/secondary).
+  m_panedRoot.pack1(m_vboxToc, true, false);
   m_panedRoot.pack2(m_panedDraw, true, false);
-
-  m_vbox.pack_start(m_menu, false, false, 0);
-  m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
-  m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
-  m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
-  m_vbox.pack_start(m_panedRoot, true, true, 0);
-  add(m_vbox);
+  // Main virtual box
+  m_vboxMain.pack_start(m_menu, false, false, 0);
+  m_vboxMain.pack_start(m_hboxBrowserToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_panedRoot, true, true, 0);
+  add(m_vboxMain);
   show_all_children();
 
-  // Hide by default the replace entry, editor box, ToC & secondary text view
+  // Hide by default the table of contents, secondary textview, replace entry and editor toolbars
+  m_vboxToc.hide();
+  m_scrolledWindowSecondary.hide();
   m_searchReplaceEntry.hide();
   m_hboxStandardEditorToolbar.hide();
   m_hboxFormattingEditorToolbar.hide();
-  m_scrolledToc.hide();
-  m_scrolledWindowSecondary.hide();
 
   // Grap focus to input field by default
   m_addressBar.grab_focus();
@@ -169,7 +162,7 @@ MainWindow::MainWindow(const std::string& timeout)
 #else
   std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
   // Load test file during development
-  middleware_.doRequest("file://../../invalid_headers.md");
+  middleware_.doRequest("file://../../test.md");
 #endif
 }
 
@@ -627,7 +620,7 @@ void MainWindow::loadIcons()
 /**
  * Init all buttons / comboboxes from the toolbars
  */
-void MainWindow::initButtons()
+void MainWindow::initToolbarButtons()
 {
   // Add icons to the toolbar editor buttons
   m_openButton.add(m_openIcon);
@@ -679,7 +672,7 @@ void MainWindow::initButtons()
   m_settingsButton.set_relief(Gtk::RELIEF_NONE);
 
   // Add icons to the toolbar buttons
-  m_tocButton.add(m_tocIcon);
+  m_openTocButton.add(m_tocIcon);
   m_backButton.add(m_backIcon);
   m_forwardButton.add(m_forwardIcon);
   m_refreshButton.add(m_refreshIcon);
@@ -712,8 +705,8 @@ void MainWindow::initButtons()
    * Adding the buttons to the boxes
    */
   // Browser Toolbar
-  m_tocButton.set_margin_left(6);
-  m_hboxBrowserToolbar.pack_start(m_tocButton, false, false, 0);
+  m_openTocButton.set_margin_left(6);
+  m_hboxBrowserToolbar.pack_start(m_openTocButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
@@ -877,7 +870,29 @@ void MainWindow::initStatusPopover()
 }
 
 /**
- * Init the settings pop-over
+ * \brief Init table of contents window (left side-panel)
+ */
+void MainWindow::initTableofContents()
+{
+  m_closeTocWindowButton.set_image_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_SMALL_TOOLBAR));
+  m_tableOfContentsLabel.set_margin_start(6);
+  m_hboxToc.pack_start(m_tableOfContentsLabel, false, false);
+  m_hboxToc.pack_end(m_closeTocWindowButton, false, false);
+  tocTreeView.append_column("Level", m_tocColumns.m_col_level);
+  tocTreeView.append_column("Name", m_tocColumns.m_col_heading);
+  tocTreeView.set_activate_on_single_click(true);
+  tocTreeView.set_headers_visible(false);
+  tocTreeView.set_tooltip_column(2);
+  m_scrolledToc.add(tocTreeView);
+  m_scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  m_tocTreeModel = Gtk::TreeStore::create(m_tocColumns);
+  tocTreeView.set_model(m_tocTreeModel);
+  m_vboxToc.pack_start(m_hboxToc, Gtk::PackOptions::PACK_SHRINK);
+  m_vboxToc.pack_end(m_scrolledToc);
+}
+
+/**
+ * \brief Init the settings pop-over
  */
 void MainWindow::initSettingsPopover()
 {
@@ -1026,6 +1041,7 @@ void MainWindow::initSignals()
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
   // Table of contents
+  m_closeTocWindowButton.signal_clicked().connect(sigc::mem_fun(m_vboxToc, &Gtk::Widget::hide));
   tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
   // Menu & toolbar signals
   m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                       /*!< Menu item for new document */
@@ -1056,7 +1072,7 @@ void MainWindow::initSignals()
   m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
   m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
   m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
-  m_tocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));               /*!< Button for showing Table of Contents */
+  m_openTocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
   m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
   m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
   m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refreshRequest));     /*!< Button for reloading the page */
@@ -1650,10 +1666,10 @@ void MainWindow::go_home()
  */
 void MainWindow::show_toc()
 {
-  if (m_scrolledToc.is_visible())
-    m_scrolledToc.hide();
+  if (m_vboxToc.is_visible())
+    m_vboxToc.hide();
   else
-    m_scrolledToc.show();
+    m_vboxToc.show();
 }
 
 /**
@@ -1886,7 +1902,7 @@ void MainWindow::enableEdit()
   m_panedDraw.set_position(location);
 
   // Disable Table of Contents during edit & clear ToC
-  m_scrolledToc.hide();
+  m_vboxToc.hide();
   m_tocTreeModel->clear();
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
