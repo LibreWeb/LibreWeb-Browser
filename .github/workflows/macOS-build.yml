@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           mkdir build && cd build
-          cmake -G Ninja ..
+          cmake -G Ninja -DDOXYGEN:BOOL=FALSE ..
           ninja
 
         #xcodebuild \
