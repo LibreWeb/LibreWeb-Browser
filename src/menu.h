@@ -35,6 +35,7 @@ public:
   sigc::signal<void> forward;
   sigc::signal<void> reload;
   sigc::signal<void> home;
+  sigc::signal<void> toc;
   sigc::signal<void> source_code;
   sigc::signal<void> about;
 
@@ -62,6 +63,7 @@ protected:
   Gtk::SeparatorMenuItem m_separator5;
   Gtk::SeparatorMenuItem m_separator6;
   Gtk::SeparatorMenuItem m_separator7;
+  Gtk::SeparatorMenuItem m_separator8;
 
 private:
   Gtk::MenuItem* createMenuItem(const Glib::ustring& label_text);

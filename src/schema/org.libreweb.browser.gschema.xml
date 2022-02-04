@@ -17,9 +17,13 @@
       <default>false</default>
       <summary>Is window fullscreen</summary>
     </key>
-    <key name="position-divider" type="i">
+    <key name="position-divider-toc" type="i">
+      <default>300</default>
+      <summary>Position of paned divider for ToC and draw windows</summary>
+    </key>
+    <key name="position-divider-draw" type="i">
       <default>42</default>
-      <summary>Position of paned divider</summary>
+      <summary>Position of paned divider for primary and secondary draw window</summary>
     </key>
     <key name="font-family" type="s">
       <default>"Sans"</default>

@@ -254,7 +254,7 @@ void Middleware::processRequest(const std::string& path, bool isParseContent)
   // Handle homepage
   else if (requestPath_.compare("about:home") == 0)
   {
-    Glib::signal_idle().connect_once(sigc::mem_fun(mainWindow, &MainWindow::showStartpage));
+    Glib::signal_idle().connect_once(sigc::mem_fun(mainWindow, &MainWindow::showHomepage));
   }
   // Handle disk or IPFS file paths
   else

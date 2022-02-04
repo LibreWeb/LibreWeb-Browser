@@ -6,6 +6,7 @@
 #include "menu.h"
 #include "middleware.h"
 #include "source-code-dialog.h"
+#include "toc-model-cols.h"
 #include "toolbar-button.h"
 
 #include <giomm/settings.h>
@@ -26,6 +27,7 @@
 #include <gtkmm/paned.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/popovermenu.h>
+#include <gtkmm/radiobutton.h>
 #include <gtkmm/scale.h>
 #include <gtkmm/scrolledwindow.h>
 #include <gtkmm/searchbar.h>
@@ -34,6 +36,9 @@
 #include <gtkmm/spinbutton.h>
 #include <gtkmm/switch.h>
 #include <gtkmm/togglebutton.h>
+#include <gtkmm/treemodel.h>
+#include <gtkmm/treestore.h>
+#include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
 
@@ -53,7 +58,7 @@ public:
   void startedRequest();
   void finishedRequest();
   void refreshRequest();
-  void showStartpage();
+  void showHomepage();
   void setText(const Glib::ustring& content);
   void setDocument(cmark_node* rootNode);
   void setMessage(const Glib::ustring& message, const Glib::ustring& details = "");
@@ -67,6 +72,7 @@ protected:
   void paste();
   void del();
   void selectAll();
+  void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
   void open_and_edit();
@@ -78,6 +84,7 @@ protected:
   void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
   void go_home();
+  void show_toc();
   void copy_client_id();
   void copy_client_public_key();
   void address_bar_activate();
@@ -100,6 +107,7 @@ protected:
   void on_spacing_changed();
   void on_margins_changed();
   void on_indent_changed();
+  void on_wrap_toggled(Gtk::WrapMode mode);
   void on_brightness_changed();
   void on_theme_changed();
   void on_icon_theme_activated(Gtk::ListBoxRow* row);
@@ -114,20 +122,25 @@ protected:
 
   // Child widgets
   Menu m_menu;
-  Draw m_draw_main;
+  Draw m_draw_primary;
   Draw m_draw_secondary;
   SourceCodeDialog m_sourceCodeDialog;
   About m_about;
-  Gtk::HPaned m_paned;
+  Gtk::TreeView tocTreeView;
+  Glib::RefPtr<Gtk::TreeStore> m_tocTreeModel;
+  Gtk::HPaned m_panedRoot;
+  Gtk::HPaned m_panedDraw;
   Gtk::SearchBar m_search;
   Gtk::SearchBar m_searchReplace;
   Gtk::SearchEntry m_searchEntry;
   Gtk::Entry m_searchReplaceEntry;
-  Gtk::Box m_vbox;
+  Gtk::Box m_vboxMain;
   Gtk::Box m_hboxBrowserToolbar;
   Gtk::Box m_hboxStandardEditorToolbar;
   Gtk::Box m_hboxFormattingEditorToolbar;
   Gtk::Box m_hboxSearch;
+  Gtk::Box m_hboxToc;
+  Gtk::Box m_vboxToc;
   Gtk::Box m_vboxSearch;
   Gtk::Box m_vboxStatus;
   Gtk::Box m_vboxSettings;
@@ -146,12 +159,19 @@ protected:
   Gtk::SpinButton m_spacingSpinButton;
   Gtk::SpinButton m_marginsSpinButton;
   Gtk::SpinButton m_indentSpinButton;
+  Gtk::RadioButton::Group m_wrappingGroup;
+  Gtk::RadioButton m_wrapNone;
+  Gtk::RadioButton m_wrapChar;
+  Gtk::RadioButton m_wrapWord;
+  Gtk::RadioButton m_wrapWordChar;
   Gtk::ModelButton m_iconThemeButton;
   Gtk::ModelButton m_aboutButton;
   Gtk::ModelButton m_iconThemeBackButton;
   Gtk::Grid m_statusGrid;
   Gtk::Grid m_activityStatusGrid;
   Gtk::Grid m_settingsGrid;
+  ToolbarButton m_closeTocWindowButton;
+  ToolbarButton m_openTocButton;
   ToolbarButton m_backButton;
   ToolbarButton m_forwardButton;
   ToolbarButton m_refreshButton;
@@ -184,6 +204,7 @@ protected:
   Gtk::Image m_zoomOutImage;
   Gtk::Image m_zoomInImage;
   Gtk::Image m_brightnessImage;
+  Gtk::Image m_tocIcon;
   Gtk::Image m_backIcon;
   Gtk::Image m_forwardIcon;
   Gtk::Image m_refreshIcon;
@@ -220,6 +241,7 @@ protected:
   Gtk::ModelButton m_copyIDButton;
   Gtk::ModelButton m_copyPublicKeyButton;
   Gtk::Switch m_themeSwitch;
+  Gtk::Label m_tableOfContentsLabel;
   Gtk::Label m_networkHeadingLabel;
   Gtk::Label m_networkRateHeadingLabel;
   Gtk::Label m_connectivityLabel;
@@ -241,10 +263,12 @@ protected:
   Gtk::Label m_spacingLabel;
   Gtk::Label m_marginsLabel;
   Gtk::Label m_indentLabel;
+  Gtk::Label m_textWrappingLabel;
   Gtk::Label m_themeLabel;
   Gtk::Label m_iconThemeLabel;
   std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
-  Gtk::ScrolledWindow m_scrolledWindowMain;
+  Gtk::ScrolledWindow m_scrolledToc;
+  Gtk::ScrolledWindow m_scrolledWindowPrimary;
   Gtk::ScrolledWindow m_scrolledWindowSecondary;
   Gtk::SeparatorMenuItem m_separator1;
   Gtk::SeparatorMenuItem m_separator2;
@@ -256,6 +280,7 @@ protected:
   Gtk::Separator m_separator8;
   Gtk::Separator m_separator9;
   Gtk::Separator m_separator10;
+  TocModelCols m_tocColumns;
 
 private:
   Middleware middleware_;
@@ -277,13 +302,15 @@ private:
   void loadStoredSettings();
   void setGTKIcons();
   void loadIcons();
-  void initButtons();
+  void initToolbarButtons();
   void setTheme();
   void initSearchPopover();
   void initStatusPopover();
   void initSettingsPopover();
+  void initTableofContents();
   void initSignals();
   bool isInstalled();
+  void setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings);
   void enableEdit();
   void disableEdit();
   bool isEditorEnabled();

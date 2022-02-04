@@ -2,6 +2,7 @@
 
 #include "menu.h"
 #include "project_config.h"
+#include <cstdint>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <giomm/file.h>
 #include <giomm/notification.h>
@@ -27,15 +28,22 @@ MainWindow::MainWindow(const std::string& timeout)
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       m_drawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
-      m_draw_main(middleware_),
+      m_draw_primary(middleware_),
       m_draw_secondary(middleware_),
       m_about(*this),
-      m_vbox(Gtk::ORIENTATION_VERTICAL, 0),
+      m_vboxMain(Gtk::ORIENTATION_VERTICAL, 0),
+      m_vboxToc(Gtk::ORIENTATION_VERTICAL),
       m_vboxSearch(Gtk::ORIENTATION_VERTICAL),
       m_vboxStatus(Gtk::ORIENTATION_VERTICAL),
       m_vboxSettings(Gtk::ORIENTATION_VERTICAL),
       m_vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
       m_searchMatchCase("Match _Case", true),
+      m_wrapNone(m_wrappingGroup, "None"),
+      m_wrapChar(m_wrappingGroup, "Char"),
+      m_wrapWord(m_wrappingGroup, "Word"),
+      m_wrapWordChar(m_wrappingGroup, "Word+Char"),
+      m_closeTocWindowButton("Close table of contents"),
+      m_openTocButton("Show table of contents (Ctrl+Shift+T)", true),
       m_backButton("Go back one page (Alt+Left arrow)", true),
       m_forwardButton("Go forward one page (Alt+Right arrow)", true),
       m_refreshButton("Reload current page (Ctrl+R)", true),
@@ -61,6 +69,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_bulletListButton("Add a bullet list"),
       m_numberedListButton("Add a numbered list"),
       m_highlightButton("Add highlight text"),
+      m_tableOfContentsLabel("Table of Contents"),
       m_networkHeadingLabel("IPFS Network"),
       m_networkRateHeadingLabel("Network rate"),
       m_connectivityLabel("Status:"),
@@ -75,6 +84,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
+      m_textWrappingLabel("Wrapping"),
       m_themeLabel("Dark Theme"),
       m_iconThemeLabel("Active Theme"),
       // Private members
@@ -98,44 +108,50 @@ MainWindow::MainWindow(const std::string& timeout)
 
   loadStoredSettings();
   loadIcons();
-  initButtons();
+  initToolbarButtons();
   setTheme();
   initSearchPopover();
   initStatusPopover();
   initSettingsPopover();
+  initTableofContents();
   initSignals();
 
   // Add custom CSS Provider to draw textviews
-  auto styleMain = m_draw_main.get_style_context();
+  auto stylePrimary = m_draw_primary.get_style_context();
   auto styleSecondary = m_draw_secondary.get_style_context();
-  styleMain->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+  stylePrimary->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
   styleSecondary->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
   // Load the default font family and font size
   updateCSS();
 
-  // Browser text main drawing area
-  m_scrolledWindowMain.add(m_draw_main);
-  m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  // Primary drawing area
+  m_scrolledWindowPrimary.add(m_draw_primary);
+  m_scrolledWindowPrimary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
   // Secondary drawing area
   m_draw_secondary.setViewSourceMenuItem(false);
   m_scrolledWindowSecondary.add(m_draw_secondary);
   m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  m_paned.pack1(m_scrolledWindowMain, true, false);
-  m_paned.pack2(m_scrolledWindowSecondary, true, true);
-
-  m_vbox.pack_start(m_menu, false, false, 0);
-  m_vbox.pack_start(m_hboxBrowserToolbar, false, false, 6);
-  m_vbox.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
-  m_vbox.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
-  m_vbox.pack_start(m_paned, true, true, 0);
-  add(m_vbox);
+  m_panedDraw.pack1(m_scrolledWindowPrimary, true, false);
+  m_panedDraw.pack2(m_scrolledWindowSecondary, true, true);
+  // Left the vbox for the table of contents,
+  // right the drawing paned windows (primary/secondary).
+  m_panedRoot.pack1(m_vboxToc, true, false);
+  m_panedRoot.pack2(m_panedDraw, true, false);
+  // Main virtual box
+  m_vboxMain.pack_start(m_menu, false, false, 0);
+  m_vboxMain.pack_start(m_hboxBrowserToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_hboxStandardEditorToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_hboxFormattingEditorToolbar, false, false, 6);
+  m_vboxMain.pack_start(m_panedRoot, true, true, 0);
+  add(m_vboxMain);
   show_all_children();
 
-  // Hide by default the replace entry, editor box & secondary text view
+  // Hide by default the table of contents, secondary textview, replace entry and editor toolbars
+  m_vboxToc.hide();
+  m_scrolledWindowSecondary.hide();
   m_searchReplaceEntry.hide();
   m_hboxStandardEditorToolbar.hide();
   m_hboxFormattingEditorToolbar.hide();
-  m_scrolledWindowSecondary.hide();
 
   // Grap focus to input field by default
   m_addressBar.grab_focus();
@@ -188,6 +204,9 @@ void MainWindow::preRequest(const std::string& path, const std::string& title, b
   m_menu.setBackMenuSensitive(currentHistoryIndex_ > 0);
   m_forwardButton.set_sensitive(currentHistoryIndex_ < history_.size() - 1);
   m_menu.setForwardMenuSensitive(currentHistoryIndex_ < history_.size() - 1);
+
+  // Clear table of contents (ToC)
+  m_tocTreeModel->clear();
 }
 
 /**
@@ -232,11 +251,11 @@ void MainWindow::refreshRequest()
 }
 
 /**
- * \brief Show startpage
+ * \brief Show home page
  */
-void MainWindow::showStartpage()
+void MainWindow::showHomepage()
 {
-  m_draw_main.showStartPage();
+  m_draw_primary.showHomepage();
 }
 
 /**
@@ -245,16 +264,18 @@ void MainWindow::showStartpage()
  */
 void MainWindow::setText(const Glib::ustring& content)
 {
-  m_draw_main.setText(content);
+  m_draw_primary.setText(content);
 }
 
 /**
- * \brief Set markdown document (cmark). cmark_node pointer will be freed automatically.
+ * \brief Set markdown document (common mark) on primary window. cmark_node pointer will be freed automatically.
+ * And set the ToC.
  * \param rootNode cmark root data struct
  */
 void MainWindow::setDocument(cmark_node* rootNode)
 {
-  m_draw_main.setDocument(rootNode);
+  m_draw_primary.setDocument(rootNode);
+  setTableofContents(m_draw_primary.getHeadings());
 }
 
 /**
@@ -264,7 +285,7 @@ void MainWindow::setDocument(cmark_node* rootNode)
  */
 void MainWindow::setMessage(const Glib::ustring& message, const Glib::ustring& details)
 {
-  m_draw_main.setMessage(message, details);
+  m_draw_primary.setMessage(message, details);
 }
 
 /**
@@ -317,9 +338,9 @@ void MainWindow::loadStoredSettings()
   if (!isInstalled())
   {
     // Relative to the binary path
-    std::vector<std::string> relativePath{"..", "src", "gsettings"};
+    std::vector<std::string> relativePath{".."};
     std::string schemaDir = Glib::build_path(G_DIR_SEPARATOR_S, relativePath);
-    std::cout << "INFO: Try to find the schema file using the following directory first: " << schemaDir << std::endl;
+    std::cout << "INFO: Binary not installed. Try to find the gschema file one directory up (..)." << std::endl;
     Glib::setenv("GSETTINGS_SCHEMA_DIR", schemaDir);
   }
 
@@ -343,10 +364,11 @@ void MainWindow::loadStoredSettings()
     m_spacingAdjustment->set_value(fontSpacing_);
     m_marginsAdjustment->set_value(margins);
     m_indentAdjustment->set_value(indent);
-    m_draw_main.set_left_margin(margins);
-    m_draw_main.set_right_margin(margins);
-    m_draw_main.set_indent(indent);
-
+    m_draw_primary.set_left_margin(margins);
+    m_draw_primary.set_right_margin(margins);
+    m_draw_primary.set_indent(indent);
+    int tocDividerPosition = m_settings->get_int("position-divider-toc");
+    m_panedRoot.set_position(tocDividerPosition);
     iconTheme_ = m_settings->get_string("icon-theme");
     useCurrentGTKIconTheme_ = m_settings->get_boolean("icon-gtk-theme");
     brightnessScale_ = m_settings->get_double("brightness");
@@ -355,17 +377,18 @@ void MainWindow::loadStoredSettings()
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
-    // Fallback settings if schema isn't found,
-    // for adjustment controls
+    // Adjustment controls
     int margins = 20;
     int indent = 0;
     m_spacingAdjustment->set_value(0);
     m_marginsAdjustment->set_value(margins);
     m_indentAdjustment->set_value(indent);
     // For drawing
-    m_draw_main.set_left_margin(margins);
-    m_draw_main.set_right_margin(margins);
-    m_draw_main.set_indent(indent);
+    m_draw_primary.set_left_margin(margins);
+    m_draw_primary.set_right_margin(margins);
+    m_draw_primary.set_indent(indent);
+    // ToC paned divider
+    m_panedRoot.set_position(300);
   }
 }
 
@@ -375,6 +398,7 @@ void MainWindow::loadStoredSettings()
 void MainWindow::setGTKIcons()
 {
   // Toolbox buttons
+  m_tocIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   m_refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
@@ -424,6 +448,7 @@ void MainWindow::loadIcons()
     else
     {
       // Toolbox buttons
+      m_tocIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("square_list", "editor"), iconSize_, iconSize_));
       m_backIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("right_arrow_1", "arrows"), iconSize_, iconSize_)->flip());
       m_forwardIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("right_arrow_1", "arrows"), iconSize_, iconSize_));
       m_refreshIcon.set(Gdk::Pixbuf::create_from_file(getIconImageFromTheme("reload_centered", "arrows"), iconSize_ * 1.13, iconSize_));
@@ -458,7 +483,7 @@ void MainWindow::loadIcons()
 /**
  * Init all buttons / comboboxes from the toolbars
  */
-void MainWindow::initButtons()
+void MainWindow::initToolbarButtons()
 {
   // Add icons to the toolbar editor buttons
   m_openButton.add(m_openIcon);
@@ -510,6 +535,7 @@ void MainWindow::initButtons()
   m_settingsButton.set_relief(Gtk::RELIEF_NONE);
 
   // Add icons to the toolbar buttons
+  m_openTocButton.add(m_tocIcon);
   m_backButton.add(m_backIcon);
   m_forwardButton.add(m_forwardIcon);
   m_refreshButton.add(m_refreshIcon);
@@ -542,7 +568,8 @@ void MainWindow::initButtons()
    * Adding the buttons to the boxes
    */
   // Browser Toolbar
-  m_backButton.set_margin_left(6);
+  m_openTocButton.set_margin_left(6);
+  m_hboxBrowserToolbar.pack_start(m_openTocButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_backButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_forwardButton, false, false, 0);
   m_hboxBrowserToolbar.pack_start(m_refreshButton, false, false, 0);
@@ -706,7 +733,29 @@ void MainWindow::initStatusPopover()
 }
 
 /**
- * Init the settings pop-over
+ * \brief Init table of contents window (left side-panel)
+ */
+void MainWindow::initTableofContents()
+{
+  m_closeTocWindowButton.set_image_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_SMALL_TOOLBAR));
+  m_tableOfContentsLabel.set_margin_start(6);
+  m_hboxToc.pack_start(m_tableOfContentsLabel, false, false);
+  m_hboxToc.pack_end(m_closeTocWindowButton, false, false);
+  tocTreeView.append_column("Level", m_tocColumns.m_col_level);
+  tocTreeView.append_column("Name", m_tocColumns.m_col_heading);
+  tocTreeView.set_activate_on_single_click(true);
+  tocTreeView.set_headers_visible(false);
+  tocTreeView.set_tooltip_column(2);
+  m_scrolledToc.add(tocTreeView);
+  m_scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  m_tocTreeModel = Gtk::TreeStore::create(m_tocColumns);
+  tocTreeView.set_model(m_tocTreeModel);
+  m_vboxToc.pack_start(m_hboxToc, Gtk::PackOptions::PACK_SHRINK);
+  m_vboxToc.pack_end(m_scrolledToc);
+}
+
+/**
+ * \brief Init the settings pop-over
  */
 void MainWindow::initSettingsPopover()
 {
@@ -741,7 +790,17 @@ void MainWindow::initSettingsPopover()
   m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
   // Dark theme switch
   m_themeSwitch.set_active(useDarkTheme_); // Override with current dark theme preference
-  // Spin buttons
+  // Settings buttons
+  m_wrapWordChar.set_active(true); // Default wrapping mode
+  m_fontLabel.set_tooltip_text("Font familiy");
+  m_spacingLabel.set_tooltip_text("Text spacing");
+  m_marginsLabel.set_tooltip_text("Text margins");
+  m_indentLabel.set_tooltip_text("Text indentation");
+  m_textWrappingLabel.set_tooltip_text("Text wrapping");
+  m_wrapNone.set_tooltip_text("No wrapping");
+  m_wrapChar.set_tooltip_text("Character wrapping");
+  m_wrapWord.set_tooltip_text("Word wrapping");
+  m_wrapWordChar.set_tooltip_text("Word wrapping (+ character)");
   m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
   m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
   m_indentSpinButton.set_adjustment(m_indentAdjustment);
@@ -749,27 +808,34 @@ void MainWindow::initSettingsPopover()
   m_spacingLabel.set_xalign(1);
   m_marginsLabel.set_xalign(1);
   m_indentLabel.set_xalign(1);
+  m_textWrappingLabel.set_xalign(1);
   m_themeLabel.set_xalign(1);
   m_fontLabel.get_style_context()->add_class("dim-label");
   m_spacingLabel.get_style_context()->add_class("dim-label");
   m_marginsLabel.get_style_context()->add_class("dim-label");
   m_indentLabel.get_style_context()->add_class("dim-label");
+  m_textWrappingLabel.get_style_context()->add_class("dim-label");
   m_themeLabel.get_style_context()->add_class("dim-label");
   m_settingsGrid.set_margin_start(6);
   m_settingsGrid.set_margin_top(6);
   m_settingsGrid.set_margin_bottom(6);
   m_settingsGrid.set_row_spacing(10);
   m_settingsGrid.set_column_spacing(10);
-  m_settingsGrid.attach(m_fontLabel, 0, 0);
-  m_settingsGrid.attach(m_fontButton, 1, 0);
-  m_settingsGrid.attach(m_spacingLabel, 0, 1);
-  m_settingsGrid.attach(m_spacingSpinButton, 1, 1);
-  m_settingsGrid.attach(m_marginsLabel, 0, 2);
-  m_settingsGrid.attach(m_marginsSpinButton, 1, 2);
-  m_settingsGrid.attach(m_indentLabel, 0, 3);
-  m_settingsGrid.attach(m_indentSpinButton, 1, 3);
-  m_settingsGrid.attach(m_themeLabel, 0, 4);
-  m_settingsGrid.attach(m_themeSwitch, 1, 4);
+  m_settingsGrid.attach(m_fontLabel, 0, 0, 1);
+  m_settingsGrid.attach(m_fontButton, 1, 0, 2);
+  m_settingsGrid.attach(m_spacingLabel, 0, 1, 1);
+  m_settingsGrid.attach(m_spacingSpinButton, 1, 1, 2);
+  m_settingsGrid.attach(m_marginsLabel, 0, 2, 1);
+  m_settingsGrid.attach(m_marginsSpinButton, 1, 2, 2);
+  m_settingsGrid.attach(m_indentLabel, 0, 3, 1);
+  m_settingsGrid.attach(m_indentSpinButton, 1, 3, 2);
+  m_settingsGrid.attach(m_textWrappingLabel, 0, 4, 1);
+  m_settingsGrid.attach(m_wrapNone, 1, 4, 1);
+  m_settingsGrid.attach(m_wrapChar, 2, 4, 1);
+  m_settingsGrid.attach(m_wrapWord, 1, 5, 1);
+  m_settingsGrid.attach(m_wrapWordChar, 2, 5, 1);
+  m_settingsGrid.attach(m_themeLabel, 0, 6, 1);
+  m_settingsGrid.attach(m_themeSwitch, 1, 6, 2);
   // Icon theme (+ submenu)
   m_iconThemeButton.set_label("Icon Theme");
   m_iconThemeButton.property_menu_name() = "icon-theme";
@@ -837,7 +903,9 @@ void MainWindow::initSignals()
 {
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
-
+  // Table of contents
+  m_closeTocWindowButton.signal_clicked().connect(sigc::mem_fun(m_vboxToc, &Gtk::Widget::hide));
+  tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
   // Menu & toolbar signals
   m_menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                       /*!< Menu item for new document */
   m_menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                             /*!< Menu item for opening existing document */
@@ -847,8 +915,8 @@ void MainWindow::initSignals()
   m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                       /*!< Menu item for save document as */
   m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                       /*!< Menu item for publishing */
   m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                            /*!< close main window and therefor closes the app */
-  m_menu.undo.connect(sigc::mem_fun(m_draw_main, &Draw::undo));                            /*!< Menu item for undo text */
-  m_menu.redo.connect(sigc::mem_fun(m_draw_main, &Draw::redo));                            /*!< Menu item for redo text */
+  m_menu.undo.connect(sigc::mem_fun(m_draw_primary, &Draw::undo));                         /*!< Menu item for undo text */
+  m_menu.redo.connect(sigc::mem_fun(m_draw_primary, &Draw::redo));                         /*!< Menu item for redo text */
   m_menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                               /*!< Menu item for cut text */
   m_menu.copy.connect(sigc::mem_fun(this, &MainWindow::copy));                             /*!< Menu item for copy text */
   m_menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                           /*!< Menu item for paste text */
@@ -860,12 +928,14 @@ void MainWindow::initSignals()
   m_menu.forward.connect(sigc::mem_fun(this, &MainWindow::forward));                       /*!< Menu item for next page */
   m_menu.reload.connect(sigc::mem_fun(this, &MainWindow::refreshRequest));                 /*!< Menu item for reloading the page */
   m_menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                          /*!< Menu item for home page */
+  m_menu.toc.connect(sigc::mem_fun(this, &MainWindow::show_toc));                          /*!< Menu item for table of contents */
   m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
   m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
-  m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
+  m_draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                   /*!< Open source code dialog */
   m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
   m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
+  m_openTocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
   m_backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
   m_forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
   m_refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refreshRequest));     /*!< Button for reloading the page */
@@ -879,22 +949,22 @@ void MainWindow::initSignals()
   m_cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
   m_copyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
   m_pasteButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
-  m_undoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::undo));
-  m_redoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::redo));
+  m_undoButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::undo));
+  m_redoButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::redo));
   m_headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
-  m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_bold));
-  m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_italic));
-  m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_strikethrough));
-  m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_super));
-  m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
-  m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
-  m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+  m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_bold));
+  m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_italic));
+  m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_strikethrough));
+  m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_super));
+  m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_sub));
+  m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_link));
+  m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_image));
   m_emojiButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
-  m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
-  m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
-  m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
-  m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
-  m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
+  m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_quote));
+  m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_code));
+  m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_bullet_list));
+  m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_numbered_list));
+  m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_highlight));
   // Status pop-over buttons
   m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
   m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
@@ -906,6 +976,10 @@ void MainWindow::initSignals()
   m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
   m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
   m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
+  m_wrapNone.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_NONE));
+  m_wrapChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_CHAR));
+  m_wrapWord.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
+  m_wrapWordChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
   m_themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
   m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
   m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
@@ -922,10 +996,12 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     m_settings->set_int("width", get_width());
     m_settings->set_int("height", get_height());
     m_settings->set_boolean("maximized", is_maximized());
+    if (m_panedRoot.get_position() > 0)
+      m_settings->set_int("position-divider-toc", m_panedRoot.get_position());
     // Only store a divider value bigger than zero,
     // because the secondary draw window is hidden by default, resulting into a zero value.
-    if (m_paned.get_position() > 0)
-      m_settings->set_int("position-divider", m_paned.get_position());
+    if (m_panedDraw.get_position() > 0)
+      m_settings->set_int("position-divider-draw", m_panedDraw.get_position());
     // Fullscreen will be availible with gtkmm-4.0
     // m_settings->set_boolean("fullscreen", is_fullscreen());
     m_settings->set_string("font-family", fontFamily_);
@@ -946,9 +1022,9 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
  */
 void MainWindow::cut()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.cut();
+    m_draw_primary.cut();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -970,9 +1046,9 @@ void MainWindow::cut()
 
 void MainWindow::copy()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.copy();
+    m_draw_primary.copy();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -994,9 +1070,9 @@ void MainWindow::copy()
 
 void MainWindow::paste()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.paste();
+    m_draw_primary.paste();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1018,9 +1094,9 @@ void MainWindow::paste()
 
 void MainWindow::del()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.del();
+    m_draw_primary.del();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1069,9 +1145,9 @@ void MainWindow::del()
 
 void MainWindow::selectAll()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.selectAll();
+    m_draw_primary.selectAll();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1088,6 +1164,27 @@ void MainWindow::selectAll()
   else if (m_searchReplaceEntry.has_focus())
   {
     m_searchReplaceEntry.select_region(0, -1);
+  }
+}
+
+/**
+ * \brief Triggered when user clicked on the column in ToC
+ */
+void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attribute__((unused)) Gtk::TreeViewColumn* column)
+{
+  const auto iter = m_tocTreeModel->get_iter(path);
+  if (iter)
+  {
+    const auto row = *iter;
+    if (row[m_tocColumns.m_col_valid])
+    {
+      Gtk::TextIter textIter = row[m_tocColumns.m_col_iter];
+      // Scroll to to mark iterator
+      if (isEditorEnabled())
+        m_draw_secondary.scroll_to(textIter);
+      else
+        m_draw_primary.scroll_to(textIter);
+    }
   }
 }
 
@@ -1241,7 +1338,7 @@ void MainWindow::edit()
   if (!isEditorEnabled())
     enableEdit();
 
-  m_draw_main.setText(middleware_.getContent());
+  m_draw_primary.setText(middleware_.getContent());
   // Set title
   set_title("Untitled * - " + appName_);
 }
@@ -1431,6 +1528,17 @@ void MainWindow::go_home()
 }
 
 /**
+ * \brief Show/hide table of contents
+ */
+void MainWindow::show_toc()
+{
+  if (m_vboxToc.is_visible())
+    m_vboxToc.hide();
+  else
+    m_vboxToc.show();
+}
+
+/**
  * \brief Copy the IPFS Client ID to clipboard
  */
 void MainWindow::copy_client_id()
@@ -1469,7 +1577,7 @@ void MainWindow::on_search()
 {
   // Forward search, find and select
   std::string text = m_searchEntry.get_text();
-  auto buffer = m_draw_main.get_buffer();
+  auto buffer = m_draw_primary.get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
   Gtk::TextBuffer::iterator start, end;
   bool matchCase = m_searchMatchCase.get_active();
@@ -1481,7 +1589,7 @@ void MainWindow::on_search()
   if (iter.forward_search(text, flags, start, end))
   {
     buffer->select_range(end, start);
-    m_draw_main.scroll_to(start);
+    m_draw_primary.scroll_to(start);
   }
   else
   {
@@ -1491,7 +1599,7 @@ void MainWindow::on_search()
     if (secondIter.forward_search(text, flags, start, end))
     {
       buffer->select_range(end, start);
-      m_draw_main.scroll_to(start);
+      m_draw_primary.scroll_to(start);
     }
   }
 }
@@ -1501,9 +1609,9 @@ void MainWindow::on_search()
  */
 void MainWindow::on_replace()
 {
-  if (m_draw_main.get_editable())
+  if (m_draw_primary.get_editable())
   {
-    auto buffer = m_draw_main.get_buffer();
+    auto buffer = m_draw_primary.get_buffer();
     Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
     Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_mark(buffer->get_mark("selection_bound"));
     if (startIter != endIter)
@@ -1525,8 +1633,8 @@ void MainWindow::on_replace()
 void MainWindow::address_bar_activate()
 {
   middleware_.doRequest(m_addressBar.get_text(), false);
-  // When user actually entered the address bar, focus on the main draw
-  m_draw_main.grab_focus();
+  // When user actually entered the address bar, focus on the primary draw
+  m_draw_primary.grab_focus();
 }
 
 /**
@@ -1595,6 +1703,149 @@ void MainWindow::forward()
 }
 
 /**
+ * \brief Fill-in table of contents and show
+ */
+void MainWindow::setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings)
+{
+  Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
+  int previousLevel = 1; // Default heading 1
+  for (const Glib::RefPtr<Gtk::TextMark> headerMark : headings)
+  {
+    Glib::ustring heading = static_cast<char*>(headerMark->get_data("name"));
+    auto level = reinterpret_cast<std::intptr_t>(headerMark->get_data("level"));
+    switch (level)
+    {
+    case 1:
+    {
+      heading1Row = *(m_tocTreeModel->append());
+      heading1Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading1Row[m_tocColumns.m_col_level] = level;
+      heading1Row[m_tocColumns.m_col_heading] = heading;
+      heading1Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 1)
+      {
+        heading2Row = Gtk::TreeRow();
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 2:
+    {
+      if (heading1Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading1Row = *(m_tocTreeModel->append());
+        heading1Row[m_tocColumns.m_col_level] = 1;
+        heading1Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading1Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+      heading2Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading2Row[m_tocColumns.m_col_level] = level;
+      heading2Row[m_tocColumns.m_col_heading] = heading;
+      heading2Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 2)
+      {
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 3:
+    {
+      if (heading2Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+        heading2Row[m_tocColumns.m_col_level] = 2;
+        heading2Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading2Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+      heading3Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading3Row[m_tocColumns.m_col_level] = level;
+      heading3Row[m_tocColumns.m_col_heading] = heading;
+      heading3Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 3)
+      {
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 4:
+    {
+      if (heading3Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+        heading3Row[m_tocColumns.m_col_level] = 3;
+        heading3Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading3Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+      heading4Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading4Row[m_tocColumns.m_col_level] = level;
+      heading4Row[m_tocColumns.m_col_heading] = heading;
+      heading4Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 4)
+      {
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 5:
+    {
+      if (heading4Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+        heading4Row[m_tocColumns.m_col_level] = 4;
+        heading4Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading4Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+      heading5Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading5Row[m_tocColumns.m_col_level] = level;
+      heading5Row[m_tocColumns.m_col_heading] = heading;
+      heading5Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    case 6:
+    {
+      if (heading5Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+        heading5Row[m_tocColumns.m_col_level] = 5;
+        heading5Row[m_tocColumns.m_col_heading] = "- Missing heading -";
+        heading5Row[m_tocColumns.m_col_valid] = false;
+      }
+      auto heading6Row = *(m_tocTreeModel->append(heading5Row.children()));
+      heading6Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading6Row[m_tocColumns.m_col_level] = level;
+      heading6Row[m_tocColumns.m_col_heading] = heading;
+      heading6Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    default:
+      std::cerr << "ERROR: Out of range heading level detected." << std::endl;
+      break;
+    }
+    previousLevel = level;
+  }
+  tocTreeView.columns_autosize();
+  tocTreeView.expand_all();
+}
+
+/**
  * \brief Determing if browser is installed to the installation directory at runtime
  * \return true if the current running process is installed (to the installed prefix path)
  */
@@ -1636,7 +1887,7 @@ bool MainWindow::isInstalled()
 void MainWindow::enableEdit()
 {
   // Inform the Draw class that we are creating a new document
-  m_draw_main.newDocument();
+  m_draw_primary.newDocument();
   // Show editor toolbars
   m_hboxStandardEditorToolbar.show();
   m_hboxFormattingEditorToolbar.show();
@@ -1644,7 +1895,7 @@ void MainWindow::enableEdit()
   int location = 0;
   int positionSettings = 42;
   if (m_settings)
-    positionSettings = m_settings->get_int("position-divider");
+    positionSettings = m_settings->get_int("position-divider-draw");
   int currentWidth, _ = 0;
   get_size(currentWidth, _);
   // If position from settings is still default (42) or too big,
@@ -1657,14 +1908,14 @@ void MainWindow::enableEdit()
   {
     location = positionSettings;
   }
-  m_paned.set_position(location);
+  m_panedDraw.set_position(location);
 
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
   // Disable "view source" menu item
-  m_draw_main.setViewSourceMenuItem(false);
+  m_draw_primary.setViewSourceMenuItem(false);
   // Connect changed signal
-  textChangedSignalHandler_ = m_draw_main.get_buffer().get()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
+  textChangedSignalHandler_ = m_draw_primary.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
   // Enable publish menu item
   m_menu.setPublishMenuSensitive(true);
   // Disable edit menu item (you are already editing)
@@ -1686,8 +1937,8 @@ void MainWindow::disableEdit()
     // Disconnect text changed signal
     textChangedSignalHandler_.disconnect();
     // Show "view source" menu item again
-    m_draw_main.setViewSourceMenuItem(true);
-    m_draw_secondary.clearText();
+    m_draw_primary.setViewSourceMenuItem(true);
+    m_draw_secondary.clear();
     // Disable publish menu item
     m_menu.setPublishMenuSensitive(false);
     // Enable edit menu item
@@ -1740,7 +1991,7 @@ std::string MainWindow::getIconImageFromTheme(const std::string& iconName, const
 }
 
 /**
- * \brief Update the CSS provider data on the main draw text view
+ * \brief Update the CSS provider data
  */
 void MainWindow::updateCSS()
 {
@@ -1799,14 +2050,17 @@ void MainWindow::editor_changed_text()
   // TODO: Just execute the code below in a signal_idle call?
   // So it will never block the GUI thread. Or is this already running in another context
 
+  // Clear table of contents (ToC)
+  m_tocTreeModel->clear();
   // Retrieve text from editor and parse the markdown contents
-  middleware_.setContent(m_draw_main.getText());
+  middleware_.setContent(m_draw_primary.getText());
   cmark_node* doc = middleware_.parseContent();
   /* // Can be enabled to show the markdown format in terminal:
   std::string md = Parser::renderMarkdown(doc);
   std::cout << "Markdown:\n" << md << std::endl;*/
   // Show the document as a preview on the right side text-view panel
   m_draw_secondary.setDocument(doc);
+  setTableofContents(m_draw_secondary.getHeadings());
 }
 
 /**
@@ -1832,7 +2086,7 @@ void MainWindow::get_heading()
     try
     {
       int headingLevel = std::stoi(active, &sz, 10);
-      m_draw_main.make_heading(headingLevel);
+      m_draw_primary.make_heading(headingLevel);
     }
     catch (const std::invalid_argument&)
     {
@@ -1849,7 +2103,7 @@ void MainWindow::get_heading()
 void MainWindow::insert_emoji()
 {
   // Note: The "insert-emoji" signal is not exposed in Gtkmm library (at least not in gtk3)
-  g_signal_emit_by_name(m_draw_main.gobj(), "insert-emoji");
+  g_signal_emit_by_name(m_draw_primary.gobj(), "insert-emoji");
 }
 
 void MainWindow::on_zoom_out()
@@ -1889,13 +2143,18 @@ void MainWindow::on_spacing_changed()
 
 void MainWindow::on_margins_changed()
 {
-  m_draw_main.set_left_margin(m_marginsSpinButton.get_value_as_int());
-  m_draw_main.set_right_margin(m_marginsSpinButton.get_value_as_int());
+  m_draw_primary.set_left_margin(m_marginsSpinButton.get_value_as_int());
+  m_draw_primary.set_right_margin(m_marginsSpinButton.get_value_as_int());
 }
 
 void MainWindow::on_indent_changed()
 {
-  m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
+  m_draw_primary.set_indent(m_indentSpinButton.get_value_as_int());
+}
+
+void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
+{
+  m_draw_primary.set_wrap_mode(mode);
 }
 
 void MainWindow::on_brightness_changed()

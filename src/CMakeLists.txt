@@ -24,6 +24,7 @@ set(HEADERS
     middleware-i.h
     middleware.h
     toolbar-button.h
+    toc-model-cols.h
     mainwindow.h
     md-parser.h
     menu.h
