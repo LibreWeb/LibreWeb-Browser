@@ -1,0 +1,33 @@
+name: MacOS build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-11
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Install dependencies
+        run: |
+          brew install \
+            cmake \
+            curl \
+            gtkmm3 \
+            ninja
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake -G Ninja ..
+          ninja
+
+        #xcodebuild \
+        # -project "libreweb-browser.xcodeproj" \
+        #    -scheme libreweb-browser \
+        #    -configuration Debug
