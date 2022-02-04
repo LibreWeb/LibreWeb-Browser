@@ -39,7 +39,7 @@ public:
 
   explicit Draw(MiddlewareInterface& middleware);
   void setMessage(const Glib::ustring& message, const Glib::ustring& details = "");
-  void showStartPage();
+  void showHomepage();
   void setDocument(cmark_node* rootNode);
   void setViewSourceMenuItem(bool isEnabled);
   void newDocument();

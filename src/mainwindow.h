@@ -58,7 +58,7 @@ public:
   void startedRequest();
   void finishedRequest();
   void refreshRequest();
-  void showStartpage();
+  void showHomepage();
   void setText(const Glib::ustring& content);
   void setDocument(cmark_node* rootNode);
   void setMessage(const Glib::ustring& message, const Glib::ustring& details = "");
@@ -122,7 +122,7 @@ protected:
 
   // Child widgets
   Menu m_menu;
-  Draw m_draw_main;
+  Draw m_draw_primary;
   Draw m_draw_secondary;
   SourceCodeDialog m_sourceCodeDialog;
   About m_about;
@@ -268,7 +268,7 @@ protected:
   Gtk::Label m_iconThemeLabel;
   std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
   Gtk::ScrolledWindow m_scrolledToc;
-  Gtk::ScrolledWindow m_scrolledWindowMain;
+  Gtk::ScrolledWindow m_scrolledWindowPrimary;
   Gtk::ScrolledWindow m_scrolledWindowSecondary;
   Gtk::SeparatorMenuItem m_separator1;
   Gtk::SeparatorMenuItem m_separator2;
@@ -310,6 +310,7 @@ private:
   void initTableofContents();
   void initSignals();
   bool isInstalled();
+  void setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings);
   void enableEdit();
   void disableEdit();
   bool isEditorEnabled();

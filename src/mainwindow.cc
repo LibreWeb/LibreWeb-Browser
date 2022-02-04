@@ -28,7 +28,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       m_drawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
-      m_draw_main(middleware_),
+      m_draw_primary(middleware_),
       m_draw_secondary(middleware_),
       m_about(*this),
       m_vboxMain(Gtk::ORIENTATION_VERTICAL, 0),
@@ -117,24 +117,24 @@ MainWindow::MainWindow(const std::string& timeout)
   initSignals();
 
   // Add custom CSS Provider to draw textviews
-  auto styleMain = m_draw_main.get_style_context();
+  auto stylePrimary = m_draw_primary.get_style_context();
   auto styleSecondary = m_draw_secondary.get_style_context();
-  styleMain->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+  stylePrimary->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
   styleSecondary->add_provider(m_drawCSSProvider, GTK_STYLE_PROVIDER_PRIORITY_USER);
   // Load the default font family and font size
   updateCSS();
 
-  // Browser main drawing area
-  m_scrolledWindowMain.add(m_draw_main);
-  m_scrolledWindowMain.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  // Primary drawing area
+  m_scrolledWindowPrimary.add(m_draw_primary);
+  m_scrolledWindowPrimary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
   // Secondary drawing area
   m_draw_secondary.setViewSourceMenuItem(false);
   m_scrolledWindowSecondary.add(m_draw_secondary);
   m_scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  m_panedDraw.pack1(m_scrolledWindowMain, true, false);
+  m_panedDraw.pack1(m_scrolledWindowPrimary, true, false);
   m_panedDraw.pack2(m_scrolledWindowSecondary, true, true);
   // Left the vbox for the table of contents,
-  // right the main drawing paned windows (primary/secondary).
+  // right the drawing paned windows (primary/secondary).
   m_panedRoot.pack1(m_vboxToc, true, false);
   m_panedRoot.pack2(m_panedDraw, true, false);
   // Main virtual box
@@ -251,11 +251,11 @@ void MainWindow::refreshRequest()
 }
 
 /**
- * \brief Show startpage
+ * \brief Show home page
  */
-void MainWindow::showStartpage()
+void MainWindow::showHomepage()
 {
-  m_draw_main.showStartPage();
+  m_draw_primary.showHomepage();
 }
 
 /**
@@ -264,155 +264,18 @@ void MainWindow::showStartpage()
  */
 void MainWindow::setText(const Glib::ustring& content)
 {
-  m_draw_main.setText(content);
+  m_draw_primary.setText(content);
 }
 
 /**
- * \brief Set markdown document (cmark). cmark_node pointer will be freed automatically.
+ * \brief Set markdown document (common mark) on primary window. cmark_node pointer will be freed automatically.
+ * And set the ToC.
  * \param rootNode cmark root data struct
  */
 void MainWindow::setDocument(cmark_node* rootNode)
 {
-  m_draw_main.setDocument(rootNode);
-
-  // Retrieve headings for ToC
-  auto headings = m_draw_main.getHeadings();
-  Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
-  int previousLevel = 1; // Default heading 1
-  for (const Glib::RefPtr<Gtk::TextMark> headerMark : headings)
-  {
-    Glib::ustring heading = static_cast<char*>(headerMark->get_data("name"));
-    auto level = reinterpret_cast<std::intptr_t>(headerMark->get_data("level"));
-    switch (level)
-    {
-    case 1:
-    {
-      heading1Row = *(m_tocTreeModel->append());
-      heading1Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading1Row[m_tocColumns.m_col_level] = level;
-      heading1Row[m_tocColumns.m_col_heading] = heading;
-      heading1Row[m_tocColumns.m_col_valid] = true;
-      // Reset
-      if (previousLevel > 1)
-      {
-        heading2Row = Gtk::TreeRow();
-        heading3Row = Gtk::TreeRow();
-        heading4Row = Gtk::TreeRow();
-        heading5Row = Gtk::TreeRow();
-      }
-      break;
-    }
-    case 2:
-    {
-      if (heading1Row->get_model_gobject() == nullptr)
-      {
-        // Add missing heading as top-level
-        heading1Row = *(m_tocTreeModel->append());
-        heading1Row[m_tocColumns.m_col_level] = 1;
-        heading1Row[m_tocColumns.m_col_heading] = "-Missing heading-";
-        heading1Row[m_tocColumns.m_col_valid] = false;
-      }
-      heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
-      heading2Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading2Row[m_tocColumns.m_col_level] = level;
-      heading2Row[m_tocColumns.m_col_heading] = heading;
-      heading2Row[m_tocColumns.m_col_valid] = true;
-      // Reset
-      if (previousLevel > 2)
-      {
-        heading3Row = Gtk::TreeRow();
-        heading4Row = Gtk::TreeRow();
-        heading5Row = Gtk::TreeRow();
-      }
-      break;
-    }
-    case 3:
-    {
-      if (heading2Row->get_model_gobject() == nullptr)
-      {
-        // Add missing heading as top-level
-        heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
-        heading2Row[m_tocColumns.m_col_level] = 2;
-        heading2Row[m_tocColumns.m_col_heading] = "-Missing heading-";
-        heading2Row[m_tocColumns.m_col_valid] = false;
-      }
-      heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
-      heading3Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading3Row[m_tocColumns.m_col_level] = level;
-      heading3Row[m_tocColumns.m_col_heading] = heading;
-      heading3Row[m_tocColumns.m_col_valid] = true;
-      // Reset
-      if (previousLevel > 3)
-      {
-        heading4Row = Gtk::TreeRow();
-        heading5Row = Gtk::TreeRow();
-      }
-      break;
-    }
-    case 4:
-    {
-      if (heading3Row->get_model_gobject() == nullptr)
-      {
-        // Add missing heading as top-level
-        heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
-        heading3Row[m_tocColumns.m_col_level] = 3;
-        heading3Row[m_tocColumns.m_col_heading] = "-Missing heading-";
-        heading3Row[m_tocColumns.m_col_valid] = false;
-      }
-      heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
-      heading4Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading4Row[m_tocColumns.m_col_level] = level;
-      heading4Row[m_tocColumns.m_col_heading] = heading;
-      heading4Row[m_tocColumns.m_col_valid] = true;
-      // Reset
-      if (previousLevel > 4)
-      {
-        heading5Row = Gtk::TreeRow();
-      }
-      break;
-    }
-    case 5:
-    {
-      if (heading4Row->get_model_gobject() == nullptr)
-      {
-        // Add missing heading as top-level
-        heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
-        heading4Row[m_tocColumns.m_col_level] = 4;
-        heading4Row[m_tocColumns.m_col_heading] = "-Missing heading-";
-        heading4Row[m_tocColumns.m_col_valid] = false;
-      }
-      heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
-      heading5Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading5Row[m_tocColumns.m_col_level] = level;
-      heading5Row[m_tocColumns.m_col_heading] = heading;
-      heading5Row[m_tocColumns.m_col_valid] = true;
-      break;
-    }
-    case 6:
-    {
-      if (heading5Row->get_model_gobject() == nullptr)
-      {
-        // Add missing heading as top-level
-        heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
-        heading5Row[m_tocColumns.m_col_level] = 5;
-        heading5Row[m_tocColumns.m_col_heading] = "- Missing heading -";
-        heading5Row[m_tocColumns.m_col_valid] = false;
-      }
-      auto heading6Row = *(m_tocTreeModel->append(heading5Row.children()));
-      heading6Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
-      heading6Row[m_tocColumns.m_col_level] = level;
-      heading6Row[m_tocColumns.m_col_heading] = heading;
-      heading6Row[m_tocColumns.m_col_valid] = true;
-      break;
-    }
-    default:
-      std::cerr << "ERROR: Out of range heading level detected." << std::endl;
-      break;
-    }
-    previousLevel = level;
-  }
-  tocTreeView.columns_autosize();
-  tocTreeView.expand_all();
+  m_draw_primary.setDocument(rootNode);
+  setTableofContents(m_draw_primary.getHeadings());
 }
 
 /**
@@ -422,7 +285,7 @@ void MainWindow::setDocument(cmark_node* rootNode)
  */
 void MainWindow::setMessage(const Glib::ustring& message, const Glib::ustring& details)
 {
-  m_draw_main.setMessage(message, details);
+  m_draw_primary.setMessage(message, details);
 }
 
 /**
@@ -501,9 +364,9 @@ void MainWindow::loadStoredSettings()
     m_spacingAdjustment->set_value(fontSpacing_);
     m_marginsAdjustment->set_value(margins);
     m_indentAdjustment->set_value(indent);
-    m_draw_main.set_left_margin(margins);
-    m_draw_main.set_right_margin(margins);
-    m_draw_main.set_indent(indent);
+    m_draw_primary.set_left_margin(margins);
+    m_draw_primary.set_right_margin(margins);
+    m_draw_primary.set_indent(indent);
     int tocDividerPosition = m_settings->get_int("position-divider-toc");
     m_panedRoot.set_position(tocDividerPosition);
     iconTheme_ = m_settings->get_string("icon-theme");
@@ -521,9 +384,9 @@ void MainWindow::loadStoredSettings()
     m_marginsAdjustment->set_value(margins);
     m_indentAdjustment->set_value(indent);
     // For drawing
-    m_draw_main.set_left_margin(margins);
-    m_draw_main.set_right_margin(margins);
-    m_draw_main.set_indent(indent);
+    m_draw_primary.set_left_margin(margins);
+    m_draw_primary.set_right_margin(margins);
+    m_draw_primary.set_indent(indent);
     // ToC paned divider
     m_panedRoot.set_position(300);
   }
@@ -1052,8 +915,8 @@ void MainWindow::initSignals()
   m_menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                       /*!< Menu item for save document as */
   m_menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                       /*!< Menu item for publishing */
   m_menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                            /*!< close main window and therefor closes the app */
-  m_menu.undo.connect(sigc::mem_fun(m_draw_main, &Draw::undo));                            /*!< Menu item for undo text */
-  m_menu.redo.connect(sigc::mem_fun(m_draw_main, &Draw::redo));                            /*!< Menu item for redo text */
+  m_menu.undo.connect(sigc::mem_fun(m_draw_primary, &Draw::undo));                         /*!< Menu item for undo text */
+  m_menu.redo.connect(sigc::mem_fun(m_draw_primary, &Draw::redo));                         /*!< Menu item for redo text */
   m_menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                               /*!< Menu item for cut text */
   m_menu.copy.connect(sigc::mem_fun(this, &MainWindow::copy));                             /*!< Menu item for copy text */
   m_menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                           /*!< Menu item for paste text */
@@ -1069,7 +932,7 @@ void MainWindow::initSignals()
   m_menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
   m_sourceCodeDialog.signal_response().connect(sigc::mem_fun(m_sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   m_menu.about.connect(sigc::mem_fun(m_about, &About::show_about));                                                /*!< Display about dialog */
-  m_draw_main.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                      /*!< Open source code dialog */
+  m_draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                   /*!< Open source code dialog */
   m_about.signal_response().connect(sigc::mem_fun(m_about, &About::hide_about));                                   /*!< Close about dialog */
   m_addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
   m_openTocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
@@ -1086,22 +949,22 @@ void MainWindow::initSignals()
   m_cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
   m_copyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
   m_pasteButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
-  m_undoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::undo));
-  m_redoButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::redo));
+  m_undoButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::undo));
+  m_redoButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::redo));
   m_headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
-  m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_bold));
-  m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_italic));
-  m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_strikethrough));
-  m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_super));
-  m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_sub));
-  m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_link));
-  m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_image));
+  m_boldButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_bold));
+  m_italicButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_italic));
+  m_strikethroughButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_strikethrough));
+  m_superButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_super));
+  m_subButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_sub));
+  m_linkButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_link));
+  m_imageButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_image));
   m_emojiButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
-  m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_quote));
-  m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_code));
-  m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_bullet_list));
-  m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::insert_numbered_list));
-  m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_main, &Draw::make_highlight));
+  m_quoteButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_quote));
+  m_codeButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_code));
+  m_bulletListButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_bullet_list));
+  m_numberedListButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::insert_numbered_list));
+  m_highlightButton.signal_clicked().connect(sigc::mem_fun(m_draw_primary, &Draw::make_highlight));
   // Status pop-over buttons
   m_copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
   m_copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
@@ -1159,9 +1022,9 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
  */
 void MainWindow::cut()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.cut();
+    m_draw_primary.cut();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1183,9 +1046,9 @@ void MainWindow::cut()
 
 void MainWindow::copy()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.copy();
+    m_draw_primary.copy();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1207,9 +1070,9 @@ void MainWindow::copy()
 
 void MainWindow::paste()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.paste();
+    m_draw_primary.paste();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1231,9 +1094,9 @@ void MainWindow::paste()
 
 void MainWindow::del()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.del();
+    m_draw_primary.del();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1282,9 +1145,9 @@ void MainWindow::del()
 
 void MainWindow::selectAll()
 {
-  if (m_draw_main.has_focus())
+  if (m_draw_primary.has_focus())
   {
-    m_draw_main.selectAll();
+    m_draw_primary.selectAll();
   }
   else if (m_draw_secondary.has_focus())
   {
@@ -1317,7 +1180,10 @@ void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attrib
     {
       Gtk::TextIter textIter = row[m_tocColumns.m_col_iter];
       // Scroll to to mark iterator
-      m_draw_main.scroll_to(textIter);
+      if (isEditorEnabled())
+        m_draw_secondary.scroll_to(textIter);
+      else
+        m_draw_primary.scroll_to(textIter);
     }
   }
 }
@@ -1472,7 +1338,7 @@ void MainWindow::edit()
   if (!isEditorEnabled())
     enableEdit();
 
-  m_draw_main.setText(middleware_.getContent());
+  m_draw_primary.setText(middleware_.getContent());
   // Set title
   set_title("Untitled * - " + appName_);
 }
@@ -1711,7 +1577,7 @@ void MainWindow::on_search()
 {
   // Forward search, find and select
   std::string text = m_searchEntry.get_text();
-  auto buffer = m_draw_main.get_buffer();
+  auto buffer = m_draw_primary.get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
   Gtk::TextBuffer::iterator start, end;
   bool matchCase = m_searchMatchCase.get_active();
@@ -1723,7 +1589,7 @@ void MainWindow::on_search()
   if (iter.forward_search(text, flags, start, end))
   {
     buffer->select_range(end, start);
-    m_draw_main.scroll_to(start);
+    m_draw_primary.scroll_to(start);
   }
   else
   {
@@ -1733,7 +1599,7 @@ void MainWindow::on_search()
     if (secondIter.forward_search(text, flags, start, end))
     {
       buffer->select_range(end, start);
-      m_draw_main.scroll_to(start);
+      m_draw_primary.scroll_to(start);
     }
   }
 }
@@ -1743,9 +1609,9 @@ void MainWindow::on_search()
  */
 void MainWindow::on_replace()
 {
-  if (m_draw_main.get_editable())
+  if (m_draw_primary.get_editable())
   {
-    auto buffer = m_draw_main.get_buffer();
+    auto buffer = m_draw_primary.get_buffer();
     Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
     Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_mark(buffer->get_mark("selection_bound"));
     if (startIter != endIter)
@@ -1767,8 +1633,8 @@ void MainWindow::on_replace()
 void MainWindow::address_bar_activate()
 {
   middleware_.doRequest(m_addressBar.get_text(), false);
-  // When user actually entered the address bar, focus on the main draw
-  m_draw_main.grab_focus();
+  // When user actually entered the address bar, focus on the primary draw
+  m_draw_primary.grab_focus();
 }
 
 /**
@@ -1837,6 +1703,149 @@ void MainWindow::forward()
 }
 
 /**
+ * \brief Fill-in table of contents and show
+ */
+void MainWindow::setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings)
+{
+  Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
+  int previousLevel = 1; // Default heading 1
+  for (const Glib::RefPtr<Gtk::TextMark> headerMark : headings)
+  {
+    Glib::ustring heading = static_cast<char*>(headerMark->get_data("name"));
+    auto level = reinterpret_cast<std::intptr_t>(headerMark->get_data("level"));
+    switch (level)
+    {
+    case 1:
+    {
+      heading1Row = *(m_tocTreeModel->append());
+      heading1Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading1Row[m_tocColumns.m_col_level] = level;
+      heading1Row[m_tocColumns.m_col_heading] = heading;
+      heading1Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 1)
+      {
+        heading2Row = Gtk::TreeRow();
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 2:
+    {
+      if (heading1Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading1Row = *(m_tocTreeModel->append());
+        heading1Row[m_tocColumns.m_col_level] = 1;
+        heading1Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading1Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+      heading2Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading2Row[m_tocColumns.m_col_level] = level;
+      heading2Row[m_tocColumns.m_col_heading] = heading;
+      heading2Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 2)
+      {
+        heading3Row = Gtk::TreeRow();
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 3:
+    {
+      if (heading2Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading2Row = *(m_tocTreeModel->append(heading1Row.children()));
+        heading2Row[m_tocColumns.m_col_level] = 2;
+        heading2Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading2Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+      heading3Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading3Row[m_tocColumns.m_col_level] = level;
+      heading3Row[m_tocColumns.m_col_heading] = heading;
+      heading3Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 3)
+      {
+        heading4Row = Gtk::TreeRow();
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 4:
+    {
+      if (heading3Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading3Row = *(m_tocTreeModel->append(heading2Row.children()));
+        heading3Row[m_tocColumns.m_col_level] = 3;
+        heading3Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading3Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+      heading4Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading4Row[m_tocColumns.m_col_level] = level;
+      heading4Row[m_tocColumns.m_col_heading] = heading;
+      heading4Row[m_tocColumns.m_col_valid] = true;
+      // Reset
+      if (previousLevel > 4)
+      {
+        heading5Row = Gtk::TreeRow();
+      }
+      break;
+    }
+    case 5:
+    {
+      if (heading4Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading4Row = *(m_tocTreeModel->append(heading3Row.children()));
+        heading4Row[m_tocColumns.m_col_level] = 4;
+        heading4Row[m_tocColumns.m_col_heading] = "-Missing heading-";
+        heading4Row[m_tocColumns.m_col_valid] = false;
+      }
+      heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+      heading5Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading5Row[m_tocColumns.m_col_level] = level;
+      heading5Row[m_tocColumns.m_col_heading] = heading;
+      heading5Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    case 6:
+    {
+      if (heading5Row->get_model_gobject() == nullptr)
+      {
+        // Add missing heading as top-level
+        heading5Row = *(m_tocTreeModel->append(heading4Row.children()));
+        heading5Row[m_tocColumns.m_col_level] = 5;
+        heading5Row[m_tocColumns.m_col_heading] = "- Missing heading -";
+        heading5Row[m_tocColumns.m_col_valid] = false;
+      }
+      auto heading6Row = *(m_tocTreeModel->append(heading5Row.children()));
+      heading6Row[m_tocColumns.m_col_iter] = headerMark->get_iter();
+      heading6Row[m_tocColumns.m_col_level] = level;
+      heading6Row[m_tocColumns.m_col_heading] = heading;
+      heading6Row[m_tocColumns.m_col_valid] = true;
+      break;
+    }
+    default:
+      std::cerr << "ERROR: Out of range heading level detected." << std::endl;
+      break;
+    }
+    previousLevel = level;
+  }
+  tocTreeView.columns_autosize();
+  tocTreeView.expand_all();
+}
+
+/**
  * \brief Determing if browser is installed to the installation directory at runtime
  * \return true if the current running process is installed (to the installed prefix path)
  */
@@ -1878,7 +1887,7 @@ bool MainWindow::isInstalled()
 void MainWindow::enableEdit()
 {
   // Inform the Draw class that we are creating a new document
-  m_draw_main.newDocument();
+  m_draw_primary.newDocument();
   // Show editor toolbars
   m_hboxStandardEditorToolbar.show();
   m_hboxFormattingEditorToolbar.show();
@@ -1901,15 +1910,12 @@ void MainWindow::enableEdit()
   }
   m_panedDraw.set_position(location);
 
-  // Disable Table of Contents during edit & clear ToC
-  m_vboxToc.hide();
-  m_tocTreeModel->clear();
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
   // Disable "view source" menu item
-  m_draw_main.setViewSourceMenuItem(false);
+  m_draw_primary.setViewSourceMenuItem(false);
   // Connect changed signal
-  textChangedSignalHandler_ = m_draw_main.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
+  textChangedSignalHandler_ = m_draw_primary.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
   // Enable publish menu item
   m_menu.setPublishMenuSensitive(true);
   // Disable edit menu item (you are already editing)
@@ -1931,7 +1937,7 @@ void MainWindow::disableEdit()
     // Disconnect text changed signal
     textChangedSignalHandler_.disconnect();
     // Show "view source" menu item again
-    m_draw_main.setViewSourceMenuItem(true);
+    m_draw_primary.setViewSourceMenuItem(true);
     m_draw_secondary.clear();
     // Disable publish menu item
     m_menu.setPublishMenuSensitive(false);
@@ -1985,7 +1991,7 @@ std::string MainWindow::getIconImageFromTheme(const std::string& iconName, const
 }
 
 /**
- * \brief Update the CSS provider data on the main draw text view
+ * \brief Update the CSS provider data
  */
 void MainWindow::updateCSS()
 {
@@ -2044,14 +2050,17 @@ void MainWindow::editor_changed_text()
   // TODO: Just execute the code below in a signal_idle call?
   // So it will never block the GUI thread. Or is this already running in another context
 
+  // Clear table of contents (ToC)
+  m_tocTreeModel->clear();
   // Retrieve text from editor and parse the markdown contents
-  middleware_.setContent(m_draw_main.getText());
+  middleware_.setContent(m_draw_primary.getText());
   cmark_node* doc = middleware_.parseContent();
   /* // Can be enabled to show the markdown format in terminal:
   std::string md = Parser::renderMarkdown(doc);
   std::cout << "Markdown:\n" << md << std::endl;*/
   // Show the document as a preview on the right side text-view panel
   m_draw_secondary.setDocument(doc);
+  setTableofContents(m_draw_secondary.getHeadings());
 }
 
 /**
@@ -2077,7 +2086,7 @@ void MainWindow::get_heading()
     try
     {
       int headingLevel = std::stoi(active, &sz, 10);
-      m_draw_main.make_heading(headingLevel);
+      m_draw_primary.make_heading(headingLevel);
     }
     catch (const std::invalid_argument&)
     {
@@ -2094,7 +2103,7 @@ void MainWindow::get_heading()
 void MainWindow::insert_emoji()
 {
   // Note: The "insert-emoji" signal is not exposed in Gtkmm library (at least not in gtk3)
-  g_signal_emit_by_name(m_draw_main.gobj(), "insert-emoji");
+  g_signal_emit_by_name(m_draw_primary.gobj(), "insert-emoji");
 }
 
 void MainWindow::on_zoom_out()
@@ -2134,18 +2143,18 @@ void MainWindow::on_spacing_changed()
 
 void MainWindow::on_margins_changed()
 {
-  m_draw_main.set_left_margin(m_marginsSpinButton.get_value_as_int());
-  m_draw_main.set_right_margin(m_marginsSpinButton.get_value_as_int());
+  m_draw_primary.set_left_margin(m_marginsSpinButton.get_value_as_int());
+  m_draw_primary.set_right_margin(m_marginsSpinButton.get_value_as_int());
 }
 
 void MainWindow::on_indent_changed()
 {
-  m_draw_main.set_indent(m_indentSpinButton.get_value_as_int());
+  m_draw_primary.set_indent(m_indentSpinButton.get_value_as_int());
 }
 
 void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
 {
-  m_draw_main.set_wrap_mode(mode);
+  m_draw_primary.set_wrap_mode(mode);
 }
 
 void MainWindow::on_brightness_changed()

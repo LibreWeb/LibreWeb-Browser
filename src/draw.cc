@@ -277,7 +277,7 @@ void Draw::setMessage(const Glib::ustring& message, const Glib::ustring& details
 /**
  * \brief Draw homepage
  */
-void Draw::showStartPage()
+void Draw::showHomepage()
 {
   if (get_editable())
     this->disableEdit();
