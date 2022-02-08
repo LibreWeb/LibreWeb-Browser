@@ -8,7 +8,8 @@ With all the knowledge and new technologies available today. I was inspired by D
 [![Matrix](https://img.shields.io/badge/chat-on%20matrix-brightgreen)](https://matrix.to/#/#libreweb:melroy.org)
 [![Gitter](https://img.shields.io/badge/chat-on%20gitter-brightgreen)](https://gitter.im/LibreWeb/Browser)
 [![Roadmap](https://img.shields.io/badge/Roadmap-yellow)](https://gitlab.melroy.org/libreweb/browser/-/milestones)
-[![Release](https://img.shields.io/badge/Release-latest-orange)](https://gitlab.melroy.org/libreweb/browser/-/releases)
+[![Docs](https://img.shields.io/badge/Documentation-orange)](https://docs.libreweb.org/)
+[![Release](https://img.shields.io/badge/release-latest-orange)](https://gitlab.melroy.org/libreweb/browser/-/releases)
 
 *Note:* This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/browser/-/releases).
 
@@ -56,6 +57,8 @@ The current success criteria:
 
 The sections below are mainly relevant for software developers, who want to contribute or help LibreWeb Browser.
 
+---
+
 ## For Developers
 
 Decentralized Browser is written C++ together with some [external libraries](/lib). LibreWeb is using the [cmark-gfm](https://github.com/github/cmark-gfm) library for example, which is used for CommonMark (markdown) parsing.  
@@ -65,29 +68,27 @@ LibreWeb Browser is also using [Gnome GTK3](https://developer.gnome.org/gtk3/sta
 
 ### Development Environment
 
-Personally, I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CMake`, `CMake Tools`, `PlantUML`, `Markdown All in One`, `vscode-icons` and `GitLab Workflow`.
+Personally, I'm using VSCodium editor, with the following extensions installed: `C/C++`, `CMake`, `CMake Tools`, `PlantUML`, `Markdown All in One`, `vscode-icons` and `GitLab Workflow`. But your local development setup is completely up to you.
 
-But that is up to you.
+### Linux Build Dependencies
 
-### Build Dependencies
-
-For the GNU/Linux build you need at least:
+For the **GNU/Linux build** you need at least:
 
 * GCC 9 or higher (`build-essential`, `g++-9`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
 * Libcurl (Package: `libcurl4-openssl-dev`)
-* GTK & Pango (including C++ bindings):
+* GTK3 (including C++ bindings: gtkmm3):
   * Package: `libgtkmm-3.0-dev` under Debian based distros
 
-Depedencies for tests:
+**Dependencies for testing:**
 
 * X virtual framebuffer (Package: `xvfb`)
 * Clang-format (Package: `clang-format`)
 
-*Note:* For cross-compiling towards Windows, see the cross-compile section down below.
+*Note:* For cross-compiling towards Windows and building on macOS see "Other platforms" section below.
 
-### Build
+### Linux Build
 
 Clone the source-code with SSH (do not forget `--recurse-submodules`):
 
@@ -111,7 +112,7 @@ To build a release target yourself including packaging under GNU/Linux, use: `./
 
 Root access is required when building Linux packages; add `/opt/mxe/usr/bin` to the secure_path using: `sudo visudo`.
 
-### Unit testing
+### Unit testing (Linux)
 
 To execute the **unit tests** you can configure with `cmake -DUNITTEST:BOOL=TRUE` and build. Execute: `ctest` command in the `tst` target directory.
 
@@ -141,7 +142,7 @@ We also tend to follow the [C++ Core Guidelines](http://isocpp.github.io/CppCore
 
 ### Doxygen
 
-See latest [Developer Documentation](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/master/file/build/docs/html/index.html?job=doxygen).
+See latest [Developer Documentation](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/master/file/build_docs/docs/html/index.html?job=doxygen).
 
 Doxygen is build by default. You can disable the doxygen build, if you want, using: `cmake -DDOXYGEN:BOOL=FALSE ..`
 
@@ -155,9 +156,13 @@ Next, check for memory leaks using `valgrind` by executing:
 ./scripts/valgrind.sh
 ```
 
-### Cross-compiling Build Dependencies
+## Other platforms
 
-For the [cross-compiling](https://en.wikipedia.org/wiki/Cross_compiler) towards **Windows** (while under GNU/Linux), you need at least:
+### Microsoft Windows
+
+We are [**cross-compiling**](https://en.wikipedia.org/wiki/Cross_compiler) towards **Windows** using GNU/Linux.
+
+#### Windows Build Dependencies
 
 * [MXE Gtkmm3 / Curl Binary packages](mxe.cc) (static build using Meson build with GCC11, see below for more info)
 * CMake (Package: `cmake`)
@@ -182,7 +187,7 @@ Add the following line to the end of the `~/.bashrc` file:
 export PATH="/opt/mxe/usr/bin:$PATH"
 ```
 
-#### Cross-compile Build
+#### Windows Cross-compile Build
 
 Please, be sure you meet all the requirements above. So your MXE environment should be ready in: `/opt/mxe/usr`.
 
@@ -202,7 +207,22 @@ Build a production release + packaging with [NSIS](https://sourceforge.net/proje
 
 See also: [Windows readme](Windows.md) file.
 
-### Research
+### Apple MacOS / Darwin
+
+#### MacOS Build Dependencies
+
+* XCode (`xcode-select --install`)
+* Brew (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`)
+* CMake (brew: `cmake`)
+* Libcurl (brew: `curl`)
+* Gtk3/Gtkmm3 (brew: `gtkmm3`) 
+* Ninja (brew: `ninja`)
+
+#### MacOS Build
+
+We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/Browser/actions/workflows/macOS-build.yml).
+
+## LibreWeb Research
 
 For [research document](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/diagrams.md)) see the:
 

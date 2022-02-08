@@ -43,7 +43,7 @@ jobs:
           name: macOS-binary
           path: build/src/libreweb-browser
       
-      # TODO: Package using CPack
+      # TODO: Packaging using CPack and PackageMaker
 
       #xcodebuild \
       # -project "libreweb-browser.xcodeproj" \
