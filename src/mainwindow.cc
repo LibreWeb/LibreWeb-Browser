@@ -1709,7 +1709,7 @@ void MainWindow::setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> hea
 {
   Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
   int previousLevel = 1; // Default heading 1
-  for (const Glib::RefPtr<Gtk::TextMark> headerMark : headings)
+  for (const Glib::RefPtr<Gtk::TextMark> &headerMark : headings)
   {
     Glib::ustring heading = static_cast<char*>(headerMark->get_data("name"));
     auto level = reinterpret_cast<std::intptr_t>(headerMark->get_data("level"));
