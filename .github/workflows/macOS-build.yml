@@ -41,7 +41,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: maOS-binary
-          path: src/libreweb-browser
+          path: build/src/libreweb-browser
       
       # TODO: Package using CPack
 
