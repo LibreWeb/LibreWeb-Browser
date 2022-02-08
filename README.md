@@ -219,9 +219,9 @@ See also: [Windows ReadMe](windows.md) file.
 
 #### MacOS Build
 
-We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/Browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want.
+We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/Browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want, but do not expect the runtime to work.
 
-Packaging towards MacOS is still in progress.
+*Note:* **Packaging towards MacOS is still in progress**
 
 ## LibreWeb Research
 
