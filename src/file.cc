@@ -1,5 +1,6 @@
 #include "file.h"
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 
 #ifdef LEGACY_CXX

@@ -370,7 +370,7 @@ void Draw::clear()
 {
   auto buffer = get_buffer();
   buffer->erase(buffer->begin(), buffer->end());
-  for (const Glib::RefPtr<Gtk::TextMark> mark : headingsToc)
+  for (const Glib::RefPtr<Gtk::TextMark>& mark : headingsToc)
   {
     buffer->delete_mark(mark);
   }
