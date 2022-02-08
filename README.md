@@ -200,7 +200,7 @@ Build a Windows development release:
 
 #### Windows Packaging
 
-*Note:* Windows Installer are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+*Note:* Windows Installer is already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
 
 Build a production release + packaging with [NSIS Installer](https://sourceforge.net/projects/nsis/), execute the following:
 
@@ -225,7 +225,7 @@ For more info, see also: [Windows readme file](windows.md).
 
 We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/Browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want, but do not expect the runtime to work.
 
-*Note:* **Packaging towards MacOS is still in progress**
+*Note:* **Packaging towards MacOS is still in progress**.
 
 ## LibreWeb Research
 
