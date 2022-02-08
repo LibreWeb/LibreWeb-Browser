@@ -21,6 +21,17 @@ jobs:
             gtkmm3 \
             ninja
 
+      # Workaround for now, we create our own features.h file (macos image either is missing this file, or some include folder is missing during the build)
+      - name: Add `features.h`
+        run: |
+          cat >> src/features.h << EOF
+          #pragma once
+          /*** @file features.h*
+          * @brief Synonym for `<sys/cdefs.h>` for source compatibility with glibc.
+          * */
+          #include <sys/cdefs.h>
+          EOF
+
       - name: Build
         run: |
           mkdir build && cd build
