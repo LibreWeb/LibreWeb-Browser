@@ -105,7 +105,7 @@ Optionally, use the VSCode `CMake Tools` extension to start the build or build w
 
 #### Linux Packaging
 
-*Note:* (Linux) Packages are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+*Note:* Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
 
 To build a release target yourself including packaging under GNU/Linux, use: `./scripts/build-lnx-prod.sh`
 
@@ -198,13 +198,17 @@ Build a Windows development release:
 ./scripts/build-win.sh
 ```
 
-Build a production release + packaging with [NSIS](https://sourceforge.net/projects/nsis/), execute the following:
+#### Windows Packaging
+
+*Note:* Windows Installer are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+
+Build a production release + packaging with [NSIS Installer](https://sourceforge.net/projects/nsis/), execute the following:
 
 ```sh
 ./scripts/build-win-prod.sh
 ```
 
-See also: [Windows ReadMe](windows.md) file.
+For more info, see also: [Windows readme file](windows.md).
 
 ### Apple MacOS / Darwin
 
