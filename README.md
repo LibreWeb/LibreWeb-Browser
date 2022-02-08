@@ -55,7 +55,7 @@ The current success criteria:
 
 ---
 
-The sections below are mainly relevant for software developers, who want to contribute or help LibreWeb Browser.
+The sections below are mainly relevant for software developers, who want to contribute or help the LibreWeb Browser project.
 
 ---
 
@@ -74,19 +74,18 @@ Personally, I'm using VSCodium editor, with the following extensions installed: 
 
 For the **GNU/Linux build** you need at least:
 
-* GCC 9 or higher (`build-essential`, `g++-9`)
+* GCC 9 or higher (Packages: `build-essential g++-9`)
 * CMake (Package: `cmake`)
 * Ninja build system (Package: `ninja-build`)
 * Libcurl (Package: `libcurl4-openssl-dev`)
-* GTK3 (including C++ bindings: gtkmm3):
-  * Package: `libgtkmm-3.0-dev` under Debian based distros
+* GTK3/Gtkmm3 (Package: `libgtkmm-3.0-dev`)
 
 **Dependencies for testing:**
 
 * X virtual framebuffer (Package: `xvfb`)
 * Clang-format (Package: `clang-format`)
 
-*Note:* For cross-compiling towards Windows and building on macOS see "Other platforms" section below.
+*Note:* For cross-compiling towards Windows and building on macOS see "[Other platforms](#Other%20platforms)" section below.
 
 ### Linux Build
 
@@ -124,7 +123,7 @@ Or just use script:
 
 ### C++ Coding Style Guidelines
 
-#### Automated Clang-format
+#### Automated Clang Format
 
 We use our [own Clang LLVM C++ Programming Style Format](.clang-format), using [clang-format](https://clang.llvm.org/docs/ClangFormat.html) command.
 
@@ -138,7 +137,7 @@ Check only for errors, run: `./scripts/check-format.sh`
 
 #### Core Guidelines
 
-We also tend to follow the [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) as much as possible.
+We also tend to follow the popular [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) as much as possible.
 
 ### Doxygen
 
@@ -148,7 +147,7 @@ Doxygen is build by default. You can disable the doxygen build, if you want, usi
 
 ### Memory Leaks
 
-First **build** the (GNU/Linux) target with *debug symbols*. Build target file should be present: `./build/bin/libreweb-browser`.
+First **build** the (Linux) target including *debug symbols*. Binary should be present in the `build/src` folder.
 
 Next, check for memory leaks using `valgrind` by executing:
 
@@ -205,7 +204,7 @@ Build a production release + packaging with [NSIS](https://sourceforge.net/proje
 ./scripts/build-win-prod.sh
 ```
 
-See also: [Windows readme](Windows.md) file.
+See also: [Windows ReadMe](windows.md) file.
 
 ### Apple MacOS / Darwin
 

@@ -1,6 +1,6 @@
 # Windows Packaging 
 
-The additional files in `packaging_win` are required for packaging to the Windows platform.
+The additional files in `packaging_win` are required for packaging to the Windows platform (after the cross-compile went successfully).
 
 ## GTK Windows 10 Theme
 
