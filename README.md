@@ -85,7 +85,7 @@ For the **GNU/Linux build** you need at least:
 * X virtual framebuffer (Package: `xvfb`)
 * Clang-format (Package: `clang-format`)
 
-*Note:* For cross-compiling towards Windows and building on macOS see "[Other platforms](#Other%20platforms)" section below.
+*Note:* For cross-compiling towards Windows and building on macOS see "[Other platforms](#other-platforms)" section below.
 
 ### Linux Build
 
