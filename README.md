@@ -214,7 +214,7 @@ For more info, see also: [Windows readme file](windows.md).
 
 #### MacOS Build Dependencies
 
-* XCode (`xcode-select --install`)
+* Xcode (`xcode-select --install`)
 * Brew (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`)
 * CMake (brew: `cmake`)
 * Libcurl (brew: `curl`)
