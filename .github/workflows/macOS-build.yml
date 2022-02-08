@@ -35,10 +35,17 @@ jobs:
       - name: Build
         run: |
           mkdir build && cd build
-          cmake -G Ninja -DDOXYGEN:BOOL=FALSE ..
+          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DDOXYGEN:BOOL=FALSE ..
           ninja
 
-        #xcodebuild \
-        # -project "libreweb-browser.xcodeproj" \
-        #    -scheme libreweb-browser \
-        #    -configuration Debug
+      - uses: actions/upload-artifact@v2
+        with:
+          name: maOS-binary
+          path: src/libreweb-browser
+      
+      # TODO: Package using CPack
+
+      #xcodebuild \
+      # -project "libreweb-browser.xcodeproj" \
+      #    -scheme libreweb-browser \
+      #    -configuration Debug
