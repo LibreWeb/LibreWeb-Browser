@@ -13,6 +13,9 @@ jobs:
         with:
           submodules: true
 
+      - name: Get tag names
+        run: git fetch --prune --unshallow --tags --force
+
       - name: Install dependencies
         run: |
           brew install \
@@ -37,8 +40,8 @@ jobs:
 
       - uses: actions/upload-artifact@v2
         with:
-          name: macOS-binary
-          path: build/src/libreweb-browser
+          name: macOS-dmg-package
+          path: build_prod_macos/libreweb-browser-v0.0.0.dmg
       
       # TODO: Packaging using CPack and PackageMaker
 
