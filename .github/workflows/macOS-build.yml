@@ -16,11 +16,20 @@ jobs:
       - name: Get tag names
         run: git fetch --prune --unshallow --tags --force
 
+      - name: Configure Homebrew cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            /usr/local/Homebrew
+            /usr/local/Cellar
+          key: brew-${{ hashFiles('./scripts/build-macos-prod.sh') }}
+          restore-keys: brew-
+
       - name: Install dependencies
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
         run: |
           brew install \
-            cmake \
-            curl \
             gtkmm3 \
             ninja
 
@@ -41,10 +50,8 @@ jobs:
       - uses: actions/upload-artifact@v2
         with:
           name: macOS-dmg-package
-          path: build_prod_macos/libreweb-browser-v0.0.0.dmg
+          path: build_prod_macos/libreweb-browser-v*.dmg
       
-      # TODO: Packaging using CPack and PackageMaker
-
       #xcodebuild \
       # -project "libreweb-browser.xcodeproj" \
       #    -scheme libreweb-browser \
