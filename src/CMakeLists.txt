@@ -52,8 +52,8 @@ set(SOURCES
 # Install and recompile glib gsettings schema
 add_schema("org.libreweb.browser.gschema.xml" GSCHEMA_RING)
 
-# Only for Windows
-if(WIN32)
+# For Windows & macOS
+if(WIN32 OR APPLE)
     # Windows Schema files
     set(WINDOWS_SCHEMA_FILES
         org.gtk.Settings.ColorChooser.gschema.xml
@@ -65,7 +65,9 @@ if(WIN32)
     foreach(SCHEMA_FILE ${WINDOWS_SCHEMA_FILES})
         add_schema(${SCHEMA_FILE} GSCHEMA_RING)
     endforeach(SCHEMA_FILE)
-
+endif()
+# Only for Windows
+if(WIN32)
     # Text format Windows resource file for Resource Compiler (rc)
     set(WINDOWS_RES_IN ${CMAKE_SOURCE_DIR}/misc/libreweb.rc.in)
     set(WINDOWS_RES ${CMAKE_CURRENT_BINARY_DIR}/libreweb.rc)

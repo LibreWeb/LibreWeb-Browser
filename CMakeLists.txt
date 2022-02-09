@@ -65,10 +65,15 @@ endif()
 
 # Additional install files
 if(WIN32)
-  # Windows specific
+  # Microsoft Windows specific
   install(DIRECTORY packaging_win/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
-else()
+elseif(APPLE)
+  # Apple macOS specific
+  # TODO: Check what kind of packaging do we additional need?
+  #       I guess Adwaita & hicolor icons should be enough
+  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
+elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION share/applications)
   install(PROGRAMS go-ipfs/ipfs DESTINATION bin)
