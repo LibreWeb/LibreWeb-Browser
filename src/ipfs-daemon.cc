@@ -125,8 +125,10 @@ std::string IPFSDaemon::locateIPFSBinary()
 {
   std::string ipfsBinaryName = "ipfs";
   std::string currentExecutablePath;
-#ifdef _WIN32
+#if defined(_WIN32)
   ipfsBinaryName += ".exe";
+#elif defined(__APPLE__)
+  ipfsBinaryName += "-darwin";
 #endif
   // Use the current executable directory (bin folder), to locate the go-ipfs binary (for both Linux and Windows)
   char* path = NULL;

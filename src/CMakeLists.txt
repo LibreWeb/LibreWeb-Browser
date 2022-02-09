@@ -94,8 +94,12 @@ if(NOT UNITTEST)
         target_compile_definitions(${PROJECT_TARGET} PRIVATE _WIN32)
     endif()
     # Define __linux__ for Unix platforms
-    if (UNIX)
+    if(UNIX)
         target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
+    endif()
+    # Define __APPLE__ for macOS platforms
+    if(APPLE)
+        target_compile_definitions(${PROJECT_TARGET} PRIVATE __APPLE__)
     endif()
 
     # Add fallback for std filesystem in older GCC versions
