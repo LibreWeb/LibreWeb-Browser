@@ -33,10 +33,7 @@ jobs:
           EOF
 
       - name: Build
-        run: |
-          mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DDOXYGEN:BOOL=FALSE ..
-          ninja
+        run: ./scripts/build-macos-prod.sh
 
       - uses: actions/upload-artifact@v2
         with:

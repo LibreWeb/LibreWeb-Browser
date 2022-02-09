@@ -89,17 +89,15 @@ if(NOT UNITTEST)
     add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
 
     ## Definitions just in case
-    # Define _WIN32 for Windows platforms
     if(WIN32)
+        # Define _WIN32 for Windows platforms
         target_compile_definitions(${PROJECT_TARGET} PRIVATE _WIN32)
-    endif()
-    # Define __linux__ for Unix platforms
-    if(UNIX)
-        target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
-    endif()
-    # Define __APPLE__ for macOS platforms
-    if(APPLE)
+    elseif(APPLE)
+        # Define __APPLE__ for macOS platforms
         target_compile_definitions(${PROJECT_TARGET} PRIVATE __APPLE__)
+    elseif(UNIX)
+        # Define __linux__ for Unix platforms
+        target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
     endif()
 
     # Add fallback for std filesystem in older GCC versions
