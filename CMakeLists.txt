@@ -72,6 +72,7 @@ if(WIN32)
 elseif(APPLE)
   # Apple macOS specific
   install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_macos/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
 elseif(UNIX)
   # UNIX specific

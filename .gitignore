@@ -70,8 +70,9 @@ Thumbs.db
 # --------
 *.dll
 *.exe
+# Allow ipfs.exe and the binaries in the packaging folder
 !go-ipfs/ipfs.exe
-!packaging_win/*
+!misc/packaging_win/bin/*
 
 # Build folders
 build/
