@@ -66,12 +66,12 @@ endif()
 # Additional install files
 if(WIN32)
   # Microsoft Windows specific
-  install(DIRECTORY packaging_win/ DESTINATION .)
+  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_win/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
-  # TODO: Check what kind of packaging do we additional need?
-  #       I guess Adwaita & hicolor icons should be enough
+  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
 elseif(UNIX)
   # UNIX specific
