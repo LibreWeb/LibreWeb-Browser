@@ -12,9 +12,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-
-      - name: Get tag names
-        run: git fetch --prune --unshallow --tags --force
+          fetch-depth: 0
 
       - name: Configure Homebrew cache
         uses: actions/cache@v2
