@@ -14,26 +14,9 @@ jobs:
           submodules: true
           fetch-depth: 0
 
-      - name: Configure Homebrew cache
-        uses: actions/cache@v2
-        with:
-          path: |
-            /usr/local/Homebrew
-            /usr/local/Cellar
-          key: brew-${{ hashFiles('./scripts/build-macos-prod.sh') }}
-          restore-keys: brew-
-
       - name: Install dependencies
-        env:
-          HOMEBREW_NO_AUTO_UPDATE: 1
         run: |
           brew install \
-            gtkmm3 \
-            ninja
-
-      - name: Link dependencies
-        run: |
-          brew link \
             gtkmm3 \
             ninja
 
