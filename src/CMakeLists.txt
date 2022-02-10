@@ -1,7 +1,6 @@
 include(${CMAKE_SOURCE_DIR}/cmake/GSettings.cmake)
 
 set(PROJECT_TARGET libreweb-browser)
-set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Find required dependencies
@@ -54,15 +53,15 @@ add_schema("org.libreweb.browser.gschema.xml" GSCHEMA_RING)
 
 # For Windows & macOS
 if(WIN32 OR APPLE)
-    # Windows Schema files
-    set(WINDOWS_SCHEMA_FILES
+    # Additional schema files
+    set(ADDITIONAL_SCHEMA_FILES
         org.gtk.Settings.ColorChooser.gschema.xml
         org.gtk.Settings.Debug.gschema.xml
         org.gtk.Settings.EmojiChooser.gschema.xml
         org.gtk.Settings.FileChooser.gschema.xml
     )
     message(STATUS "Add Windows Schema files")
-    foreach(SCHEMA_FILE ${WINDOWS_SCHEMA_FILES})
+    foreach(SCHEMA_FILE ${ADDITIONAL_SCHEMA_FILES})
         add_schema(${SCHEMA_FILE} GSCHEMA_RING)
     endforeach(SCHEMA_FILE)
 endif()
@@ -135,6 +134,7 @@ if(NOT UNITTEST)
     # Install browser binary
     install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
 else()
+    set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)
     # Build libraries for unit testing
     add_library(${PROJECT_TARGET_LIB}-file STATIC file.h file.cc)
     add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)

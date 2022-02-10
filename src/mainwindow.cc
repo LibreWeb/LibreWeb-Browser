@@ -17,6 +17,7 @@
 #include <gtkmm/settings.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <string.h>
 #include <whereami.h>
 
 MainWindow::MainWindow(const std::string& timeout)
@@ -1866,12 +1867,16 @@ bool MainWindow::isInstalled()
       bool isInstalled = true;
       wai_getExecutablePath(path, length, NULL);
       path[length] = '\0';
-#ifdef _WIN32
-      // Does the executable path starts with C:\Program?
+#if defined(_WIN32)
+      // Does the executable path starts with "C:\Program"?
       const char* windowsPrefix = "C:\\Program";
       isInstalled = (strncmp(path, windowsPrefix, strlen(windowsPrefix)) == 0);
-#else
-      // Does the executable path starts with /usr/local?
+#elif defined(_APPLE_)
+      // Does the executable path contains "Applications"?
+      const char* macOsNeedle = "Applications";
+      isInstalled = (strstr(path, macOsNeedle) != NULL);
+#elif defined(__linux__)
+      // Does the executable path starts with "/usr/local"?
       isInstalled = (strncmp(path, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
 #endif
       free(path);

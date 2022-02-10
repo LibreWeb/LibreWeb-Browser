@@ -41,6 +41,7 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
+#include <string>
 
 struct cmark_node;
 
