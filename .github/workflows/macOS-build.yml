@@ -31,6 +31,12 @@ jobs:
             gtkmm3 \
             ninja
 
+      - name: Link dependencies
+        run: |
+          brew link \
+            gtkmm3 \
+            ninja
+
       # Workaround for now, we create our own features.h file (macos image either is missing this file, or some include folder is missing during the build)
       - name: Add `features.h`
         run: |
