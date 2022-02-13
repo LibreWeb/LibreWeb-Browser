@@ -20,6 +20,21 @@
 #include <string.h>
 #include <whereami.h>
 
+#if defined(__APPLE__)
+static gboolean osx_should_quit_cb(GtkosxApplication* app, gpointer data)
+{
+  MainWindow* const mainWindow = static_cast<MainWindow*>(data);
+  return mainWindow->on_delete_event(0);
+}
+
+static void osx_will_quit_cb(GtkosxApplication* app, gpointer data)
+{
+  MainWindow* mainWindow = static_cast<MainWindow*>(data);
+  mainWindow->on_delete_event(0);
+  gtk_main_quit();
+}
+#endif
+
 MainWindow::MainWindow(const std::string& timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
@@ -116,6 +131,23 @@ MainWindow::MainWindow(const std::string& timeout)
   initSettingsPopover();
   initTableofContents();
   initSignals();
+
+#if defined(__APPLE__)
+  {
+    osxApp = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
+    MainWindow* mainWindow = this;
+    g_signal_connect(osxApp, "NSApplicationBlockTermination", G_CALLBACK(osx_should_quit_cb), mainWindow);
+    g_signal_connect(osxApp, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
+    // TODO: Open file callback?
+    // g_signal_connect (osxApp, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
+    m_menu.hide();
+    GtkMenuBar menubar* = m_menu.gobj();
+    gtkosx_application_set_menu_bar(osxApp, GTK_MENU_SHELL(menubar));
+    // Use GTK accelerators
+    gtkosx_application_set_use_quartz_accelerators(osxApp, FALSE);
+    gtkosx_application_ready(osxApp);
+  }
+#endif
 
   // Add custom CSS Provider to draw textviews
   auto stylePrimary = m_draw_primary.get_style_context();
