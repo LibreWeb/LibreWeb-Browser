@@ -18,6 +18,7 @@ jobs:
         run: |
           brew install \
             gtkmm3 \
+            gtk-mac-integration \
             ninja
 
       # Workaround for now, we create our own features.h file (macos image either is missing this file, or some include folder is missing during the build)
@@ -38,8 +39,4 @@ jobs:
         with:
           name: macOS-dmg-package
           path: build_prod_macos/libreweb-browser-v*.dmg
-      
-      #xcodebuild \
-      # -project "libreweb-browser.xcodeproj" \
-      #    -scheme libreweb-browser \
-      #    -configuration Debug
+

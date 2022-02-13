@@ -7,6 +7,10 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
+# Only for macOS
+if(APPLE)
+    pkg_check_modules(MAC_INTEGRATION REQUIRED gtk-mac-integration-gtk3)
+endif()
 
 # Generate Project version header file
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/project_config.h.in ${CMAKE_CURRENT_BINARY_DIR}/project_config.h)
@@ -130,6 +134,17 @@ if(NOT UNITTEST)
         nlohmann_json::nlohmann_json
     )
     target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})
+    if (APPLE)
+        # Add GTK Mac Integration for macOS
+        target_include_directories(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_INCLUDE_DIRS})
+        target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
+        target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
+        # Sign target for macOS
+        set_target_properties(${PROJECT_TARGET} PROPERTIES
+            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ${CODE_SIGN_IDENTITY}
+            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${DEVELOPMENT_TEAM_ID}
+        )
+    endif()
 
     # Install browser binary
     install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
