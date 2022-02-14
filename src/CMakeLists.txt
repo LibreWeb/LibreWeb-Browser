@@ -139,7 +139,6 @@ if(NOT UNITTEST)
         target_include_directories(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_INCLUDE_DIRS})
         target_link_directories(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARY_DIRS})
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
-        target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LDFLAGS})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
         # Sign target for macOS
         set_target_properties(${PROJECT_TARGET} PROPERTIES
