@@ -998,18 +998,18 @@ void MainWindow::initMacOs()
 {
 #if defined(__APPLE__)
   {
-  osxApp = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
-  // TODO: Should I implement those terminate signals. Sinse I disabled quartz accelerators
-  MainWindow* mainWindow = this;
-  g_signal_connect(osxApp, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
-  // TODO: Open file callback?
-  // g_signal_connect (osxApp, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
-  m_menu.hide();
-  GtkWidget* menubar = (GtkWidget*)m_menu.gobj();
-  gtkosx_application_set_menu_bar(osxApp, GTK_MENU_SHELL(menubar));
-  // Use GTK accelerators
-  gtkosx_application_set_use_quartz_accelerators(osxApp, FALSE);
-  gtkosx_application_ready(osxApp);
+    osxApp = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
+    // TODO: Should I implement those terminate signals. Sinse I disabled quartz accelerators
+    MainWindow* mainWindow = this;
+    g_signal_connect(osxApp, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
+    // TODO: Open file callback?
+    // g_signal_connect (osxApp, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
+    m_menu.hide();
+    GtkWidget* menubar = (GtkWidget*)m_menu.gobj();
+    gtkosx_application_set_menu_bar(osxApp, GTK_MENU_SHELL(menubar));
+    // Use GTK accelerators
+    gtkosx_application_set_use_quartz_accelerators(osxApp, FALSE);
+    gtkosx_application_ready(osxApp);
   }
 #endif
 }
