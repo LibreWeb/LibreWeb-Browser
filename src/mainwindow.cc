@@ -123,24 +123,7 @@ MainWindow::MainWindow(const std::string& timeout)
   initSettingsPopover();
   initTableofContents();
   initSignals();
-
-  m_menu.gobj();
-#if defined(__APPLE__)
-  {
-    osxApp = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
-    // TODO: Should I implement those terminate signals. Sinse I disabled quartz accelerators
-    MainWindow* mainWindow = this;
-    g_signal_connect(osxApp, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
-    // TODO: Open file callback?
-    // g_signal_connect (osxApp, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
-    m_menu.hide();
-    GtkWidget* menubar = (GtkWidget*)m_menu.gobj();
-    gtkosx_application_set_menu_bar(osxApp, GTK_MENU_SHELL(menubar));
-    // Use GTK accelerators
-    gtkosx_application_set_use_quartz_accelerators(osxApp, FALSE);
-    gtkosx_application_ready(osxApp);
-  }
-#endif
+  initMacOs();
 
   // Add custom CSS Provider to draw textviews
   auto stylePrimary = m_draw_primary.get_style_context();
@@ -1009,6 +992,26 @@ void MainWindow::initSignals()
   m_themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
   m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
   m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
+}
+
+void MainWindow::initMacOs()
+{
+#if defined(__APPLE__)
+  {
+  osxApp = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
+  // TODO: Should I implement those terminate signals. Sinse I disabled quartz accelerators
+  MainWindow* mainWindow = this;
+  g_signal_connect(osxApp, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
+  // TODO: Open file callback?
+  // g_signal_connect (osxApp, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
+  m_menu.hide();
+  GtkWidget* menubar = (GtkWidget*)m_menu.gobj();
+  gtkosx_application_set_menu_bar(osxApp, GTK_MENU_SHELL(menubar));
+  // Use GTK accelerators
+  gtkosx_application_set_use_quartz_accelerators(osxApp, FALSE);
+  gtkosx_application_ready(osxApp);
+  }
+#endif
 }
 
 /**

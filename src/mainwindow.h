@@ -315,6 +315,7 @@ private:
   void initSettingsPopover();
   void initTableofContents();
   void initSignals();
+  void initMacOs();
   bool isInstalled();
   void setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings);
   void enableEdit();
