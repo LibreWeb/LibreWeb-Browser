@@ -21,7 +21,7 @@
 #include <whereami.h>
 
 #if defined(__APPLE__)
-static void osx_will_quit_cb(GtkosxApplication* app, gpointer data)
+static void osx_will_quit_cb(__attribute__((unused)) GtkosxApplication* app, __attribute__((unused)) gpointer data)
 {
   gtk_main_quit();
 }
