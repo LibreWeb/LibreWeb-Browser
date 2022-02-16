@@ -22,6 +22,8 @@ jobs:
         with:
           submodules: true
 
+      - run: sudo apt update
+
       - name: Install dep packages
         run: sudo apt install libcurl4-openssl-dev libgtkmm-3.0-dev doxygen graphviz
 
