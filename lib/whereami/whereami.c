@@ -13,8 +13,8 @@ extern "C" {
 #endif
 
 #if defined(__linux__) || defined(__CYGWIN__)
-#undef _BSD_SOURCE
-#define _BSD_SOURCE
+#undef _DEFAULT_SOURCE
+#define _DEFAULT_SOURCE
 #elif defined(__APPLE__)
 #undef _DARWIN_C_SOURCE
 #define _DARWIN_C_SOURCE
