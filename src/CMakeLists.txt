@@ -91,7 +91,25 @@ get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS
 
 if(NOT UNITTEST)
     # LibreWeb binary
-    add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
+    if(APPLE)
+        # Set MacOSX bundle & XCode props
+        set_target_properties(${PROJECT_TARGET}
+            PROPERTIES
+            MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}-v${PROJECT_VERSION}"
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
+            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}"
+            MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
+            MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}}"
+            MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
+            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${CODE_SIGN_IDENTITY}"
+            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM_ID}"
+        )
+        add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${SOURCES})
+    else()
+        add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
+    endif()
 
     ## Definitions just in case
     if(WIN32)
@@ -134,17 +152,22 @@ if(NOT UNITTEST)
         nlohmann_json::nlohmann_json
     )
     target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})
-    if (APPLE)
+
+    if(APPLE)
         # Add GTK Mac Integration for macOS
         target_include_directories(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_INCLUDE_DIRS})
         target_link_directories(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARY_DIRS})
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
-        # Sign target for macOS
-        set_target_properties(${PROJECT_TARGET} PROPERTIES
-            XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ${CODE_SIGN_IDENTITY}
-            XCODE_ATTRIBUTE_DEVELOPMENT_TEAM ${DEVELOPMENT_TEAM_ID}
-        )
+
+        set(LIB_DIRS "${MAC_INTEGRATION_LIBRARY_DIRS}")
+        set(APP "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
+        # Fix-up bundle & verify if app is standalone
+        # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+        install(CODE "
+            include(BundleUtilities)
+            fixup_bundle(\"${APP}\" \"\" \"${LIB_DIRS}\")
+            verify_app(${APP})")
     endif()
 
     # Install browser binary
