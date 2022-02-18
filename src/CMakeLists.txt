@@ -160,16 +160,17 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
+        # Install browser binary macOS
+        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION . BUNDLE DESTINATION ${CMAKE_SOURCE_DIR})
+
         set(LIB_DIRS "${MAC_INTEGRATION_LIBRARY_DIRS}")
-        set(APP "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
+        set(APP "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.app")
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"${APP}\" \"\" \"${LIB_DIRS}\")
             verify_app(${APP})")
-        # Install browser binary macOS
-        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION . BUNDLE DESTINATION ${CMAKE_SOURCE_DIR})
     else()
         # Install browser binary
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
