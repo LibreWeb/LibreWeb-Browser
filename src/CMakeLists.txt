@@ -92,6 +92,7 @@ get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS
 if(NOT UNITTEST)
     # LibreWeb binary
     if(APPLE)
+        add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${SOURCES})
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
@@ -106,7 +107,6 @@ if(NOT UNITTEST)
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${CODE_SIGN_IDENTITY}"
             XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM_ID}"
         )
-        add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${SOURCES})
     else()
         add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
     endif()
@@ -168,17 +168,19 @@ if(NOT UNITTEST)
             include(BundleUtilities)
             fixup_bundle(\"${APP}\" \"\" \"${LIB_DIRS}\")
             verify_app(${APP})")
+        # Install browser binary macOS
+        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION . BUNDLE DESTINATION ${CMAKE_SOURCE_DIR})
+    else()
+        # Install browser binary
+        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
     endif()
 
-    # Install browser binary
-    install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
 else()
+    # Build seperate libraries for unit testing
     set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)
-    # Build libraries for unit testing
     add_library(${PROJECT_TARGET_LIB}-file STATIC file.h file.cc)
     add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)
     add_library(${PROJECT_TARGET_LIB}-parser STATIC md-parser.h md-parser.cc)
-
     # Only link/include external libs we really need for the unittest libaries
     target_include_directories(${PROJECT_TARGET_LIB}-draw PRIVATE
         ${CMARK_BINARY_DIR}
