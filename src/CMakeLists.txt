@@ -100,7 +100,7 @@ if(NOT UNITTEST)
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
-            MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}-v${PROJECT_VERSION}"
+            MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}" # -v${PROJECT_VERSION}
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
             MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
@@ -164,11 +164,11 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
-        set(APP_BUNDLE_NAME LibreWeb.app)
+        set(APP_BUNDLE_NAME ${PROJECT_NAME}.app)
         set(prefix ${APP_BUNDLE_NAME}/Contents)
         set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
         set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
-        set(APPS ${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME})
+        set(APPS "${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
 
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
@@ -187,14 +187,18 @@ if(NOT UNITTEST)
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
-        message(STATUS "APPS: ${APPS}")
+        # APPS might be a symbolic link which does not work with fixup_bundle
+        # expand APPS to a real path
+        get_filename_component(APPS_EXPANDED ${APPS} REALPATH)
+        # Directories to look for dependencies
+        set(DIRS "${CMAKE_BINARY_DIR}")
+        message(STATUS "APPS: ${APPS_EXPANDED}")
         #message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
-        #message(STATUS "DIRS: ${DIRS}")
+        message(STATUS "DIRS: ${DIRS}")
         install(CODE "
             include(BundleUtilities)
-            set(BU_CHMOD_BUNDLE_ITEMS ON)
-            fixup_bundle(\"${APPS}\" \"\" \"\")
-            verify_app(${APPS})")
+            fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
+            verify_app(${APPS_EXPANDED})")
     else()
         # Install browser binary
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
