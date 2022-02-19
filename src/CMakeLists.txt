@@ -92,7 +92,11 @@ get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS
 if(NOT UNITTEST)
     # LibreWeb binary
     if(APPLE)
-        add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${SOURCES})
+        # Add macOS icns icon to bundle
+        set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns)
+        set_source_files_properties(${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
+        add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${MACOSX_BUNDLE_ICON_FILE} ${SOURCES})
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
@@ -163,14 +167,28 @@ if(NOT UNITTEST)
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION . BUNDLE DESTINATION ${CMAKE_SOURCE_DIR})
 
+        SET(APP_BUNDLE_NAME LibreWeb.app)
+        SET(BUNDLE_INSTALL_TARGET "\${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
+        SET(APPS ${BUNDLE_INSTALL_TARGET})
+
         set(LIB_DIRS "${MAC_INTEGRATION_LIBRARY_DIRS}")
-        set(APP "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.app")
+        # TODO: Install  integration dylib
+        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${APP_BUNDLE_NAME}/Contents/MacOS)
+        #foreach( lib ${libqrencode_LIBRARIES} )
+        #    get_filename_component(libfile ${lib} NAME)
+        #    MESSAGE("Adding ${libfile} to bundle")
+        #    list(APPEND BUNDLELIBS
+        #        ${BUNDLE_INSTALL_TARGET}/Contents/MacOS/${libfile})
+        #endforeach(lib ${libqrencode_LIBRARIES})
+        # Add "BUNDLELIBS" to fixup_bundle
+
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
         install(CODE "
             include(BundleUtilities)
-            fixup_bundle(\"${APP}\" \"\" \"${LIB_DIRS}\")
-            verify_app(${APP})")
+            set(BU_CHMOD_BUNDLE_ITEMS 1)
+            fixup_bundle(\"${APPS}\" \"\" \"\")
+            verify_app(${APPS})")
     else()
         # Install browser binary
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
