@@ -218,7 +218,8 @@ For more info, see also: [Windows readme file](windows.md).
 * Brew (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`)
 * CMake (brew: `cmake`)
 * Libcurl (brew: `curl`)
-* Gtk3/Gtkmm3 (brew: `gtkmm3`) 
+* Gtk3/Gtkmm3 (brew: `gtkmm3`)
+* GTK Mac Integration (brew: `gtk-mac-integration`)
 * Ninja (brew: `ninja`)
 
 #### MacOS Build

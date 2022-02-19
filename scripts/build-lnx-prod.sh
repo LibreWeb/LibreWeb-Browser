@@ -10,7 +10,6 @@ mkdir build_prod
 cd build_prod
 # First build the application for Linux
 echo "INFO: Start building...";
-cmake -G Ninja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release ..
-ninja && 
-echo "INFO: Start packaging to tgz, deb and rpm...";
+cmake -G Ninja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release .. &&
+ninja &&
 cpack -C Release -G "TGZ;DEB;RPM"

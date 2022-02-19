@@ -12,13 +12,13 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
+          fetch-depth: 0
 
       - name: Install dependencies
         run: |
           brew install \
-            cmake \
-            curl \
             gtkmm3 \
+            gtk-mac-integration \
             ninja
 
       # Workaround for now, we create our own features.h file (macos image either is missing this file, or some include folder is missing during the build)
@@ -33,19 +33,10 @@ jobs:
           EOF
 
       - name: Build
-        run: |
-          mkdir build && cd build
-          cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DDOXYGEN:BOOL=FALSE ..
-          ninja
+        run: ./scripts/build-macos-prod.sh
 
       - uses: actions/upload-artifact@v2
         with:
-          name: macOS-binary
-          path: build/src/libreweb-browser
-      
-      # TODO: Packaging using CPack and PackageMaker
+          name: macOS-dmg-package
+          path: build_prod_macos/libreweb-browser-v*.dmg
 
-      #xcodebuild \
-      # -project "libreweb-browser.xcodeproj" \
-      #    -scheme libreweb-browser \
-      #    -configuration Debug

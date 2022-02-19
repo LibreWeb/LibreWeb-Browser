@@ -65,10 +65,16 @@ endif()
 
 # Additional install files
 if(WIN32)
-  # Windows specific
-  install(DIRECTORY packaging_win/ DESTINATION .)
+  # Microsoft Windows specific
+  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_win/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
-else()
+elseif(APPLE)
+  # Apple macOS specific
+  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_macos/ DESTINATION .)
+  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
+elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION share/applications)
   install(PROGRAMS go-ipfs/ipfs DESTINATION bin)

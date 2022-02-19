@@ -20,7 +20,6 @@
 #include <gtkmm/fontbutton.h>
 #include <gtkmm/grid.h>
 #include <gtkmm/listbox.h>
-#include <gtkmm/menubar.h>
 #include <gtkmm/menubutton.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/modelbutton.h>
@@ -41,6 +40,10 @@
 #include <gtkmm/treeview.h>
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
+#include <string>
+#if defined(__APPLE__)
+#include <gtkosxapplication.h>
+#endif
 
 struct cmark_node;
 
@@ -281,6 +284,9 @@ protected:
   Gtk::Separator m_separator9;
   Gtk::Separator m_separator10;
   TocModelCols m_tocColumns;
+#if defined(__APPLE__)
+  GtkosxApplication* osxApp;
+#endif
 
 private:
   Middleware middleware_;
@@ -309,6 +315,7 @@ private:
   void initSettingsPopover();
   void initTableofContents();
   void initSignals();
+  void initMacOs();
   bool isInstalled();
   void setTableofContents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings);
   void enableEdit();

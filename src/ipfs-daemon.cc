@@ -125,10 +125,13 @@ std::string IPFSDaemon::locateIPFSBinary()
 {
   std::string ipfsBinaryName = "ipfs";
   std::string currentExecutablePath;
-#ifdef _WIN32
+#if defined(_WIN32)
   ipfsBinaryName += ".exe";
+#elif defined(__APPLE__)
+  ipfsBinaryName += "-darwin";
 #endif
-  // Use the current executable directory (bin folder), to locate the go-ipfs binary (for both Linux and Windows)
+  // Use the current executable directory (bin folder), to locate the go-ipfs binary
+  // (for Linux, Mac OS and Windows)
   char* path = NULL;
   int length, dirnameLength;
   length = wai_getExecutablePath(NULL, 0, &dirnameLength);
@@ -149,8 +152,8 @@ std::string IPFSDaemon::locateIPFSBinary()
   }
   std::string ipfs_binary_path = Glib::build_filename(currentExecutablePath, ipfsBinaryName);
 
-  // When working directory is the build/bin folder (relative path), during the build (when package is not installed
-  // yet)
+  // When working directory is the build/bin folder (relative path), during the build
+  // (when package is not installed yet)
   std::string ipfs_binary_path_dev = Glib::build_filename(n_fs::current_path().string(), "..", "..", "go-ipfs", ipfsBinaryName);
   if (Glib::file_test(ipfs_binary_path, Glib::FileTest::FILE_TEST_IS_EXECUTABLE))
   {

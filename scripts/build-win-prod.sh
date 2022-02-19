@@ -7,6 +7,5 @@ mkdir build_prod_win
 cd build_prod_win
 
 x86_64-w64-mingw32.static-cmake -G Ninja -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release .. &&
-ninja && 
-echo "INFO: Start NSIS packaging for Windows...";
+ninja &&
 cpack -C Release -G NSIS

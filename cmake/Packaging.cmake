@@ -1,6 +1,6 @@
 # Example 1: https://github.com/MariaDB/server/tree/10.8/cmake
 # Example 2: https://gitlab.com/inkscape/inkscape/blob/master/CMakeScripts/ConfigCPack.cmake
-#set(CPACK_PACKAGE_NAME "LibreWeb Browser")
+# Example 3: https://github.com/rcaelers/workrave/blob/main/ui/app/toolkits/gtkmm/dist/macos/CMakeLists.txt
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "LibreWeb Browser - Decentralized Web-Browser")
 set(CPACK_PACKAGE_VENDOR "Melroy van den Berg")
 set(CPACK_PACKAGE_CONTACT "Melroy van den Berg <info@libreweb.org>")
@@ -12,6 +12,10 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_TARGET}-${CPACK_PACKAGE_VERSION}")
 set(CPACK_DEBIAN_PACKAGE_SECTION "web")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${CPACK_PACKAGE_VERSION}") # Without '-Linux' or '-Win' suffix
+# macOS specific options -  Used for DragNDrop bundle generator
+set(CPACK_BUNDLE_NAME "${PROJECT_NAME}-v${CPACK_PACKAGE_VERSION}")
+set(CPACK_BUNDLE_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist")
+set(CPACK_BUNDLE_ICON "${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns")
 # Windows specific options - GUI Installer (NSIS generator)
 set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/images/browser_logo_small.bmp")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "LibreWeb")
@@ -41,8 +45,8 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND EXISTS "/etc/os-release")
     )
     if (NOT ${DIFINE_LINUX_DISTRO_RESULT} EQUAL 0)
         message (FATAL_ERROR "Linux distro identification error")
-    endif ()
-endif ()
+    endif()
+endif()
 
 # RPM section
 if(${LINUX_DISTRO} MATCHES "openSUSE")
