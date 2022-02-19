@@ -102,7 +102,7 @@ if(NOT UNITTEST)
             PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}" # -v${PROJECT_VERSION}
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
-            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}"
+            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${PROJECT_VERSION}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
             MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
             MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
@@ -176,7 +176,7 @@ if(NOT UNITTEST)
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
             RUNTIME DESTINATION . COMPONENT Runtime
-            BUNDLE DESTINATION ${INSTALL_RUNTIME_DIR} COMPONENT Runtime)
+            BUNDLE DESTINATION . COMPONENT Runtime)
 
         # TODO: Install mac integration dylib
         #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${INSTALL_RESOURCES_DIR}/lib)
