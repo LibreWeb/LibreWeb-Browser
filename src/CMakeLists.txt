@@ -164,27 +164,32 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
+        set(APP_BUNDLE_NAME LibreWeb.app)
+        set(prefix ${APP_BUNDLE_NAME}/Contents)
+        set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
+        set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
+        set(APPS ${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME})
+
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
-            RUNTIME DESTINATION .
-            BUNDLE DESTINATION . COMPONENT Runtime)
+            RUNTIME DESTINATION . COMPONENT Runtime
+            BUNDLE DESTINATION ${INSTALL_RUNTIME_DIR} COMPONENT Runtime)
 
-        SET(APP_BUNDLE_NAME LibreWeb.app)
-        SET(BUNDLE_INSTALL_TARGET ${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME})
-        SET(APPS ${BUNDLE_INSTALL_TARGET})
-
-        # TODO: Install  integration dylib
-        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${APP_BUNDLE_NAME}/Contents/MacOS)
+        # TODO: Install mac integration dylib
+        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${INSTALL_RESOURCES_DIR}/lib)
         #foreach( lib ${libqrencode_LIBRARIES} )
         #    get_filename_component(libfile ${lib} NAME)
         #    MESSAGE("Adding ${libfile} to bundle")
         #    list(APPEND BUNDLELIBS
-        #        ${BUNDLE_INSTALL_TARGET}/Contents/MacOS/${libfile})
+        #        ${INSTALL_RESOURCES_DIR}/lib/${libfile})
         #endforeach(lib ${libqrencode_LIBRARIES})
         # Add "BUNDLELIBS" to fixup_bundle
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+        message(STATUS "APPS: ${APPS}")
+        #message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
+        #message(STATUS "DIRS: ${DIRS}")
         install(CODE "
             include(BundleUtilities)
             set(BU_CHMOD_BUNDLE_ITEMS ON)
