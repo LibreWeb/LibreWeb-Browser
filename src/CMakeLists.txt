@@ -100,7 +100,7 @@ if(NOT UNITTEST)
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
-            MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}" # -v${PROJECT_VERSION}
+            MACOSX_BUNDLE_BUNDLE_NAME "LibreWeb" # -v${PROJECT_VERSION}
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
             MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${PROJECT_VERSION}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
@@ -164,14 +164,10 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
-        set(APP_BUNDLE_NAME ${PROJECT_NAME}.app)
+        set(APP_BUNDLE_NAME LibreWeb.app)
         set(prefix ${APP_BUNDLE_NAME}/Contents)
-        set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
         set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
         set(APPS "${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
-        message(STATUS "APP_BUNDLE_NAME: ${APP_BUNDLE_NAME}")
-        message(STATUS "prefix: ${prefix}")
-        message(STATUS "INSTALL_RUNTIME_DIR: ${INSTALL_RUNTIME_DIR}")
 
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
