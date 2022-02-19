@@ -169,6 +169,9 @@ if(NOT UNITTEST)
         set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
         set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
         set(APPS "${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
+        message(STATUS "APP_BUNDLE_NAME: ${APP_BUNDLE_NAME}")
+        message(STATUS "prefix: ${prefix}")
+        message(STATUS "INSTALL_RUNTIME_DIR: ${INSTALL_RUNTIME_DIR}")
 
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
