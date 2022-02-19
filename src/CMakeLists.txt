@@ -165,13 +165,14 @@ if(NOT UNITTEST)
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
         # Install browser binary macOS
-        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION . BUNDLE DESTINATION ${CMAKE_SOURCE_DIR})
+        install(TARGETS ${PROJECT_TARGET}
+            RUNTIME DESTINATION .
+            BUNDLE DESTINATION . COMPONENT Runtime)
 
         SET(APP_BUNDLE_NAME LibreWeb.app)
-        SET(BUNDLE_INSTALL_TARGET "\${CMAKE_SOURCE_DIR}/${APP_BUNDLE_NAME}")
+        SET(BUNDLE_INSTALL_TARGET ${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME})
         SET(APPS ${BUNDLE_INSTALL_TARGET})
 
-        set(LIB_DIRS "${MAC_INTEGRATION_LIBRARY_DIRS}")
         # TODO: Install  integration dylib
         #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${APP_BUNDLE_NAME}/Contents/MacOS)
         #foreach( lib ${libqrencode_LIBRARIES} )
@@ -186,7 +187,7 @@ if(NOT UNITTEST)
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
         install(CODE "
             include(BundleUtilities)
-            set(BU_CHMOD_BUNDLE_ITEMS 1)
+            set(BU_CHMOD_BUNDLE_ITEMS ON)
             fixup_bundle(\"${APPS}\" \"\" \"\")
             verify_app(${APPS})")
     else()
