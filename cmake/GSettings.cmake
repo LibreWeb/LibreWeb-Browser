@@ -14,7 +14,11 @@ else()
 endif()
 
 if(GSETTINGS_COMPILE)
-    message (STATUS "GSettings shemas will be compiled after install.")
+    if (UNIX AND NOT APPLE)
+        message (STATUS "GSettings shemas will be compiled after install.")
+    else()
+        set(GSETTINGS_COMPILE OFF CACHE BOOL "Disable schema compile after installation" FORCE)
+    endif()
 endif()
 
 macro(add_schema SCHEMA_NAME OUTPUT)
@@ -22,10 +26,19 @@ macro(add_schema SCHEMA_NAME OUTPUT)
     set(PKG_CONFIG_EXECUTABLE pkg-config)
 
     if(GSETTINGS_PREFIXINSTALL)
-        set (GSETTINGS_DIR "${CMAKE_INSTALL_PREFIX}/share/glib-2.0/schemas/")
+        if(WIN32 OR APPLE)
+            set(GSETTINGS_DIR "${DATADIR}/glib-2.0/schemas/")
+        elseif(UNIX)
+            # $DATADIR is relative, using GNU/Linux we want to have gsettings installed in the obsolute path
+            set(GSETTINGS_DIR "${CMAKE_INSTALL_PREFIX}/${DATADIR}/glib-2.0/schemas/")
+        endif()
     else()
-        execute_process (COMMAND ${PKG_CONFIG_EXECUTABLE} glib-2.0 --variable prefix OUTPUT_VARIABLE _glib_prefix OUTPUT_STRIP_TRAILING_WHITESPACE)
-        set (GSETTINGS_DIR "${_glib_prefix}/share/glib-2.0/schemas/")
+        if(WIN32 OR APPLE)
+            set(GSETTINGS_DIR "${DATADIR}/glib-2.0/schemas/")
+        elseif(UNIX)
+            execute_process(COMMAND ${PKG_CONFIG_EXECUTABLE} glib-2.0 --variable prefix OUTPUT_VARIABLE _glib_prefix OUTPUT_STRIP_TRAILING_WHITESPACE)
+            set(GSETTINGS_DIR "${_glib_prefix}/${DATADIR}/glib-2.0/schemas/")
+        endif()
     endif()
 
     # Validate the schema
@@ -35,7 +48,6 @@ macro(add_schema SCHEMA_NAME OUTPUT)
     if(_schemas_invalid)
       message(SEND_ERROR "Schema validation error: ${_schemas_invalid}")
     endif(_schemas_invalid)
-
 
     if(GSETTINGS_LOCALCOMPILE)
         # compile locally during build to not force the user to 'make install'
@@ -57,18 +69,15 @@ macro(add_schema SCHEMA_NAME OUTPUT)
     endif(GSETTINGS_LOCALCOMPILE)
 
     # Install
-    if(WIN32)
-        message (STATUS "GSettings schema ${SCHEMA_NAME} will be installed into share/glib-2.0/schemas")
-        # For Windows the destination should always be relative
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schema/${SCHEMA_NAME} DESTINATION share/glib-2.0/schemas)
-        # Also we want to ship the compiled binary to Windows
-        install(FILES ${PROJECT_BINARY_DIR}/gschemas.compiled DESTINATION share/glib-2.0/schemas)
-    else()
-        message (STATUS "GSettings schema ${SCHEMA_NAME} will be installed into ${GSETTINGS_DIR}")
-        install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schema/${SCHEMA_NAME} DESTINATION ${GSETTINGS_DIR})
+    message (STATUS "GSettings schema ${SCHEMA_NAME} will be installed into ${GSETTINGS_DIR}")
+    install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/schema/${SCHEMA_NAME} DESTINATION ${GSETTINGS_DIR})
+    if(WIN32 OR APPLE)
+        # Also we want to ship the compiled binary to Windows and macOS
+        message (STATUS "GSettings gschemas.compiled will be installed into ${GSETTINGS_DIR}")
+        install(FILES ${PROJECT_BINARY_DIR}/gschemas.compiled DESTINATION ${GSETTINGS_DIR})
     endif()
 
-    # Compile
+    # Compile after installation (UNIX only)
     if(GSETTINGS_COMPILE)
         install(CODE "message (STATUS \"Compiling GSettings schemas\")")
         install(CODE "execute_process (COMMAND ${_glib_comple_schemas} ${GSETTINGS_DIR})")

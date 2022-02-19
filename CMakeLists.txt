@@ -23,6 +23,19 @@ if(DOXYGEN)
   include(Doxygen)
 endif()
 
+# Install location
+if(WIN32)
+  set(DATADIR share                               CACHE PATH "datadir")
+elseif(APPLE)
+  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents/)
+  set(RESOURCESDIR ${BUNDLEDIR}/Resources)
+  set(MACOSDIR ${BUNDLEDIR}/MacOS                 CACHE PATH "macosdir")
+  set(DATADIR ${RESOURCESDIR}/share               CACHE PATH "datadir")
+  set(LIBDIR ${RESOURCESDIR}/lib                  CACHE PATH "libadir")
+elseif(UNIX)
+  set (DATADIR share                              CACHE PATH "datadir")
+endif()
+
 # Production build, let's include the CPack settings
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   include(Packaging)
@@ -58,21 +71,8 @@ add_subdirectory (lib/commonmarker/extensions)
 add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (lib/whereami)
 add_subdirectory (src)
-
 if(UNITTEST)
   add_subdirectory(tst)
-endif()
-
-# Install location
-if(WIN32)
-  set(DATADIR share                               CACHE PATH "datadir")
-elseif(APPLE)
-  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents/)
-  set(RESOURCESDIR ${BUNDLEDIR}/Resources)
-  set(DATADIR ${RESOURCESDIR}/share               CACHE PATH "datadir")
-  set(LIBDIR ${RESOURCESDIR}/lib                  CACHE PATH "libadir")
-elseif(UNIX)
-  set (DATADIR share                              CACHE PATH "datadir")
 endif()
 
 # Additional install files
@@ -84,8 +84,8 @@ if(WIN32)
 elseif(APPLE)
   # Apple macOS specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
-  install(DIRECTORY misc/packaging_macos/ DESTINATION .)
-  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
+  install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
+  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
