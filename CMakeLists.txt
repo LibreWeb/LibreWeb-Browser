@@ -63,23 +63,35 @@ if(UNITTEST)
   add_subdirectory(tst)
 endif()
 
+# Install location
+if(WIN32)
+  set(DATADIR share                               CACHE PATH "datadir")
+elseif(APPLE)
+  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents/)
+  set(RESOURCESDIR ${BUNDLEDIR}/Resources)
+  set(DATADIR ${RESOURCESDIR}/share               CACHE PATH "datadir")
+  set(LIBDIR ${RESOURCESDIR}/lib                  CACHE PATH "libadir")
+elseif(UNIX)
+  set (DATADIR share                              CACHE PATH "datadir")
+endif()
+
 # Additional install files
 if(WIN32)
   # Microsoft Windows specific
-  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_win/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
-  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_macos/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
 elseif(UNIX)
   # UNIX specific
-  install(FILES misc/libreweb-browser.desktop DESTINATION share/applications)
+  install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
   install(PROGRAMS go-ipfs/ipfs DESTINATION bin)
 endif()
 # General
-install(DIRECTORY images DESTINATION share/libreweb)
-install(FILES images/icons/libreweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
-install(FILES images/icons/libreweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)
+install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)
+install(FILES images/icons/libreweb-browser.png DESTINATION ${DATADIR}/icons/hicolor/48x48/apps)
+install(FILES images/icons/libreweb-browser.svg DESTINATION ${DATADIR}/icons/hicolor/scalable/apps)

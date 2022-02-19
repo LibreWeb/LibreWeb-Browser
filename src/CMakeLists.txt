@@ -164,28 +164,24 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
-        set(APP_BUNDLE_NAME LibreWeb.app)
-        set(prefix ${APP_BUNDLE_NAME}/Contents)
-        set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
-        set(APPS "${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
-
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
             RUNTIME DESTINATION . COMPONENT Runtime
             BUNDLE DESTINATION . COMPONENT Runtime)
 
         # TODO: Install mac integration dylib
-        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${INSTALL_RESOURCES_DIR}/lib)
+        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${LIBDIR})
         #foreach( lib ${libqrencode_LIBRARIES} )
         #    get_filename_component(libfile ${lib} NAME)
         #    MESSAGE("Adding ${libfile} to bundle")
         #    list(APPEND BUNDLELIBS
-        #        ${INSTALL_RESOURCES_DIR}/lib/${libfile})
+        #        ${LIBDIR}/${libfile})
         #endforeach(lib ${libqrencode_LIBRARIES})
         # Add "BUNDLELIBS" to fixup_bundle
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+        set(APPS "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
         # APPS might be a symbolic link which does not work with fixup_bundle
         # expand APPS to a real path
         get_filename_component(APPS_EXPANDED ${APPS} REALPATH)
