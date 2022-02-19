@@ -195,13 +195,14 @@ if(NOT UNITTEST)
         message(STATUS "APPS: ${APPS_EXPANDED}")
         #message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
         message(STATUS "DIRS: ${DIRS}")
-        install(CODE "
-            include(BundleUtilities)
-            fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
-            verify_app(${APPS_EXPANDED})")
+        # TODO: Fixup bundle is failing
+        #install(CODE "
+        #    include(BundleUtilities)
+        #    fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
+        #    verify_app(${APPS_EXPANDED})")
     else()
         # Install browser binary
-        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin)
+        install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin COMPONENT Runtime)
     endif()
 
 else()
