@@ -176,8 +176,6 @@ if(NOT UNITTEST)
         set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1/lib/libgtkmacintegration-gtk3.4.dylib")
         install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
 
-        list(APPEND BUNDLELIBS ${MAC_INTEGRATION_DYNLIB})
-
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
         set(APPS "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.app")
@@ -187,9 +185,9 @@ if(NOT UNITTEST)
         # Directories to look for dependencies
         set(DIRS "${CMAKE_BINARY_DIR}")
         message(STATUS "APPS: ${APPS_EXPANDED}")
-        message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
         message(STATUS "DIRS: ${DIRS}")
         install(CODE "
+            file(GLOB_RECURSE BUNDLELIBS \"${LIBDIR}/*.dylib\")
             include(BundleUtilities)
             fixup_bundle(\"${APPS_EXPANDED}\" \"${BUNDLELIBS}\" \"${DIRS}\")
             verify_app(${APPS_EXPANDED})")
