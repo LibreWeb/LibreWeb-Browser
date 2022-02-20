@@ -172,6 +172,7 @@ if(NOT UNITTEST)
         # TODO: Install mac integration dylib to the libs folder
         # Maybe try to use: find_library()
         # Hack solution to get the dylib? Wild guess hard-coded dylib lication, I do not own a mac
+        # Also add other libs? like libgtk-quartz
         set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1/lib/libgtkmacintegration-gtk3.4.dylib")
         install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
 
