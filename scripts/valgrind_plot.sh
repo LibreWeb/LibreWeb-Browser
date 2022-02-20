@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 # By: Melroy van den Berg
-# Description: Used for memory leak analysis,
+# Description: Generate memory usage plots in massif format (https://valgrind.org/docs/manual/ms-manual.html),
 # be-aware that you will get a lot of false positives messages due to GTK/Glib
 
 cd ./build/src
 G_DEBUG=gc-friendly G_SLICE=always-malloc valgrind \
 --suppressions=/usr/share/glib-2.0/valgrind/glib.supp \
---leak-check=full --track-origins=yes \
+--suppressions=/usr/share/gtk-3.0/valgrind/gtk.supp \
+--tool=massif \
 ./libreweb-browser
