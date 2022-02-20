@@ -170,14 +170,11 @@ if(NOT UNITTEST)
             BUNDLE DESTINATION . COMPONENT Runtime)
 
         # TODO: Install mac integration dylib to the libs folder
-        install(FILES ${MAC_INTEGRATION_LIBRARY_DIRS} DESTINATION ${LIBDIR})
-        foreach(lib ${MAC_INTEGRATION_LIBRARY_DIRS} )
-            get_filename_component(libfile ${lib} NAME)
-            MESSAGE("Adding ${libfile} to bundle")
-            list(APPEND BUNDLELIBS
-                ${LIBDIR}/${libfile})
-        endforeach(lib)
-        # Add "BUNDLELIBS" to fixup_bundle
+        # Hack solution to get the dylib? It's a guess I do not own a mac
+        set(MAC_INTEGRATION_DYNLIB ${MAC_INTEGRATION_LIBRARY_DIRS}/libgtkmacintegration-gtk3.4.dylib)
+        install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
+
+        list(APPEND BUNDLELIBS ${MAC_INTEGRATION_DYNLIB})
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
