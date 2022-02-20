@@ -145,7 +145,7 @@ See latest [Developer Documentation](https://gitlab.melroy.org/libreweb/browser/
 
 Doxygen is build by default. You can disable the doxygen build, if you want, using: `cmake -DDOXYGEN:BOOL=FALSE ..`
 
-### Memory Leaks
+### Memory check
 
 First **build** the (Linux) target including *debug symbols*. Binary should be present in the `build/src` folder.
 
@@ -153,6 +153,12 @@ Next, check for memory leaks using `valgrind` by executing:
 
 ```sh
 ./scripts/valgrind.sh
+```
+
+Or to generate a memory usage plot in [massif format](https://valgrind.org/docs/manual/ms-manual.html), execute:
+
+```sh
+./scripts/valgrind_plot.sh
 ```
 
 ## Other platforms
