@@ -181,7 +181,10 @@ if(NOT UNITTEST)
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
-        set(APPS "${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app")
+        # CMAKE_INSTALL_PREFIX 
+        # CMAKE_CURRENT_SOURCE_DIR
+        # CMAKE_BINARY_DIR/src/..
+        set(APPS "${CMAKE_SOURCE_DIR}/${PROJECT_NAME}.app")
         # APPS might be a symbolic link which does not work with fixup_bundle
         # expand APPS to a real path
         get_filename_component(APPS_EXPANDED ${APPS} REALPATH)

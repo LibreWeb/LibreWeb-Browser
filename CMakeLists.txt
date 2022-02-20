@@ -83,9 +83,11 @@ if(WIN32)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
-  install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
-  install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
-  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
+  #
+  ## ~~ Speed-up the packaging for now, disabled temp! ~~ ##
+  #install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
+  #install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
+  #install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
