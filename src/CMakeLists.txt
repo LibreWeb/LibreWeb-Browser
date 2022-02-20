@@ -191,7 +191,7 @@ if(NOT UNITTEST)
         message(STATUS "DIRS: ${DIRS}")
         install(CODE "
             include(BundleUtilities)
-            fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
+            fixup_bundle(\"${APPS_EXPANDED}\" \"${BUNDLELIBS}\" \"${DIRS}\")
             verify_app(${APPS_EXPANDED})")
     else()
         # Install browser binary
