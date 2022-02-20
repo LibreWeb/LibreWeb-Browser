@@ -95,13 +95,14 @@ if(NOT UNITTEST)
         # Add macOS icns icon to bundle
         set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns)
         set_source_files_properties(${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-
+        # Generate plist file
+        configure_file(${CMAKE_SOURCE_DIR}/misc/Info.plist.in ${CMAKE_BINARY_DIR}/Info.plist)
         add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${MACOSX_BUNDLE_ICON_FILE} ${SOURCES})
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
             MACOSX_BUNDLE_BUNDLE_NAME "LibreWeb" # -v${PROJECT_VERSION}
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/Info.plist"
             MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${PROJECT_VERSION}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
             MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
