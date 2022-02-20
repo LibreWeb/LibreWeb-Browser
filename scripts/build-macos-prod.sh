@@ -14,5 +14,4 @@ cmake -G Ninja -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release .. &&
 #  -scheme libreweb-browser \
 #  -configuration Release
 ninja &&
-# Enable verbose for debugging
-cpack -V --trace -C Release -G DragNDrop
+cpack -C Release -G DragNDrop

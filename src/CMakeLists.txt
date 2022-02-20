@@ -169,22 +169,18 @@ if(NOT UNITTEST)
             RUNTIME DESTINATION . COMPONENT Runtime
             BUNDLE DESTINATION . COMPONENT Runtime)
 
-        # TODO: Install mac integration dylib
-        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${LIBDIR})
-        #foreach( lib ${libqrencode_LIBRARIES} )
-        #    get_filename_component(libfile ${lib} NAME)
-        #    MESSAGE("Adding ${libfile} to bundle")
-        #    list(APPEND BUNDLELIBS
-        #        ${LIBDIR}/${libfile})
-        #endforeach(lib ${libqrencode_LIBRARIES})
+        # TODO: Install mac integration dylib to the libs folder
+        install(FILES ${MAC_INTEGRATION_LIBRARY_DIRS} DESTINATION ${LIBDIR})
+        foreach(lib ${MAC_INTEGRATION_LIBRARY_DIRS} )
+            get_filename_component(libfile ${lib} NAME)
+            MESSAGE("Adding ${libfile} to bundle")
+            list(APPEND BUNDLELIBS
+                ${LIBDIR}/${libfile})
+        endforeach(lib)
         # Add "BUNDLELIBS" to fixup_bundle
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
-        # CMAKE_INSTALL_PREFIX 
-        # CMAKE_CURRENT_SOURCE_DIR
-        # CMAKE_BINARY_DIR/src/..
-        # CMAKE_CURRENT_BINARY_DIR
         set(APPS "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.app")
         # APPS might be a symbolic link which does not work with fixup_bundle
         # expand APPS to a real path
@@ -192,9 +188,8 @@ if(NOT UNITTEST)
         # Directories to look for dependencies
         set(DIRS "${CMAKE_BINARY_DIR}")
         message(STATUS "APPS: ${APPS_EXPANDED}")
-        #message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
+        message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
         message(STATUS "DIRS: ${DIRS}")
-        # TODO: Fixup bundle is failing
         install(CODE "
             include(BundleUtilities)
             fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
