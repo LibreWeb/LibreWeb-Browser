@@ -55,9 +55,8 @@ set(SOURCES
 # Install and recompile glib gsettings schema
 add_schema("org.libreweb.browser.gschema.xml" GSCHEMA_RING)
 
-# For Windows & macOS
+# For Windows & macOS, add additional schema files
 if(WIN32 OR APPLE)
-    # Additional schema files
     set(ADDITIONAL_SCHEMA_FILES
         org.gtk.Settings.ColorChooser.gschema.xml
         org.gtk.Settings.Debug.gschema.xml
@@ -69,20 +68,6 @@ if(WIN32 OR APPLE)
         add_schema(${SCHEMA_FILE} GSCHEMA_RING)
     endforeach(SCHEMA_FILE)
 endif()
-# Only for Windows
-if(WIN32)
-    # Text format Windows resource file for Resource Compiler (rc)
-    set(WINDOWS_RES_IN ${CMAKE_SOURCE_DIR}/misc/libreweb.rc.in)
-    set(WINDOWS_RES ${CMAKE_CURRENT_BINARY_DIR}/libreweb.rc)
-    configure_file(${WINDOWS_RES_IN} ${WINDOWS_RES} @ONLY)
-	# Set a default rc compiler if it was not defined yet
-	if(NOT CMAKE_RC_COMPILER)
-		set(CMAKE_RC_COMPILER windres)
-	endif()
-	enable_language(RC)
-	set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -Ocoff -o <OBJECT> <SOURCE>")
-	set_source_files_properties(${WINDOWS_RES} PROPERTIES LANGUAGE RC)
-endif()
 
 # Get include list the cmark binary directory for the generated config.h, .._version.h & .._export.h files
 # Get include list the cmark extensions binary directory for the generated ..._export.h file
@@ -90,13 +75,14 @@ get_property(CMARK_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
 get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
 if(NOT UNITTEST)
-    # LibreWeb binary
+    ## Executable app
     if(APPLE)
         # Add macOS icns icon to bundle
         set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns)
         set_source_files_properties(${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
         # Generate plist file
         configure_file(${CMAKE_SOURCE_DIR}/misc/Info.plist.in ${CMAKE_BINARY_DIR}/Info.plist)
+
         add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${MACOSX_BUNDLE_ICON_FILE} ${SOURCES})
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
@@ -112,8 +98,22 @@ if(NOT UNITTEST)
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${CODE_SIGN_IDENTITY}"
             XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM_ID}"
         )
-    else()
-        add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
+    elseif(UNIX AND NOT APPLE)
+        add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${SOURCES})
+    elseif(WIN32)
+        # Text format Windows resource file for Resource Compiler (rc)
+        set(WINDOWS_RES_IN ${CMAKE_SOURCE_DIR}/misc/libreweb.rc.in)
+        set(WINDOWS_RES ${CMAKE_CURRENT_BINARY_DIR}/libreweb.rc)
+        configure_file(${WINDOWS_RES_IN} ${WINDOWS_RES} @ONLY)
+        # Set a default rc compiler if it was not defined yet
+        if(NOT CMAKE_RC_COMPILER)
+            set(CMAKE_RC_COMPILER windres)
+        endif()
+        enable_language(RC)
+        set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -Ocoff -o <OBJECT> <SOURCE>")
+        set_source_files_properties(${WINDOWS_RES} PROPERTIES LANGUAGE RC)
+
+        add_executable(${PROJECT_TARGET} WIN32 ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
     endif()
 
     ## Definitions just in case
@@ -170,10 +170,9 @@ if(NOT UNITTEST)
             RUNTIME DESTINATION . COMPONENT Runtime
             BUNDLE DESTINATION . COMPONENT Runtime)
 
-        # TODO: Install mac integration dylib to the libs folder
         # Maybe try to use: find_library()
-        # Hack solution to get the dylib? Wild guess hard-coded dylib lication, I do not own a mac
-        # Also add other libs? like libgtk-quartz
+        # Hack solution to get the dylib.
+        # Also add other libs, like gtk-3 and libgtk-quartz?
         set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1/lib/libgtkmacintegration-gtk3.4.dylib")
         install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
 
@@ -197,6 +196,7 @@ if(NOT UNITTEST)
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin COMPONENT Runtime)
     endif()
 
+## Below for Unit testing only ##
 else()
     # Build seperate libraries for unit testing
     set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)
