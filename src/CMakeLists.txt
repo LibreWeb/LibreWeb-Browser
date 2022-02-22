@@ -182,8 +182,8 @@ if(NOT UNITTEST)
         # APPS might be a symbolic link which does not work with fixup_bundle
         # expand APPS to a real path
         get_filename_component(APPS_EXPANDED ${APPS} REALPATH)
-        # Directories to look for dependencies
-        set(DIRS "${CMAKE_BINARY_DIR}")
+        # Directories to look for dependencies (libs)
+        list(APPEND DIRS "${LIBDIR}")
         message(STATUS "APPS: ${APPS_EXPANDED}")
         message(STATUS "DIRS: ${DIRS}")
         install(CODE "
