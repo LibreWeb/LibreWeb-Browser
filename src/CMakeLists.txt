@@ -55,9 +55,8 @@ set(SOURCES
 # Install and recompile glib gsettings schema
 add_schema("org.libreweb.browser.gschema.xml" GSCHEMA_RING)
 
-# For Windows & macOS
+# For Windows & macOS, add additional schema files
 if(WIN32 OR APPLE)
-    # Additional schema files
     set(ADDITIONAL_SCHEMA_FILES
         org.gtk.Settings.ColorChooser.gschema.xml
         org.gtk.Settings.Debug.gschema.xml
@@ -69,20 +68,6 @@ if(WIN32 OR APPLE)
         add_schema(${SCHEMA_FILE} GSCHEMA_RING)
     endforeach(SCHEMA_FILE)
 endif()
-# Only for Windows
-if(WIN32)
-    # Text format Windows resource file for Resource Compiler (rc)
-    set(WINDOWS_RES_IN ${CMAKE_SOURCE_DIR}/misc/libreweb.rc.in)
-    set(WINDOWS_RES ${CMAKE_CURRENT_BINARY_DIR}/libreweb.rc)
-    configure_file(${WINDOWS_RES_IN} ${WINDOWS_RES} @ONLY)
-	# Set a default rc compiler if it was not defined yet
-	if(NOT CMAKE_RC_COMPILER)
-		set(CMAKE_RC_COMPILER windres)
-	endif()
-	enable_language(RC)
-	set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -Ocoff -o <OBJECT> <SOURCE>")
-	set_source_files_properties(${WINDOWS_RES} PROPERTIES LANGUAGE RC)
-endif()
 
 # Get include list the cmark binary directory for the generated config.h, .._version.h & .._export.h files
 # Get include list the cmark extensions binary directory for the generated ..._export.h file
@@ -90,19 +75,21 @@ get_property(CMARK_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_BINARY_DIR)
 get_property(CMARK_EXTENSIONS_BINARY_DIR GLOBAL PROPERTY COMMONMARKER_EXTENSIONS_BINARY_DIR)
 
 if(NOT UNITTEST)
-    # LibreWeb binary
+    ## Executable app
     if(APPLE)
         # Add macOS icns icon to bundle
         set(MACOSX_BUNDLE_ICON_FILE ${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns)
         set_source_files_properties(${MACOSX_BUNDLE_ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+        # Generate plist file
+        configure_file(${CMAKE_SOURCE_DIR}/misc/Info.plist.in ${CMAKE_BINARY_DIR}/Info.plist)
 
         add_executable(${PROJECT_TARGET} MACOSX_BUNDLE ${GSCHEMA_RING} ${MACOSX_BUNDLE_ICON_FILE} ${SOURCES})
         # Set MacOSX bundle & XCode props
         set_target_properties(${PROJECT_TARGET}
             PROPERTIES
-            MACOSX_BUNDLE_BUNDLE_NAME "${PROJECT_NAME}" # -v${PROJECT_VERSION}
-            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_SOURCE_DIR}/misc/Info.plist"
-            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME}"
+            MACOSX_BUNDLE_BUNDLE_NAME "LibreWeb" # -v${PROJECT_VERSION}
+            MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/Info.plist"
+            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${PROJECT_VERSION}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
             MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
             MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
@@ -111,8 +98,22 @@ if(NOT UNITTEST)
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${CODE_SIGN_IDENTITY}"
             XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM_ID}"
         )
-    else()
-        add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
+    elseif(UNIX AND NOT APPLE)
+        add_executable(${PROJECT_TARGET} ${GSCHEMA_RING} ${SOURCES})
+    elseif(WIN32)
+        # Text format Windows resource file for Resource Compiler (rc)
+        set(WINDOWS_RES_IN ${CMAKE_SOURCE_DIR}/misc/libreweb.rc.in)
+        set(WINDOWS_RES ${CMAKE_CURRENT_BINARY_DIR}/libreweb.rc)
+        configure_file(${WINDOWS_RES_IN} ${WINDOWS_RES} @ONLY)
+        # Set a default rc compiler if it was not defined yet
+        if(NOT CMAKE_RC_COMPILER)
+            set(CMAKE_RC_COMPILER windres)
+        endif()
+        enable_language(RC)
+        set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> -Ocoff -o <OBJECT> <SOURCE>")
+        set_source_files_properties(${WINDOWS_RES} PROPERTIES LANGUAGE RC)
+
+        add_executable(${PROJECT_TARGET} WIN32 ${GSCHEMA_RING} ${WINDOWS_RES} ${SOURCES})
     endif()
 
     ## Definitions just in case
@@ -164,47 +165,39 @@ if(NOT UNITTEST)
         target_link_libraries(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_LIBRARIES})
         target_compile_options(${PROJECT_TARGET} PRIVATE ${MAC_INTEGRATION_CFLAGS_OTHER})
 
-        set(APP_BUNDLE_NAME ${PROJECT_NAME}.app)
-        set(prefix ${APP_BUNDLE_NAME}/Contents)
-        set(INSTALL_RUNTIME_DIR "${prefix}/MacOS")
-        set(INSTALL_RESOURCES_DIR "${prefix}/Resources")
-        set(APPS "${CMAKE_INSTALL_PREFIX}/${APP_BUNDLE_NAME}")
-
         # Install browser binary macOS
         install(TARGETS ${PROJECT_TARGET}
             RUNTIME DESTINATION . COMPONENT Runtime
-            BUNDLE DESTINATION ${INSTALL_RUNTIME_DIR} COMPONENT Runtime)
+            BUNDLE DESTINATION . COMPONENT Runtime)
 
-        # TODO: Install mac integration dylib
-        #install( FILES ${libqrencode_LIBRARIES} DESTINATION ${INSTALL_RESOURCES_DIR}/lib)
-        #foreach( lib ${libqrencode_LIBRARIES} )
-        #    get_filename_component(libfile ${lib} NAME)
-        #    MESSAGE("Adding ${libfile} to bundle")
-        #    list(APPEND BUNDLELIBS
-        #        ${INSTALL_RESOURCES_DIR}/lib/${libfile})
-        #endforeach(lib ${libqrencode_LIBRARIES})
-        # Add "BUNDLELIBS" to fixup_bundle
+        # Maybe try to use: find_library()
+        # Hack solution to get the dylib.
+        # Also add other libs, like gtk-3 and libgtk-quartz?
+        set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1/lib/libgtkmacintegration-gtk3.4.dylib")
+        install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
+        # TODO: Also copy GTK/GTKMM to the app dmg image
 
         # Fix-up bundle & verify if app is standalone
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
+        set(APPS "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.app")
         # APPS might be a symbolic link which does not work with fixup_bundle
         # expand APPS to a real path
         get_filename_component(APPS_EXPANDED ${APPS} REALPATH)
-        # Directories to look for dependencies
-        set(DIRS "${CMAKE_BINARY_DIR}")
+        # Directories to look for dependencies (libs)
+        list(APPEND DIRS "${LIBDIR}")
         message(STATUS "APPS: ${APPS_EXPANDED}")
-        #message(STATUS "BUNDLELIBS: ${BUNDLELIBS}")
         message(STATUS "DIRS: ${DIRS}")
-        # TODO: Fixup bundle is failing
-        #install(CODE "
-        #    include(BundleUtilities)
-        #    fixup_bundle(\"${APPS_EXPANDED}\" \"\" \"${DIRS}\")
-        #    verify_app(${APPS_EXPANDED})")
+        install(CODE "
+            file(GLOB_RECURSE BUNDLELIBS \"${LIBDIR}/*.dylib\")
+            include(BundleUtilities)
+            fixup_bundle(\"${APPS_EXPANDED}\" \"${BUNDLELIBS}\" \"${DIRS}\")
+            verify_app(${APPS_EXPANDED})")
     else()
         # Install browser binary
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin COMPONENT Runtime)
     endif()
 
+## Below for Unit testing only ##
 else()
     # Build seperate libraries for unit testing
     set(PROJECT_TARGET_LIB ${PROJECT_TARGET}-lib)

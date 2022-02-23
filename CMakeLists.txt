@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.16.0)
 
 option(DOXYGEN "Build Doxygen documentation" ON)
 option(UNITTEST "Build unit tests")
+set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS deployment version")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -21,6 +22,19 @@ endif()
 # Build docs using Doxygen
 if(DOXYGEN)
   include(Doxygen)
+endif()
+
+# Install location
+if(WIN32)
+  set(DATADIR share                               CACHE PATH "datadir")
+elseif(APPLE)
+  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents/)
+  set(RESOURCESDIR ${BUNDLEDIR}/Resources)
+  set(MACOSDIR ${BUNDLEDIR}/MacOS                 CACHE PATH "macosdir")
+  set(DATADIR ${RESOURCESDIR}/share               CACHE PATH "datadir")
+  set(LIBDIR ${RESOURCESDIR}/lib                  CACHE PATH "libadir")
+elseif(UNIX)
+  set (DATADIR share                              CACHE PATH "datadir")
 endif()
 
 # Production build, let's include the CPack settings
@@ -58,7 +72,6 @@ add_subdirectory (lib/commonmarker/extensions)
 add_subdirectory (lib/ipfs-http-client)
 add_subdirectory (lib/whereami)
 add_subdirectory (src)
-
 if(UNITTEST)
   add_subdirectory(tst)
 endif()
@@ -66,20 +79,20 @@ endif()
 # Additional install files
 if(WIN32)
   # Microsoft Windows specific
-  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
+  install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_win/ DESTINATION .)
   install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
-  install(DIRECTORY misc/packaging_generic/ DESTINATION .)
-  install(DIRECTORY misc/packaging_macos/ DESTINATION .)
-  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION bin)
+  install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
+  install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
+  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
-  install(FILES misc/libreweb-browser.desktop DESTINATION share/applications)
+  install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
   install(PROGRAMS go-ipfs/ipfs DESTINATION bin)
 endif()
 # General
-install(DIRECTORY images DESTINATION share/libreweb)
-install(FILES images/icons/libreweb-browser.png DESTINATION share/icons/hicolor/48x48/apps)
-install(FILES images/icons/libreweb-browser.svg DESTINATION share/icons/hicolor/scalable/apps)
+install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)
+install(FILES images/icons/libreweb-browser.png DESTINATION ${DATADIR}/icons/hicolor/48x48/apps)
+install(FILES images/icons/libreweb-browser.svg DESTINATION ${DATADIR}/icons/hicolor/scalable/apps)
