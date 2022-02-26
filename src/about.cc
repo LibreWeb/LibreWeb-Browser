@@ -20,7 +20,7 @@ About::About(Gtk::Window& parent)
   set_version(PROJECT_VER);
   set_comments("The fastest decentralized & distributed Browser on planet Earth.");
   set_logo(logo.get_pixbuf());
-  set_copyright("Copyright © 2020-2021 Melroy van den Berg");
+  set_copyright("Copyright © 2020-2022 Melroy van den Berg");
   set_authors(devs);
   set_artists(devs);
   set_documenters(docs);
