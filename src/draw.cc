@@ -33,9 +33,10 @@ Draw::Draw(MiddlewareInterface& middleware)
 {
   this->disableEdit();
   set_top_margin(12);
-  set_left_margin(10);  // fallback
-  set_right_margin(10); // fallback
+  set_left_margin(20);  // fallback
+  set_right_margin(20); // fallback
   set_bottom_margin(0);
+  set_indent(0); // fallback
   set_monospace(false);
   set_app_paintable(true);
   set_pixels_above_lines(1);

@@ -386,17 +386,13 @@ void MainWindow::loadStoredSettings()
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
-    // Adjustment controls
-    int margins = 20;
-    int indent = 0;
+    // Fallback adjustment controls
+    int margins = m_draw_primary.get_margin_left();
+    int indent = m_draw_primary.get_indent();
     m_spacingAdjustment->set_value(0);
     m_marginsAdjustment->set_value(margins);
     m_indentAdjustment->set_value(indent);
-    // For drawing
-    m_draw_primary.set_left_margin(margins);
-    m_draw_primary.set_right_margin(margins);
-    m_draw_primary.set_indent(indent);
-    // ToC paned divider
+    // Fallback ToC paned divider
     m_panedRoot.set_position(300);
   }
 }
