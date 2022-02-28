@@ -75,6 +75,7 @@ protected:
   void paste();
   void del();
   void selectAll();
+  bool on_configure_event(GdkEventConfigure* configure_event);
   void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
@@ -107,21 +108,24 @@ protected:
   void on_zoom_restore();
   void on_zoom_in();
   void on_font_set();
+  void on_max_content_width_changed();
   void on_spacing_changed();
   void on_margins_changed();
   void on_indent_changed();
   void on_wrap_toggled(Gtk::WrapMode mode);
   void on_brightness_changed();
   void on_theme_changed();
+  void on_reader_view_changed();
   void on_icon_theme_activated(Gtk::ListBoxRow* row);
 
-  Glib::RefPtr<Gtk::AccelGroup> m_accelGroup;           /*!< Accelerator group, used for keyboard shortcut bindings */
-  Glib::RefPtr<Gio::Settings> m_settings;               /*!< Settings to store our preferences, even during restarts */
-  Glib::RefPtr<Gtk::Adjustment> m_brightnessAdjustment; /*!< Bridghtness adjustment settings */
-  Glib::RefPtr<Gtk::Adjustment> m_spacingAdjustment;    /*!< Spacing adjustment settings */
-  Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment;    /*!< Margins adjustment settings */
-  Glib::RefPtr<Gtk::Adjustment> m_indentAdjustment;     /*!< Indent adjustment settings */
-  Glib::RefPtr<Gtk::CssProvider> m_drawCSSProvider;     /*!< CSS Provider for draw textviews */
+  Glib::RefPtr<Gtk::AccelGroup> m_accelGroup;                /*!< Accelerator group, used for keyboard shortcut bindings */
+  Glib::RefPtr<Gio::Settings> m_settings;                    /*!< Settings to store our preferences, even during restarts */
+  Glib::RefPtr<Gtk::Adjustment> m_brightnessAdjustment;      /*!< Bridghtness adjustment settings */
+  Glib::RefPtr<Gtk::Adjustment> m_maxContentWidthAdjustment; /*!< max content width adjustment settings */
+  Glib::RefPtr<Gtk::Adjustment> m_spacingAdjustment;         /*!< Spacing adjustment settings */
+  Glib::RefPtr<Gtk::Adjustment> m_marginsAdjustment;         /*!< Margins adjustment settings */
+  Glib::RefPtr<Gtk::Adjustment> m_indentAdjustment;          /*!< Indent adjustment settings */
+  Glib::RefPtr<Gtk::CssProvider> m_drawCSSProvider;          /*!< CSS Provider for draw textviews */
 
   // Child widgets
   Menu m_menu;
@@ -159,6 +163,7 @@ protected:
   Gtk::Button m_zoomRestoreButton;
   Gtk::Button m_zoomInButton;
   Gtk::FontButton m_fontButton;
+  Gtk::SpinButton m_maxContentWidthSpinButton;
   Gtk::SpinButton m_spacingSpinButton;
   Gtk::SpinButton m_marginsSpinButton;
   Gtk::SpinButton m_indentSpinButton;
@@ -243,6 +248,7 @@ protected:
   Gtk::PopoverMenu m_settingsPopover;
   Gtk::ModelButton m_copyIDButton;
   Gtk::ModelButton m_copyPublicKeyButton;
+  Gtk::Switch m_readerViewSwitch;
   Gtk::Switch m_themeSwitch;
   Gtk::Label m_tableOfContentsLabel;
   Gtk::Label m_networkHeadingLabel;
@@ -263,11 +269,13 @@ protected:
   Gtk::Label m_networkOutcomingStatusLabel;
   Gtk::Label m_networkKiloBytesLabel;
   Gtk::Label m_fontLabel;
+  Gtk::Label m_maxContentWidthLabel;
   Gtk::Label m_spacingLabel;
   Gtk::Label m_marginsLabel;
   Gtk::Label m_indentLabel;
   Gtk::Label m_textWrappingLabel;
   Gtk::Label m_themeLabel;
+  Gtk::Label m_readerViewLabel;
   Gtk::Label m_iconThemeLabel;
   std::unique_ptr<Gtk::MessageDialog> m_contentPublishedDialog;
   Gtk::ScrolledWindow m_scrolledToc;
@@ -297,9 +305,12 @@ private:
   std::string fontFamily_;
   int defaultFontSize_;
   int currentFontSize_;
+  int contentMargin_;
+  int contentMaxWidth_;
   int fontSpacing_;
   double brightnessScale_;
   bool useDarkTheme_;
+  bool isReaderViewEnabled_;
   std::string currentFileSavedPath_;
   std::size_t currentHistoryIndex_;
   std::vector<std::string> history_;
@@ -322,6 +333,7 @@ private:
   void disableEdit();
   bool isEditorEnabled();
   std::string getIconImageFromTheme(const std::string& iconName, const std::string& typeofIcon);
+  void updateMargins();
   void updateCSS();
   void showNotification(const Glib::ustring& title, const Glib::ustring& message = "");
 };

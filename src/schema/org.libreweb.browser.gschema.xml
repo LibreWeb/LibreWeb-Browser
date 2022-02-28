@@ -33,6 +33,10 @@
       <default>10</default>
       <summary>Font size</summary>
     </key>
+    <key name="max-content-width" type="i">
+      <default>700</default>
+      <summary>Max document content width</summary>
+    </key>
     <key name="spacing" type="i">
       <default>0</default>
       <summary>Font spacing</summary>
@@ -60,6 +64,10 @@
     <key name="dark-theme" type="b">
       <default>false</default>
       <summary>Prefer dark theme</summary>
+    </key>
+    <key name="reader-view" type="b">
+      <default>true</default>
+      <summary>Is reader view enabled</summary>
     </key>
   </schema>
 </schemalist>

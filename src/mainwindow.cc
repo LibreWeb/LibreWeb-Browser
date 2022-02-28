@@ -31,6 +31,7 @@ MainWindow::MainWindow(const std::string& timeout)
     : m_accelGroup(Gtk::AccelGroup::create()),
       m_settings(),
       m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.0, 1.0, 0.05, 0.1)),
+      m_maxContentWidthAdjustment(Gtk::Adjustment::create(700, 0, 99999, 10, 20)),
       m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
       m_marginsAdjustment(Gtk::Adjustment::create(20, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
@@ -89,11 +90,13 @@ MainWindow::MainWindow(const std::string& timeout)
       m_networkOutcomingLabel("Outcoming"),
       m_networkKiloBytesLabel("Kilobytes/s"),
       m_fontLabel("Font"),
+      m_maxContentWidthLabel("Content width"),
       m_spacingLabel("Spacing"),
       m_marginsLabel("Margins"),
       m_indentLabel("Indent"),
       m_textWrappingLabel("Wrapping"),
       m_themeLabel("Dark Theme"),
+      m_readerViewLabel("Reader View"),
       m_iconThemeLabel("Active Theme"),
       // Private members
       middleware_(*this, timeout),
@@ -104,9 +107,12 @@ MainWindow::MainWindow(const std::string& timeout)
       fontFamily_("Sans"),
       defaultFontSize_(10),
       currentFontSize_(10),
+      contentMargin_(20),
+      contentMaxWidth_(700),
       fontSpacing_(0),
       brightnessScale_(1.0),
       useDarkTheme_(false),
+      isReaderViewEnabled_(true),
       currentHistoryIndex_(0)
 {
   set_title(appName_);
@@ -367,14 +373,14 @@ void MainWindow::loadStoredSettings()
     currentFontSize_ = defaultFontSize_ = m_settings->get_int("font-size");
     m_fontButton.set_font_name(fontFamily_ + " " + std::to_string(currentFontSize_));
 
+    contentMaxWidth_ = m_settings->get_int("max-content-width");
     fontSpacing_ = m_settings->get_int("spacing");
-    int margins = m_settings->get_int("margins");
+    contentMargin_ = m_settings->get_int("margins");
     int indent = m_settings->get_int("indent");
+    m_maxContentWidthAdjustment->set_value(contentMaxWidth_);
     m_spacingAdjustment->set_value(fontSpacing_);
-    m_marginsAdjustment->set_value(margins);
+    m_marginsAdjustment->set_value(contentMargin_);
     m_indentAdjustment->set_value(indent);
-    m_draw_primary.set_left_margin(margins);
-    m_draw_primary.set_right_margin(margins);
     m_draw_primary.set_indent(indent);
     int tocDividerPosition = m_settings->get_int("position-divider-toc");
     m_panedRoot.set_position(tocDividerPosition);
@@ -382,15 +388,16 @@ void MainWindow::loadStoredSettings()
     useCurrentGTKIconTheme_ = m_settings->get_boolean("icon-gtk-theme");
     brightnessScale_ = m_settings->get_double("brightness");
     useDarkTheme_ = m_settings->get_boolean("dark-theme");
+    isReaderViewEnabled_ = m_settings->get_boolean("reader-view");
   }
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
     // Fallback adjustment controls
-    int margins = m_draw_primary.get_margin_left();
     int indent = m_draw_primary.get_indent();
-    m_spacingAdjustment->set_value(0);
-    m_marginsAdjustment->set_value(margins);
+    m_maxContentWidthAdjustment->set_value(contentMaxWidth_);
+    m_spacingAdjustment->set_value(fontSpacing_);
+    m_marginsAdjustment->set_value(contentMaxWidth_);
     m_indentAdjustment->set_value(indent);
     // Fallback ToC paned divider
     m_panedRoot.set_position(300);
@@ -793,11 +800,10 @@ void MainWindow::initSettingsPopover()
   m_scaleSettingsBrightness.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_brightness_changed));
   m_hboxSetingsBrightness.pack_start(m_brightnessImage, false, false);
   m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
-  // Dark theme switch
-  m_themeSwitch.set_active(useDarkTheme_); // Override with current dark theme preference
-  // Settings buttons
+  // Settings labels / buttons
   m_wrapWordChar.set_active(true); // Default wrapping mode
   m_fontLabel.set_tooltip_text("Font familiy");
+  m_maxContentWidthLabel.set_tooltip_text("Max content width");
   m_spacingLabel.set_tooltip_text("Text spacing");
   m_marginsLabel.set_tooltip_text("Text margins");
   m_indentLabel.set_tooltip_text("Text indentation");
@@ -806,21 +812,31 @@ void MainWindow::initSettingsPopover()
   m_wrapChar.set_tooltip_text("Character wrapping");
   m_wrapWord.set_tooltip_text("Word wrapping");
   m_wrapWordChar.set_tooltip_text("Word wrapping (+ character)");
+  m_maxContentWidthSpinButton.set_adjustment(m_maxContentWidthAdjustment);
   m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
   m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
   m_indentSpinButton.set_adjustment(m_indentAdjustment);
   m_fontLabel.set_xalign(1);
+  m_maxContentWidthLabel.set_xalign(1);
   m_spacingLabel.set_xalign(1);
   m_marginsLabel.set_xalign(1);
   m_indentLabel.set_xalign(1);
   m_textWrappingLabel.set_xalign(1);
   m_themeLabel.set_xalign(1);
+  m_readerViewLabel.set_xalign(1);
   m_fontLabel.get_style_context()->add_class("dim-label");
+  m_maxContentWidthLabel.get_style_context()->add_class("dim-label");
   m_spacingLabel.get_style_context()->add_class("dim-label");
   m_marginsLabel.get_style_context()->add_class("dim-label");
   m_indentLabel.get_style_context()->add_class("dim-label");
   m_textWrappingLabel.get_style_context()->add_class("dim-label");
   m_themeLabel.get_style_context()->add_class("dim-label");
+  m_readerViewLabel.get_style_context()->add_class("dim-label");
+  // Dark theme switch
+  m_themeSwitch.set_active(useDarkTheme_); // Override with current dark theme preference
+  // Reader view switch
+  m_readerViewSwitch.set_active(isReaderViewEnabled_);
+  // Settings grid
   m_settingsGrid.set_margin_start(6);
   m_settingsGrid.set_margin_top(6);
   m_settingsGrid.set_margin_bottom(6);
@@ -828,19 +844,23 @@ void MainWindow::initSettingsPopover()
   m_settingsGrid.set_column_spacing(10);
   m_settingsGrid.attach(m_fontLabel, 0, 0, 1);
   m_settingsGrid.attach(m_fontButton, 1, 0, 2);
-  m_settingsGrid.attach(m_spacingLabel, 0, 1, 1);
-  m_settingsGrid.attach(m_spacingSpinButton, 1, 1, 2);
-  m_settingsGrid.attach(m_marginsLabel, 0, 2, 1);
-  m_settingsGrid.attach(m_marginsSpinButton, 1, 2, 2);
-  m_settingsGrid.attach(m_indentLabel, 0, 3, 1);
-  m_settingsGrid.attach(m_indentSpinButton, 1, 3, 2);
-  m_settingsGrid.attach(m_textWrappingLabel, 0, 4, 1);
-  m_settingsGrid.attach(m_wrapNone, 1, 4, 1);
-  m_settingsGrid.attach(m_wrapChar, 2, 4, 1);
-  m_settingsGrid.attach(m_wrapWord, 1, 5, 1);
-  m_settingsGrid.attach(m_wrapWordChar, 2, 5, 1);
-  m_settingsGrid.attach(m_themeLabel, 0, 6, 1);
-  m_settingsGrid.attach(m_themeSwitch, 1, 6, 2);
+  m_settingsGrid.attach(m_maxContentWidthLabel, 0, 1, 1);
+  m_settingsGrid.attach(m_maxContentWidthSpinButton, 1, 1, 2);
+  m_settingsGrid.attach(m_spacingLabel, 0, 2, 1);
+  m_settingsGrid.attach(m_spacingSpinButton, 1, 2, 2);
+  m_settingsGrid.attach(m_marginsLabel, 0, 3, 1);
+  m_settingsGrid.attach(m_marginsSpinButton, 1, 3, 2);
+  m_settingsGrid.attach(m_indentLabel, 0, 4, 1);
+  m_settingsGrid.attach(m_indentSpinButton, 1, 4, 2);
+  m_settingsGrid.attach(m_textWrappingLabel, 0, 5, 1);
+  m_settingsGrid.attach(m_wrapNone, 1, 5, 1);
+  m_settingsGrid.attach(m_wrapChar, 2, 5, 1);
+  m_settingsGrid.attach(m_wrapWord, 1, 6, 1);
+  m_settingsGrid.attach(m_wrapWordChar, 2, 6, 1);
+  m_settingsGrid.attach(m_themeLabel, 0, 7, 1);
+  m_settingsGrid.attach(m_themeSwitch, 1, 7, 2);
+  m_settingsGrid.attach(m_readerViewLabel, 0, 8, 1);
+  m_settingsGrid.attach(m_readerViewSwitch, 1, 8, 2);
   // Icon theme (+ submenu)
   m_iconThemeButton.set_label("Icon Theme");
   m_iconThemeButton.property_menu_name() = "icon-theme";
@@ -908,6 +928,10 @@ void MainWindow::initSignals()
 {
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
+  // TODO: Trigger all GDK resize events on m_draw_primary, otherwise it doesn't trigger always
+  m_draw_primary.signal_configure_event().connect(sigc::mem_fun(this, &MainWindow::on_configure_event));
+
+  // m_panedDraw.signal_configure_event()..
   // Table of contents
   m_closeTocWindowButton.signal_clicked().connect(sigc::mem_fun(m_vboxToc, &Gtk::Widget::hide));
   tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
@@ -978,6 +1002,7 @@ void MainWindow::initSignals()
   m_zoomRestoreButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
   m_zoomInButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_in));
   m_fontButton.signal_font_set().connect(sigc::mem_fun(this, &MainWindow::on_font_set));
+  m_maxContentWidthSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_max_content_width_changed));
   m_spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
   m_marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
   m_indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
@@ -986,6 +1011,7 @@ void MainWindow::initSignals()
   m_wrapWord.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
   m_wrapWordChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
   m_themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
+  m_readerViewSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_reader_view_changed));
   m_iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
   m_aboutButton.signal_clicked().connect(sigc::mem_fun(m_about, &About::show_about));
 }
@@ -1031,6 +1057,8 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     // m_settings->set_boolean("fullscreen", is_fullscreen());
     m_settings->set_string("font-family", fontFamily_);
     m_settings->set_int("font-size", currentFontSize_);
+    m_settings->set_boolean("reader-view", isReaderViewEnabled_);
+    m_settings->set_int("max-content-width", m_maxContentWidthSpinButton.get_value_as_int());
     m_settings->set_int("spacing", m_spacingSpinButton.get_value_as_int());
     m_settings->set_int("margins", m_marginsSpinButton.get_value_as_int());
     m_settings->set_int("indent", m_indentSpinButton.get_value_as_int());
@@ -1190,6 +1218,16 @@ void MainWindow::selectAll()
   {
     m_searchReplaceEntry.select_region(0, -1);
   }
+}
+
+/**
+ * \brief Triggered on windows resize
+ */
+bool MainWindow::on_configure_event(__attribute__((unused)) GdkEventConfigure* configure_event)
+{
+  if (!isEditorEnabled())
+    updateMargins();
+  return false;
 }
 
 /**
@@ -2020,6 +2058,36 @@ std::string MainWindow::getIconImageFromTheme(const std::string& iconName, const
 }
 
 /**
+ * \brief Calculate & update drawing margins
+ */
+void MainWindow::updateMargins()
+{
+  if (isReaderViewEnabled_)
+  {
+
+    int width = m_draw_primary.get_width();
+    std::cout << "Width: " << width << std::endl;
+    if (width > (contentMaxWidth_ + (2 * contentMargin_)))
+    {
+      // Calculate margins on the fly
+      int margin = (width - contentMaxWidth_) / 2;
+      m_draw_primary.set_left_margin(margin);
+      m_draw_primary.set_right_margin(margin);
+    }
+    else
+    {
+      m_draw_primary.set_left_margin(contentMargin_);
+      m_draw_primary.set_right_margin(contentMargin_);
+    }
+  }
+  else
+  {
+    m_draw_primary.set_left_margin(contentMargin_);
+    m_draw_primary.set_right_margin(contentMargin_);
+  }
+}
+
+/**
  * \brief Update the CSS provider data
  */
 void MainWindow::updateCSS()
@@ -2164,16 +2232,24 @@ void MainWindow::on_font_set()
   updateCSS();
 }
 
+void MainWindow::on_max_content_width_changed()
+{
+  contentMaxWidth_ = m_maxContentWidthSpinButton.get_value_as_int();
+  if (!isEditorEnabled())
+    updateMargins();
+}
+
 void MainWindow::on_spacing_changed()
 {
-  fontSpacing_ = m_spacingSpinButton.get_value_as_int(); // Letter spacing
+  fontSpacing_ = m_spacingSpinButton.get_value_as_int(); // Letter-spacing
   updateCSS();
 }
 
 void MainWindow::on_margins_changed()
 {
-  m_draw_primary.set_left_margin(m_marginsSpinButton.get_value_as_int());
-  m_draw_primary.set_right_margin(m_marginsSpinButton.get_value_as_int());
+  contentMargin_ = m_marginsSpinButton.get_value_as_int();
+  if (!isEditorEnabled())
+    updateMargins();
 }
 
 void MainWindow::on_indent_changed()
@@ -2197,6 +2273,13 @@ void MainWindow::on_theme_changed()
   // Switch between dark or light theme preference
   useDarkTheme_ = m_themeSwitch.get_active();
   setTheme();
+}
+
+void MainWindow::on_reader_view_changed()
+{
+  isReaderViewEnabled_ = m_readerViewSwitch.get_active();
+  if (!isEditorEnabled())
+    updateMargins();
 }
 
 void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow* row)

@@ -33,8 +33,8 @@ Draw::Draw(MiddlewareInterface& middleware)
 {
   this->disableEdit();
   set_top_margin(12);
-  set_left_margin(20);  // fallback
-  set_right_margin(20); // fallback
+  set_left_margin(10);  // fallback
+  set_right_margin(10); // fallback
   set_bottom_margin(0);
   set_indent(0); // fallback
   set_monospace(false);
@@ -342,6 +342,10 @@ void Draw::newDocument()
   this->undoPool.clear();
   this->redoPool.clear();
   this->clear();
+
+  // Set margins to defaults in editor mode
+  set_left_margin(10);
+  set_right_margin(10);
 
   enableEdit();
   grab_focus(); // Claim focus on text view
