@@ -33,7 +33,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.0, 1.0, 0.05, 0.1)),
       m_maxContentWidthAdjustment(Gtk::Adjustment::create(700, 0, 99999, 10, 20)),
       m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
-      m_marginsAdjustment(Gtk::Adjustment::create(20, 0, 1000, 10, 20)),
+      m_marginsAdjustment(Gtk::Adjustment::create(10, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       m_drawCSSProvider(Gtk::CssProvider::create()),
       m_menu(m_accelGroup),
@@ -107,9 +107,12 @@ MainWindow::MainWindow(const std::string& timeout)
       fontFamily_("Sans"),
       defaultFontSize_(10),
       currentFontSize_(10),
+      positionDividerDraw_(-1),
       contentMargin_(20),
       contentMaxWidth_(700),
       fontSpacing_(0),
+      indent_(0),
+      wrapMode_(Gtk::WRAP_WORD_CHAR),
       brightnessScale_(1.0),
       useDarkTheme_(false),
       isReaderViewEnabled_(true),
@@ -368,7 +371,8 @@ void MainWindow::loadStoredSettings()
     set_default_size(m_settings->get_int("width"), m_settings->get_int("height"));
     if (m_settings->get_boolean("maximized"))
       maximize();
-
+    positionDividerDraw_ = m_settings->get_int("position-divider-draw");
+    m_panedDraw.set_position(positionDividerDraw_);
     fontFamily_ = m_settings->get_string("font-family");
     currentFontSize_ = defaultFontSize_ = m_settings->get_int("font-size");
     m_fontButton.set_font_name(fontFamily_ + " " + std::to_string(currentFontSize_));
@@ -376,12 +380,13 @@ void MainWindow::loadStoredSettings()
     contentMaxWidth_ = m_settings->get_int("max-content-width");
     fontSpacing_ = m_settings->get_int("spacing");
     contentMargin_ = m_settings->get_int("margins");
-    int indent = m_settings->get_int("indent");
+    indent_ = m_settings->get_int("indent");
+    wrapMode_ = static_cast<Gtk::WrapMode>(m_settings->get_enum("wrap-mode"));
     m_maxContentWidthAdjustment->set_value(contentMaxWidth_);
     m_spacingAdjustment->set_value(fontSpacing_);
     m_marginsAdjustment->set_value(contentMargin_);
-    m_indentAdjustment->set_value(indent);
-    m_draw_primary.set_indent(indent);
+    m_indentAdjustment->set_value(indent_);
+    m_draw_primary.set_indent(indent_);
     int tocDividerPosition = m_settings->get_int("position-divider-toc");
     m_panedRoot.set_position(tocDividerPosition);
     iconTheme_ = m_settings->get_string("icon-theme");
@@ -389,19 +394,42 @@ void MainWindow::loadStoredSettings()
     brightnessScale_ = m_settings->get_double("brightness");
     useDarkTheme_ = m_settings->get_boolean("dark-theme");
     isReaderViewEnabled_ = m_settings->get_boolean("reader-view");
+    switch (wrapMode_)
+    {
+    case Gtk::WRAP_NONE:
+      m_wrapNone.set_active(true);
+      break;
+    case Gtk::WRAP_CHAR:
+      m_wrapChar.set_active(true);
+      break;
+    case Gtk::WRAP_WORD:
+      m_wrapWord.set_active(true);
+      break;
+    case Gtk::WRAP_WORD_CHAR:
+      m_wrapWordChar.set_active(true);
+      break;
+    default:
+      m_wrapWordChar.set_active(true);
+    }
   }
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
+    // Select default fallback wrap mode
+    m_wrapWordChar.set_active(true);
     // Fallback adjustment controls
-    int indent = m_draw_primary.get_indent();
     m_maxContentWidthAdjustment->set_value(contentMaxWidth_);
     m_spacingAdjustment->set_value(fontSpacing_);
     m_marginsAdjustment->set_value(contentMaxWidth_);
-    m_indentAdjustment->set_value(indent);
+    m_indentAdjustment->set_value(indent_);
     // Fallback ToC paned divider
     m_panedRoot.set_position(300);
   }
+  // Apply settings that needs to be applied now
+  // Note: margins are getting automatically applied (on resize),
+  // and some other attributes are part of CSS.
+  m_draw_primary.set_indent(indent_);
+  m_draw_primary.set_wrap_mode(wrapMode_);
 }
 
 /**
@@ -801,7 +829,6 @@ void MainWindow::initSettingsPopover()
   m_hboxSetingsBrightness.pack_start(m_brightnessImage, false, false);
   m_hboxSetingsBrightness.pack_end(m_scaleSettingsBrightness);
   // Settings labels / buttons
-  m_wrapWordChar.set_active(true); // Default wrapping mode
   m_fontLabel.set_tooltip_text("Font familiy");
   m_maxContentWidthLabel.set_tooltip_text("Max content width");
   m_spacingLabel.set_tooltip_text("Text spacing");
@@ -928,10 +955,8 @@ void MainWindow::initSignals()
 {
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
-  // TODO: Trigger all GDK resize events on m_draw_primary, otherwise it doesn't trigger always
-  m_draw_primary.signal_configure_event().connect(sigc::mem_fun(this, &MainWindow::on_configure_event));
+  m_draw_primary.signal_size_allocate().connect(sigc::mem_fun(this, &MainWindow::on_size_alloc));
 
-  // m_panedDraw.signal_configure_event()..
   // Table of contents
   m_closeTocWindowButton.signal_clicked().connect(sigc::mem_fun(m_vboxToc, &Gtk::Widget::hide));
   tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
@@ -1057,15 +1082,16 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     // m_settings->set_boolean("fullscreen", is_fullscreen());
     m_settings->set_string("font-family", fontFamily_);
     m_settings->set_int("font-size", currentFontSize_);
-    m_settings->set_boolean("reader-view", isReaderViewEnabled_);
-    m_settings->set_int("max-content-width", m_maxContentWidthSpinButton.get_value_as_int());
-    m_settings->set_int("spacing", m_spacingSpinButton.get_value_as_int());
-    m_settings->set_int("margins", m_marginsSpinButton.get_value_as_int());
-    m_settings->set_int("indent", m_indentSpinButton.get_value_as_int());
+    m_settings->set_int("max-content-width", contentMaxWidth_);
+    m_settings->set_int("spacing", fontSpacing_);
+    m_settings->set_int("margins", contentMargin_);
+    m_settings->set_int("indent", indent_);
+    m_settings->set_enum("wrap-mode", wrapMode_);
     m_settings->set_string("icon-theme", iconTheme_);
     m_settings->set_boolean("icon-gtk-theme", useCurrentGTKIconTheme_);
     m_settings->set_double("brightness", brightnessScale_);
     m_settings->set_boolean("dark-theme", useDarkTheme_);
+    m_settings->set_boolean("reader-view", isReaderViewEnabled_);
   }
   return false;
 }
@@ -1221,13 +1247,12 @@ void MainWindow::selectAll()
 }
 
 /**
- * \brief Triggered on windows resize
+ * \brief Triggers when the textview widget changes size
  */
-bool MainWindow::on_configure_event(__attribute__((unused)) GdkEventConfigure* configure_event)
+void MainWindow::on_size_alloc(__attribute__((unused)) Gdk::Rectangle& allocation)
 {
   if (!isEditorEnabled())
     updateMargins();
-  return false;
 }
 
 /**
@@ -1949,34 +1974,37 @@ bool MainWindow::isInstalled()
 }
 
 /**
- * \brief Enable editor mode. Allowing to create or edit existing documents.
+ * \brief Enable editor mode. Allowing to create or edit existing documents
  */
 void MainWindow::enableEdit()
 {
-  // Inform the Draw class that we are creating a new document
+  // Inform the Draw class that we are creating a new document,
+  // will apply change some textview setting changes
   m_draw_primary.newDocument();
   // Show editor toolbars
   m_hboxStandardEditorToolbar.show();
   m_hboxFormattingEditorToolbar.show();
+  // Enable monospace in editor
+  m_draw_primary.set_monospace(true);
+  // Apply some settings from primary to secondary window
+  m_draw_secondary.set_indent(indent_);
+  m_draw_secondary.set_wrap_mode(wrapMode_);
+  m_draw_secondary.set_left_margin(contentMargin_);
+  m_draw_secondary.set_right_margin(contentMargin_);
   // Determine position of divider between the primary and secondary windows
-  int location = 0;
-  int positionSettings = 42;
-  if (m_settings)
-    positionSettings = m_settings->get_int("position-divider-draw");
-  int currentWidth, _ = 0;
-  get_size(currentWidth, _);
-  // If position from settings is still default (42) or too big,
-  // let's calculate the paned divider location
-  if ((positionSettings == 42) || (positionSettings >= (currentWidth - 10)))
+  int currentWidth = get_width();
+  int maxWidth = currentWidth - 40;
+  // Recalculate the position divider if it's too big,
+  // or positionDividerDraw_ is still on default value
+  if ((m_panedDraw.get_position() >= maxWidth) || positionDividerDraw_ == -1)
   {
-    location = static_cast<int>(currentWidth / 2.0);
+    int proposedPosition = positionDividerDraw_; // Try to first use the gsettings
+    if ((proposedPosition == -1) || (proposedPosition >= maxWidth))
+    {
+      proposedPosition = static_cast<int>(currentWidth / 2.0);
+    }
+    m_panedDraw.set_position(proposedPosition);
   }
-  else
-  {
-    location = positionSettings;
-  }
-  m_panedDraw.set_position(location);
-
   // Enabled secondary text view (on the right)
   m_scrolledWindowSecondary.show();
   // Disable "view source" menu item
@@ -1992,7 +2020,7 @@ void MainWindow::enableEdit()
 }
 
 /**
- * \brief Disable editor mode.
+ * \brief Disable editor mode
  */
 void MainWindow::disableEdit()
 {
@@ -2003,6 +2031,11 @@ void MainWindow::disableEdit()
     m_scrolledWindowSecondary.hide();
     // Disconnect text changed signal
     textChangedSignalHandler_.disconnect();
+    // Disable monospace
+    m_draw_primary.set_monospace(false);
+    // Re-apply settings on primary window
+    m_draw_primary.set_indent(indent_);
+    m_draw_primary.set_wrap_mode(wrapMode_);
     // Show "view source" menu item again
     m_draw_primary.setViewSourceMenuItem(true);
     m_draw_secondary.clear();
@@ -2058,32 +2091,38 @@ std::string MainWindow::getIconImageFromTheme(const std::string& iconName, const
 }
 
 /**
- * \brief Calculate & update drawing margins
+ * \brief Calculate & update margins on primary draw
  */
 void MainWindow::updateMargins()
 {
-  if (isReaderViewEnabled_)
+  if (isEditorEnabled())
   {
-
-    int width = m_draw_primary.get_width();
-    std::cout << "Width: " << width << std::endl;
-    if (width > (contentMaxWidth_ + (2 * contentMargin_)))
+    m_draw_secondary.set_left_margin(contentMargin_);
+    m_draw_secondary.set_right_margin(contentMargin_);
+  }
+  else
+  {
+    if (isReaderViewEnabled_)
     {
-      // Calculate margins on the fly
-      int margin = (width - contentMaxWidth_) / 2;
-      m_draw_primary.set_left_margin(margin);
-      m_draw_primary.set_right_margin(margin);
+      int width = m_draw_primary.get_width();
+      if (width > (contentMaxWidth_ + (2 * contentMargin_)))
+      {
+        // Calculate margins on the fly
+        int margin = (width - contentMaxWidth_) / 2;
+        m_draw_primary.set_left_margin(margin);
+        m_draw_primary.set_right_margin(margin);
+      }
+      else
+      {
+        m_draw_primary.set_left_margin(contentMargin_);
+        m_draw_primary.set_right_margin(contentMargin_);
+      }
     }
     else
     {
       m_draw_primary.set_left_margin(contentMargin_);
       m_draw_primary.set_right_margin(contentMargin_);
     }
-  }
-  else
-  {
-    m_draw_primary.set_left_margin(contentMargin_);
-    m_draw_primary.set_right_margin(contentMargin_);
   }
 }
 
@@ -2248,18 +2287,25 @@ void MainWindow::on_spacing_changed()
 void MainWindow::on_margins_changed()
 {
   contentMargin_ = m_marginsSpinButton.get_value_as_int();
-  if (!isEditorEnabled())
-    updateMargins();
+  updateMargins();
 }
 
 void MainWindow::on_indent_changed()
 {
-  m_draw_primary.set_indent(m_indentSpinButton.get_value_as_int());
+  indent_ = m_indentSpinButton.get_value_as_int();
+  if (isEditorEnabled())
+    m_draw_secondary.set_indent(indent_);
+  else
+    m_draw_primary.set_indent(indent_);
 }
 
 void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
 {
-  m_draw_primary.set_wrap_mode(mode);
+  wrapMode_ = mode;
+  if (isEditorEnabled())
+    m_draw_secondary.set_wrap_mode(wrapMode_);
+  else
+    m_draw_primary.set_wrap_mode(wrapMode_);
 }
 
 void MainWindow::on_brightness_changed()

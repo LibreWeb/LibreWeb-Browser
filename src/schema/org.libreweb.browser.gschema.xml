@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <schemalist>
+  <enum id="org.libreweb.wrapmode.enum">
+    <value nick="WRAP_NONE" value="0"/>
+    <value nick="WRAP_CHAR" value="1"/>
+    <value nick="WRAP_WORD" value="2"/>
+    <value nick="WRAP_WORD_CHAR" value="3"/>
+  </enum>
   <schema path="/org/libreweb/browser/" id="org.libreweb.browser">
     <key name="width" type="i">
       <default>1000</default>
@@ -42,12 +48,16 @@
       <summary>Font spacing</summary>
     </key>
     <key name="margins" type="i">
-      <default>20</default>
+      <default>10</default>
       <summary>Text margins</summary>
     </key>
     <key name="indent" type="i">
       <default>0</default>
       <summary>Text indent</summary>
+    </key>
+    <key name="wrap-mode" enum="org.libreweb.wrapmode.enum">
+      <default>"WRAP_CHAR"</default>
+      <summary>Word wrapping mode</summary>
     </key>
     <key name="icon-theme" type="s">
       <default>"flat"</default>

@@ -75,7 +75,7 @@ protected:
   void paste();
   void del();
   void selectAll();
-  bool on_configure_event(GdkEventConfigure* configure_event);
+  void on_size_alloc(Gdk::Rectangle& allocation);
   void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
@@ -305,9 +305,12 @@ private:
   std::string fontFamily_;
   int defaultFontSize_;
   int currentFontSize_;
+  int positionDividerDraw_;
   int contentMargin_;
   int contentMaxWidth_;
   int fontSpacing_;
+  int indent_;
+  Gtk::WrapMode wrapMode_;
   double brightnessScale_;
   bool useDarkTheme_;
   bool isReaderViewEnabled_;
