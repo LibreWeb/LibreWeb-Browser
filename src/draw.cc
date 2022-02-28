@@ -33,8 +33,8 @@ Draw::Draw(MiddlewareInterface& middleware)
 {
   this->disableEdit();
   set_top_margin(12);
-  set_left_margin(20);  // fallback
-  set_right_margin(20); // fallback
+  set_left_margin(10);  // fallback
+  set_right_margin(10); // fallback
   set_bottom_margin(0);
   set_indent(0); // fallback
   set_monospace(false);
@@ -342,6 +342,14 @@ void Draw::newDocument()
   this->undoPool.clear();
   this->redoPool.clear();
   this->clear();
+
+  // Set margins to defaults in editor mode
+  set_left_margin(10);
+  set_right_margin(10);
+  // Set indent to zero
+  set_indent(0);
+  // Reset word wrapping to default
+  set_wrap_mode(Gtk::WRAP_WORD_CHAR);
 
   enableEdit();
   grab_focus(); // Claim focus on text view
@@ -738,7 +746,6 @@ void Draw::insert_image()
   buffer->end_user_action();
 }
 
-// TODO: set_monospace(true)
 void Draw::make_code()
 {
   Gtk::TextBuffer::iterator start, end;
