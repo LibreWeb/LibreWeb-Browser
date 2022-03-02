@@ -13,6 +13,13 @@ With all the knowledge and new technologies available today. I was inspired by D
 
 *Note:* This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/browser/-/releases).
 
+LibreWeb is:
+
+- Free and open-source
+- Decentralized
+- Censorship resistant
+- Operating under Windows, Linux (macOS soon)
+
 ## For Users
 
 ### Download
@@ -24,6 +31,28 @@ Just download the latest LibreWeb release and get started:
 ### Documentation
 
 Visit the [dedicated documentation site](https://docs.libreweb.org) for *user* documentation.
+
+### How to Report issues
+
+**Reporting**
+
+Create a new issue in [GitLab Issues](https://gitlab.melroy.org/libreweb/browser/-/issues).
+
+**Supporting**
+
+If you want to support a certain feature request or same bug that another user already reported, please let us know by using the "thumbs up" button.
+
+### How to Contribute
+
+You could help us with:
+
+- [Documentation](https://docs.libreweb.org)
+- Discussions on the [Telegram](https://t.me/libreweb) or [Matrix](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) groups
+- [Bugs & Feature requests](https://gitlab.melroy.org/libreweb/browser/-/issues)
+- [Coding](https://gitlab.melroy.org/libreweb/)
+- [Sponsor us](https://docs.libreweb.org/project/sponsor/)
+
+[Read more how to contribute](https://docs.libreweb.org/project/contribute/) to the LibreWeb project.
 
 ### Screenshots
 
@@ -38,18 +67,18 @@ Join our [Telegram group](https://t.me/libreweb) or [Matrix channel](https://mat
 
 The current success criteria:
 
-* Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
-* Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
-* **Decentralized** (no single-point of failure or censorship), like: P2P, DHT and IPFS;
-* *No* client-server approach (the client is also the server and visa versa) - think **mesh network**.
-* **Encrypted** transfers;
-* Data is stored **redundantly** within the network (no single-point of failure);
-* **Versioning**/revisions of content and documenents (automatically solves broken 'links', that can't happy anymore);
-* Publisher user should be able to add additional information about the document/page, eg. title or path (similar in how Jekyll is using the `YML` format for meta data)
-* Human-readable source-code (eg. `Markdown` format, could be extended as well);
-* You are in control about the layout and styling (just like with e-books);
-* Content is King;
-* Fast and Extensible!
+- Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
+- Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
+- **Decentralized** (no single-point of failure or censorship), like: P2P, DHT and IPFS;
+- *No* client-server approach (the client is also the server and visa versa) - think **mesh network**.
+- **Encrypted** transfers;
+- Data is stored **redundantly** within the network (no single-point of failure);
+- **Versioning**/revisions of content and documenents (automatically solves broken 'links', that can't happy anymore);
+- Publisher user should be able to add additional information about the document/page, eg. title or path (similar in how Jekyll is using the `YML` format for meta data)
+- Human-readable source-code (eg. `Markdown` format, could be extended as well);
+- You are in control about the layout and styling (just like with e-books);
+- Content is King;
+- Fast and Extensible!
 
 *Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
@@ -74,11 +103,11 @@ Personally, I'm using VSCodium editor, with the following extensions installed: 
 
 For the **GNU/Linux build** you need at least:
 
-* GCC 9 or higher (Packages: `build-essential g++-9`)
-* CMake (Package: `cmake`)
-* Ninja build system (Package: `ninja-build`)
-* Libcurl (Package: `libcurl4-openssl-dev`)
-* GTK3/Gtkmm3 (Package: `libgtkmm-3.0-dev`)
+- GCC 9 or higher (Packages: `build-essential g++-9`)
+- CMake (Package: `cmake`)
+- Ninja build system (Package: `ninja-build`)
+- Libcurl (Package: `libcurl4-openssl-dev`)
+- GTK3/Gtkmm3 (Package: `libgtkmm-3.0-dev`)
 
 **Dependencies for testing:**
 
@@ -169,10 +198,10 @@ We are [**cross-compiling**](https://en.wikipedia.org/wiki/Cross_compiler) towar
 
 #### Windows Build Dependencies
 
-* [MXE Gtkmm3 / Curl Binary packages](mxe.cc) (static build using Meson build with GCC11, see below for more info)
-* CMake (Package: `cmake`)
-* Ninja (Package: `ninja-build`)
-* Nullsoft Scriptable Install System (Package: `nsis`)
+- [MXE Gtkmm3 / Curl Binary packages](mxe.cc) (static build using Meson build with GCC11, see below for more info)
+- CMake (Package: `cmake`)
+- Ninja (Package: `ninja-build`)
+- Nullsoft Scriptable Install System (Package: `nsis`)
 
 For more information and the latest pre-build GTK3 Windows download, please my other [GTK 3 bundle repo](https://gitlab.melroy.org/melroy/gtk-3-bundle-for-windows).
 
@@ -214,19 +243,19 @@ Build a production release + packaging with [NSIS Installer](https://sourceforge
 ./scripts/build-win-prod.sh
 ```
 
-For more info, see also: [Windows readme file](windows.md).
+For more info, see also: [Packaging readme](packaging.md).
 
 ### Apple MacOS / Darwin
 
 #### MacOS Build Dependencies
 
-* Xcode (`xcode-select --install`)
-* Brew (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`)
-* CMake (brew: `cmake`)
-* Libcurl (brew: `curl`)
-* Gtk3/Gtkmm3 (brew: `gtkmm3`)
-* GTK Mac Integration (brew: `gtk-mac-integration`)
-* Ninja (brew: `ninja`)
+- Xcode (`xcode-select --install`)
+- Brew (`/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`)
+- CMake (brew: `cmake`)
+- Libcurl (brew: `curl`)
+- Gtk3/Gtkmm3 (brew: `gtkmm3`)
+- GTK Mac Integration (brew: `gtk-mac-integration`)
+- Ninja (brew: `ninja`)
 
 #### MacOS Build
 
@@ -234,8 +263,14 @@ We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/
 
 *Note:* **Packaging towards MacOS is still in progress**.
 
+For more info, see also: [Packaging readme](packaging.md)
+
+## License
+
+LibreWeb Browser is licensed under [the MIT license](./LICENSE) ([more info](https://choosealicense.com/licenses/mit/)).
+
 ## LibreWeb Research
 
 For [research document](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/research.md) plus findings including explanation (like [diagrams](https://gitlab.melroy.org/libreweb/research_lab/-/blob/master/diagrams.md)) see the:
 
-* [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/research_lab/-/tree/master)
+- [LibreWeb Research Lab Project](https://gitlab.melroy.org/libreweb/research_lab/-/tree/master)
