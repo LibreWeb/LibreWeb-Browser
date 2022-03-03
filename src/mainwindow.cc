@@ -935,7 +935,15 @@ void MainWindow::initSettingsPopover()
   m_iconThemeListBox.add(*row1);
   m_iconThemeListBox.add(*row2);
   m_iconThemeListBox.add(*row3);
-  m_iconThemeListBox.select_row(*row1); // TODO: Select the correct theme on loading
+  // Select the correct row by default
+  if (useCurrentGTKIconTheme_)
+    m_iconThemeListBox.select_row(*row3);
+  else if (iconTheme_ == "flat")
+    m_iconThemeListBox.select_row(*row1);
+  else if (iconTheme_ == "filled")
+    m_iconThemeListBox.select_row(*row2);
+  else
+    m_iconThemeListBox.select_row(*row1); // flat is fallback
   m_iconThemeListScrolledWindow.property_height_request() = 200;
   m_iconThemeListScrolledWindow.add(m_iconThemeListBox);
   m_iconThemeLabel.get_style_context()->add_class("dim-label");
