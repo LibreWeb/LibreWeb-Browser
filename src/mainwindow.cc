@@ -17,6 +17,7 @@
 #include <gtkmm/settings.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
+#include <sstream>
 #include <string.h>
 #include <whereami.h>
 
@@ -32,7 +33,7 @@ MainWindow::MainWindow(const std::string& timeout)
       m_settings(),
       m_brightnessAdjustment(Gtk::Adjustment::create(1.0, 0.0, 1.0, 0.05, 0.1)),
       m_maxContentWidthAdjustment(Gtk::Adjustment::create(700, 0, 99999, 10, 20)),
-      m_spacingAdjustment(Gtk::Adjustment::create(0, -10, 10, 1, 2)),
+      m_spacingAdjustment(Gtk::Adjustment::create(0.0, -50.0, 50.0, 0.2, 0.1)),
       m_marginsAdjustment(Gtk::Adjustment::create(10, 0, 1000, 10, 20)),
       m_indentAdjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       m_drawCSSProvider(Gtk::CssProvider::create()),
@@ -110,7 +111,7 @@ MainWindow::MainWindow(const std::string& timeout)
       positionDividerDraw_(-1),
       contentMargin_(20),
       contentMaxWidth_(700),
-      fontSpacing_(0),
+      fontSpacing_(0.0),
       indent_(0),
       wrapMode_(Gtk::WRAP_WORD_CHAR),
       brightnessScale_(1.0),
@@ -378,7 +379,7 @@ void MainWindow::loadStoredSettings()
     m_fontButton.set_font_name(fontFamily_ + " " + std::to_string(currentFontSize_));
 
     contentMaxWidth_ = m_settings->get_int("max-content-width");
-    fontSpacing_ = m_settings->get_int("spacing");
+    fontSpacing_ = m_settings->get_double("spacing");
     contentMargin_ = m_settings->get_int("margins");
     indent_ = m_settings->get_int("indent");
     wrapMode_ = static_cast<Gtk::WrapMode>(m_settings->get_enum("wrap-mode"));
@@ -841,6 +842,7 @@ void MainWindow::initSettingsPopover()
   m_wrapWordChar.set_tooltip_text("Word wrapping (+ character)");
   m_maxContentWidthSpinButton.set_adjustment(m_maxContentWidthAdjustment);
   m_spacingSpinButton.set_adjustment(m_spacingAdjustment);
+  m_spacingSpinButton.set_digits(1);
   m_marginsSpinButton.set_adjustment(m_marginsAdjustment);
   m_indentSpinButton.set_adjustment(m_indentAdjustment);
   m_fontLabel.set_xalign(1);
@@ -1091,7 +1093,7 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     m_settings->set_string("font-family", fontFamily_);
     m_settings->set_int("font-size", currentFontSize_);
     m_settings->set_int("max-content-width", contentMaxWidth_);
-    m_settings->set_int("spacing", fontSpacing_);
+    m_settings->set_double("spacing", fontSpacing_);
     m_settings->set_int("margins", contentMargin_);
     m_settings->set_int("indent", indent_);
     m_settings->set_enum("wrap-mode", wrapMode_);
@@ -2155,6 +2157,10 @@ void MainWindow::updateCSS()
     colorCss = "color: rgba(" + colorStr + ", " + colorStr + ", " + colorStr + ", " + darknessStr + ");";
   }
 
+  std::stringstream streamFontSpacing;
+  streamFontSpacing << std::fixed << std::setprecision(1) << fontSpacing_;
+  std::string letterSpacing = streamFontSpacing.str();
+
   try
   {
     m_drawCSSProvider->load_from_data("textview { "
@@ -2166,7 +2172,7 @@ void MainWindow::updateCSS()
                                       darknessStr +
                                       ");"
                                       "letter-spacing: " +
-                                      std::to_string(fontSpacing_) + "px; }");
+                                      letterSpacing + "px; }");
   }
   catch (const Gtk::CssProviderError& error)
   {
@@ -2288,7 +2294,7 @@ void MainWindow::on_max_content_width_changed()
 
 void MainWindow::on_spacing_changed()
 {
-  fontSpacing_ = m_spacingSpinButton.get_value_as_int(); // Letter-spacing
+  fontSpacing_ = m_spacingSpinButton.get_value(); // Letter-spacing
   updateCSS();
 }
 

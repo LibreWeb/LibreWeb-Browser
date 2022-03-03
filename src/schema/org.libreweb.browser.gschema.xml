@@ -43,8 +43,8 @@
       <default>700</default>
       <summary>Max document content width</summary>
     </key>
-    <key name="spacing" type="i">
-      <default>0</default>
+    <key name="spacing" type="d">
+      <default>0.0</default>
       <summary>Font spacing</summary>
     </key>
     <key name="margins" type="i">

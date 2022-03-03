@@ -308,7 +308,7 @@ private:
   int positionDividerDraw_;
   int contentMargin_;
   int contentMaxWidth_;
-  int fontSpacing_;
+  double fontSpacing_;
   int indent_;
   Gtk::WrapMode wrapMode_;
   double brightnessScale_;
