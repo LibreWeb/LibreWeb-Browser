@@ -17,7 +17,7 @@ About::About(Gtk::Window& parent)
 
   set_transient_for(parent);
   set_program_name("LibreWeb Browser");
-  set_version(PROJECT_VER);
+  set_version("Version " + std::string(PROJECT_VER));
   set_comments("The fastest decentralized & distributed Browser on planet Earth.");
   set_logo(logo.get_pixbuf());
   set_copyright("Copyright © 2020-2022 Melroy van den Berg");
