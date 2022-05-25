@@ -24,95 +24,95 @@ namespace
     Draw draw(middleware);
 
     // When
-    draw.setText(text);
+    draw.set_text(text);
 
     // Then
-    ASSERT_EQ(draw.getText(), text);
+    ASSERT_EQ(draw.get_text(), text);
   }
 
   TEST_F(DrawFixture, TestDrawDocument)
   {
     // Given
     std::string markdown = "**Hello** *world*";
-    cmark_node* doc = Parser::parseContent(markdown);
+    cmark_node* doc = Parser::parse_content(markdown);
 
     MockMiddleware middleware;
     Draw draw(middleware);
 
     // When
-    draw.setDocument(doc);
+    draw.set_document(doc);
 
     // Then
-    std::string result = draw.getText();
+    std::string result = draw.get_text();
     ASSERT_EQ(result, "Hello world\n\n");
   }
 
   TEST_F(DrawFixture, TestDrawTextTags)
   {
     // Given
-    std::string italicTagName = "italic";
-    std::string boldTagName = "bold";
-    std::string heading1TagName = "heading1";
-    std::string heading2TagName = "heading2";
-    std::string heading3TagName = "heading3";
-    std::string heading4TagName = "heading4";
-    std::string heading5TagName = "heading5";
-    std::string heading6TagName = "heading6";
-    std::string strikethroughTagName = "strikethrough";
-    std::string superscriptTagName = "superscript";
-    std::string subscriptTagName = "subscript";
-    std::string codeTagName = "code";
-    std::string quoteTagName = "quote";
-    std::string highlightTagName = "highlight";
+    std::string italic_tag_name = "italic";
+    std::string bold_tag_name = "bold";
+    std::string heading1_tag_name = "heading1";
+    std::string heading2_tag_name = "heading2";
+    std::string heading3_tag_name = "heading3";
+    std::string heading4_tag_name = "heading4";
+    std::string heading5_tag_name = "heading5";
+    std::string heading6_tag_name = "heading6";
+    std::string strikethrough_tag_name = "strikethrough";
+    std::string superscript_tag_name = "superscript";
+    std::string subscript_tag_name = "subscript";
+    std::string code_tag_name = "code";
+    std::string quote_tag_name = "quote";
+    std::string highlight_tag_name = "highlight";
     MockMiddleware middleware;
     Draw draw(middleware);
 
     // When
     auto tagTable = draw.get_buffer()->get_tag_table();
-    auto properyItalic = tagTable->lookup(italicTagName);
-    auto properyBold = tagTable->lookup(boldTagName);
-    auto properyHeading1 = tagTable->lookup(heading1TagName);
-    auto properyHeading2 = tagTable->lookup(heading2TagName);
-    auto properyHeading3 = tagTable->lookup(heading3TagName);
-    auto properyHeading4 = tagTable->lookup(heading4TagName);
-    auto properyHeading5 = tagTable->lookup(heading5TagName);
-    auto properyHeading6 = tagTable->lookup(heading6TagName);
-    auto properyStrikethrough = tagTable->lookup(strikethroughTagName);
-    auto properySuperscript = tagTable->lookup(superscriptTagName);
-    auto properySubscript = tagTable->lookup(subscriptTagName);
-    auto properyCode = tagTable->lookup(codeTagName);
-    auto properyQuote = tagTable->lookup(quoteTagName);
-    auto properyHighlight = tagTable->lookup(highlightTagName);
+    auto propery_italic = tagTable->lookup(italic_tag_name);
+    auto propery_bold = tagTable->lookup(bold_tag_name);
+    auto propery_heading1 = tagTable->lookup(heading1_tag_name);
+    auto propery_heading2 = tagTable->lookup(heading2_tag_name);
+    auto propery_heading3 = tagTable->lookup(heading3_tag_name);
+    auto propery_heading4 = tagTable->lookup(heading4_tag_name);
+    auto propery_heading5 = tagTable->lookup(heading5_tag_name);
+    auto propery_heading6 = tagTable->lookup(heading6_tag_name);
+    auto propery_strikethrough = tagTable->lookup(strikethrough_tag_name);
+    auto propery_superscript = tagTable->lookup(superscript_tag_name);
+    auto propery_subscript = tagTable->lookup(subscript_tag_name);
+    auto propery_code = tagTable->lookup(code_tag_name);
+    auto propery_quote = tagTable->lookup(quote_tag_name);
+    auto propery_highlight = tagTable->lookup(highlight_tag_name);
 
     // Then
-    ASSERT_NE(properyItalic.get(), nullptr);
-    ASSERT_EQ(properyItalic->property_name().get_value(), italicTagName);
-    ASSERT_NE(properyBold.get(), nullptr);
-    ASSERT_EQ(properyBold->property_name().get_value(), boldTagName);
-    ASSERT_NE(properyHeading1.get(), nullptr);
-    ASSERT_EQ(properyHeading1->property_name().get_value(), heading1TagName);
-    ASSERT_NE(properyHeading2.get(), nullptr);
-    ASSERT_EQ(properyHeading2->property_name().get_value(), heading2TagName);
-    ASSERT_NE(properyHeading3.get(), nullptr);
-    ASSERT_EQ(properyHeading3->property_name().get_value(), heading3TagName);
-    ASSERT_NE(properyHeading4.get(), nullptr);
-    ASSERT_EQ(properyHeading4->property_name().get_value(), heading4TagName);
-    ASSERT_NE(properyHeading5.get(), nullptr);
-    ASSERT_EQ(properyHeading5->property_name().get_value(), heading5TagName);
-    ASSERT_NE(properyHeading6.get(), nullptr);
-    ASSERT_EQ(properyHeading6->property_name().get_value(), heading6TagName);
-    ASSERT_NE(properyStrikethrough.get(), nullptr);
-    ASSERT_EQ(properyStrikethrough->property_name().get_value(), strikethroughTagName);
-    ASSERT_NE(properySuperscript.get(), nullptr);
-    ASSERT_EQ(properySuperscript->property_name().get_value(), superscriptTagName);
-    ASSERT_NE(properySubscript.get(), nullptr);
-    ASSERT_EQ(properySubscript->property_name().get_value(), subscriptTagName);
-    ASSERT_NE(properyCode.get(), nullptr);
-    ASSERT_EQ(properyCode->property_name().get_value(), codeTagName);
-    ASSERT_NE(properyQuote.get(), nullptr);
-    ASSERT_EQ(properyQuote->property_name().get_value(), quoteTagName);
-    ASSERT_NE(properyHighlight.get(), nullptr);
-    ASSERT_EQ(properyHighlight->property_name().get_value(), highlightTagName);
+    ASSERT_NE(propery_italic.get(), nullptr);
+    ASSERT_EQ(propery_italic->property_name().get_value(), italic_tag_name);
+    ASSERT_NE(propery_bold.get(), nullptr);
+    ASSERT_EQ(propery_bold->property_name().get_value(), bold_tag_name);
+    ASSERT_NE(propery_heading1.get(), nullptr);
+    ASSERT_EQ(propery_heading1->property_name().get_value(), heading1_tag_name);
+    ASSERT_NE(propery_heading2.get(), nullptr);
+    ASSERT_EQ(propery_heading2->property_name().get_value(), heading2_tag_name);
+    ASSERT_NE(propery_heading3.get(), nullptr);
+    ASSERT_EQ(propery_heading3->property_name().get_value(), heading3_tag_name);
+    ASSERT_NE(propery_heading4.get(), nullptr);
+    ASSERT_EQ(propery_heading4->property_name().get_value(), heading4_tag_name);
+    ASSERT_NE(propery_heading5.get(), nullptr);
+    ASSERT_EQ(propery_heading5->property_name().get_value(), heading5_tag_name);
+    ASSERT_NE(propery_heading6.get(), nullptr);
+    ASSERT_EQ(propery_heading6->property_name().get_value(), heading6_tag_name);
+    ASSERT_NE(propery_strikethrough.get(), nullptr);
+    ASSERT_EQ(propery_strikethrough->property_name().get_value(), strikethrough_tag_name);
+    ASSERT_NE(propery_superscript.get(), nullptr);
+    ASSERT_EQ(propery_superscript->property_name().get_value(), superscript_tag_name);
+    ASSERT_NE(propery_subscript.get(), nullptr);
+    ASSERT_EQ(propery_subscript->property_name().get_value(), subscript_tag_name);
+    ASSERT_NE(propery_code.get(), nullptr);
+    ASSERT_EQ(propery_code->property_name().get_value(), code_tag_name);
+    ASSERT_NE(propery_quote.get(), nullptr);
+    ASSERT_EQ(propery_quote->property_name().get_value(), quote_tag_name);
+    ASSERT_NE(propery_highlight.get(), nullptr);
+    ASSERT_EQ(propery_highlight->property_name().get_value(), highlight_tag_name);
   }
 
   TEST_F(DrawFixture, TestDrawTextAttributes)
@@ -120,41 +120,41 @@ namespace
     // Given
     std::string markdown = "**bold**~~strikethrough~~^up^%down%`code`";
     gsize length = 0;
-    cmark_node* doc = Parser::parseContent(markdown);
+    cmark_node* doc = Parser::parse_content(markdown);
     MockMiddleware middleware;
     Draw draw(middleware);
 
     // When
-    draw.setDocument(doc);
+    draw.set_document(doc);
     auto buffer = draw.get_buffer();
     // Using the built-in formatter
     guint8* data = buffer->serialize(buffer, "application/x-gtk-text-buffer-rich-text", buffer->begin(), buffer->end(), length);
     // Convert data to string
-    std::string stringData(data, data + length);
+    std::string string_data(data, data + length);
 
     // Then
     // Bold attribute
-    std::string expectAttr1 = "<attr name=\"weight\" type=\"gint\" value=\"700\" />";
+    std::string expect_attr1 = "<attr name=\"weight\" type=\"gint\" value=\"700\" />";
     // Strikethrough attribute
-    std::string expectAttr2 = "<attr name=\"strikethrough\" type=\"gboolean\" value=\"TRUE\" />";
+    std::string expect_attr2 = "<attr name=\"strikethrough\" type=\"gboolean\" value=\"TRUE\" />";
     // Super-/subcript attribute
-    std::string expectAttr3 =
+    std::string expect_attr3 =
         "<attr name=\"scale\" type=\"gdouble\" value="; // Depending on platform the value could be in UK or US format (so we removed the value)
     // Superscript attributes
-    std::string expectAttr4 = "<attr name=\"rise\" type=\"gint\" value=\"-6144\" />";
+    std::string expect_attr4 = "<attr name=\"rise\" type=\"gint\" value=\"-6144\" />";
     // Subscript attributes
-    std::string expectAttr5 = "<attr name=\"rise\" type=\"gint\" value=\"6144\" />";
+    std::string expect_attr5 = "<attr name=\"rise\" type=\"gint\" value=\"6144\" />";
     // Code attributes
-    std::string expectAttr6 = "<attr name=\"background-gdk\" type=\"GdkColor\" value=\"e0e0:e0e0:e0e0\" />";
-    std::string expectAttr7 = "<attr name=\"foreground-gdk\" type=\"GdkColor\" value=\"3232:3232:3232\" />";
-    std::string expectAttr8 = "<attr name=\"family\" type=\"gchararray\" value=\"monospace\" />";
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr1));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr2));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr3));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr4));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr5));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr6));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr7));
-    EXPECT_THAT(stringData, testing::HasSubstr(expectAttr8));
+    std::string expect_attr6 = "<attr name=\"background-gdk\" type=\"GdkColor\" value=\"e0e0:e0e0:e0e0\" />";
+    std::string expect_attr7 = "<attr name=\"foreground-gdk\" type=\"GdkColor\" value=\"3232:3232:3232\" />";
+    std::string expect_attr8 = "<attr name=\"family\" type=\"gchararray\" value=\"monospace\" />";
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr1));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr2));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr3));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr4));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr5));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr6));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr7));
+    EXPECT_THAT(string_data, testing::HasSubstr(expect_attr8));
   }
 } // namespace

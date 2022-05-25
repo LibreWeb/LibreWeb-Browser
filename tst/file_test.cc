@@ -7,10 +7,10 @@ namespace
   {
     // Given
     std::string path = "/path/to/a/filename.sh";
-    std::string expectedFilename = "filename.sh";
+    std::string expected_filename = "filename.sh";
     // When
-    std::string filename = File::getFilename(path);
+    std::string filename = File::get_filename(path);
     // Then
-    ASSERT_EQ(filename, expectedFilename);
+    ASSERT_EQ(filename, expected_filename);
   }
 } // namespace
