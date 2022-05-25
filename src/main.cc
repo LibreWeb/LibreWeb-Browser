@@ -17,7 +17,7 @@ int main(int argc, char* argv[])
   // Set the command-line parameters option settings
   Glib::OptionContext context("LibreWeb Browser - Decentralized Web Browser");
   OptionGroup group;
-  Glib::ustring defaultTimeout = group.timeout;
+  Glib::ustring default_timeout = group.timeout;
   context.set_main_group(group);
 
   // Create the GTK application
@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
   }
 
   // The default is to start the IPFS Daemon
-  if (group.disableIPFSDaemon)
+  if (group.disable_ipfs_daemon)
   {
     std::cout << "WARN: You disabled the IPFS Daemon from starting-up "
                  "(you are using: -d/--disable-ipfs-daemon)."
@@ -49,16 +49,16 @@ int main(int argc, char* argv[])
   }
   else
   {
-    IPFSDaemon ipfsDaemon;
-    ipfsDaemon.spawn();
+    IPFSDaemon ipfs_daemon;
+    ipfs_daemon.spawn();
   }
 
-  if (group.timeout.compare(defaultTimeout) != 0)
+  if (group.timeout.compare(default_timeout) != 0)
   {
     std::cout << "WARN: You changed the time-out value. Please, be sure you know what you're doing." << std::endl;
   }
 
-  // Run the GTK window in the main thread
-  MainWindow window(group.timeout);
-  return app->run(window);
+  // Run the GTK main window in the main thread
+  MainWindow main_window(group.timeout);
+  return app->run(main_window);
 }

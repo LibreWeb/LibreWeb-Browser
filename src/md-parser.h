@@ -14,10 +14,10 @@ class Parser
 {
 public:
   // Singleton
-  static Parser& getInstance();
-  static cmark_node* parseContent(const Glib::ustring& content);
-  static Glib::ustring renderHTML(cmark_node* node);
-  static Glib::ustring renderMarkdown(cmark_node* node);
+  static Parser& get_instance();
+  static cmark_node* parse_content(const Glib::ustring& content);
+  static Glib::ustring render_html(cmark_node* node);
+  static Glib::ustring render_markdown(cmark_node* node);
 
 private:
   Parser();
@@ -25,6 +25,6 @@ private:
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
 
-  static void addMarkdownExtension(cmark_parser* parser, const char* extName);
+  static void add_markdown_extension(cmark_parser* parser, const char* ext_name);
 };
 #endif

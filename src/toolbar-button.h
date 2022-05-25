@@ -10,6 +10,6 @@
 class ToolbarButton : public Gtk::Button
 {
 public:
-  explicit ToolbarButton(const std::string& tooltipText, bool canFocus = false);
+  explicit ToolbarButton(const std::string& tooltip_text, bool can_focus = false);
 };
 #endif

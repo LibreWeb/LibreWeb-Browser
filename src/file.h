@@ -12,6 +12,6 @@ class File
 public:
   static std::string read(const std::string& path);
   static void write(const std::string& path, const std::string& content);
-  static std::string getFilename(const std::string& path);
+  static std::string get_filename(const std::string& path);
 };
 #endif

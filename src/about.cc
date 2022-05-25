@@ -5,15 +5,15 @@
 #include <glibmm/miscutils.h>
 
 About::About(Gtk::Window& parent)
-    : m_visitHomepage("https://libreweb.org/", "Visit Homepage"),
-      m_visitProjectLinkButton("https://gitlab.melroy.org/libreweb/libreweb-browser", "Visit the GitLab Project")
+    : visit_homepage("https://libreweb.org/", "Visit Homepage"),
+      visit_project_link_button("https://gitlab.melroy.org/libreweb/libreweb-browser", "Visit the GitLab Project")
 {
   std::vector<Glib::ustring> devs;
   devs.push_back("Melroy van den Berg <info@libreweb.org>");
   std::vector<Glib::ustring> docs;
   docs.push_back("Melroy van den Berg <info@libreweb.org>");
 
-  logo.set(this->getLogoImage());
+  logo.set(this->get_logo_image());
 
   set_transient_for(parent);
   set_program_name("LibreWeb Browser");
@@ -29,10 +29,10 @@ About::About(Gtk::Window& parent)
   set_position(Gtk::WIN_POS_CENTER_ON_PARENT);
 
   Gtk::Box* vbox = get_vbox();
-  vbox->pack_end(m_visitProjectLinkButton, Gtk::PackOptions::PACK_SHRINK);
-  vbox->pack_end(m_visitHomepage, Gtk::PackOptions::PACK_SHRINK);
-  m_visitHomepage.show();
-  m_visitProjectLinkButton.show();
+  vbox->pack_end(visit_project_link_button, Gtk::PackOptions::PACK_SHRINK);
+  vbox->pack_end(visit_homepage, Gtk::PackOptions::PACK_SHRINK);
+  visit_homepage.show();
+  visit_project_link_button.show();
 }
 
 void About::show_about()
@@ -45,7 +45,7 @@ void About::hide_about(__attribute__((unused)) int response)
   hide();
 }
 
-std::string About::getLogoImage()
+std::string About::get_logo_image()
 {
   // Use data directory first, used when LibreWeb is installed (Linux or Windows)
   for (std::string data_dir : Glib::get_system_data_dirs())

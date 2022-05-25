@@ -12,26 +12,25 @@
 #include <stdexcept>
 
 Draw::Draw(MiddlewareInterface& middleware)
-    : middleware(middleware),
-      buffer(Glib::unwrap(this->get_buffer())),
-      addViewSourceMenuItem(true),
-      headingLevel(0),
-      listLevel(0),
-      isBold(false),
-      isItalic(false),
-      isStrikethrough(false),
-      isHighlight(false),
-      isSuperscript(false),
-      isSubscript(false),
-      isQuote(false),
-      bulletListLevel(0),
-      orderedListLevel(0),
-      isOrderedList(false),
-      isLink(false),
-      hovingOverLink(false),
-      isUserAction(false)
+    : middleware_(middleware),
+      add_view_source_menu_item_(true),
+      heading_level_(0),
+      list_level_(0),
+      is_bold_(false),
+      is_italic_(false),
+      is_strikethrough_(false),
+      is_highlight_(false),
+      is_superscript_(false),
+      is_subscript_(false),
+      is_quote_(false),
+      bullet_list_level_(0),
+      ordered_list_level_(0),
+      is_ordered_list_(false),
+      is_link(false),
+      hoving_over_link_(false),
+      is_user_action_(false)
 {
-  this->disableEdit();
+  this->disable_edit();
   set_top_margin(12);
   set_left_margin(10);  // fallback
   set_right_margin(10); // fallback
@@ -47,12 +46,12 @@ Draw::Draw(MiddlewareInterface& middleware)
 
   // Set cursors
   auto display = get_display();
-  normalCursor = Gdk::Cursor::create(display, "default");
-  linkCursor = Gdk::Cursor::create(display, "pointer");
-  textCursor = Gdk::Cursor::create(display, "text");
+  normal_cursor_ = Gdk::Cursor::create(display, "default");
+  link_cursor_ = Gdk::Cursor::create(display, "pointer");
+  text_cursor_ = Gdk::Cursor::create(display, "text");
 
   // Create text-tags
-  addTags();
+  add_tags();
 
   // Connect Signals
   signal_event_after().connect(sigc::mem_fun(this, &Draw::event_after));
@@ -65,7 +64,7 @@ Draw::Draw(MiddlewareInterface& middleware)
  * \brief Adding tags.
  * See also: https://gitlab.gnome.org/GNOME/gtkmm/-/blob/master/demos/gtk-demo/example_textview.cc#L100
  */
-void Draw::addTags()
+void Draw::add_tags()
 {
   auto buffer = get_buffer();
   Glib::RefPtr<Gtk::TextBuffer::Tag> tmpTag;
@@ -158,7 +157,7 @@ void Draw::event_after(GdkEvent* ev)
   window_to_buffer_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, ex, ey, x, y);
   get_iter_at_location(iter, x, y);
   // Find the links
-  followLink(iter);
+  follow_link(iter);
 }
 
 /**
@@ -168,7 +167,7 @@ bool Draw::motion_notify_event(GdkEventMotion* motion_event)
 {
   int x, y;
   window_to_buffer_coords(Gtk::TextWindowType::TEXT_WINDOW_WIDGET, motion_event->x, motion_event->y, x, y);
-  this->changeCursor(x, y);
+  this->change_cursor(x, y);
   return false;
 }
 
@@ -248,7 +247,7 @@ void Draw::populate_popup(Gtk::Menu* menu)
       item->hide();
     }
   }
-  if (this->addViewSourceMenuItem)
+  if (add_view_source_menu_item_)
   {
     Gtk::MenuItem* sourceCodeMenuItem = Gtk::manage(new Gtk::MenuItem("View Source", true));
     sourceCodeMenuItem->signal_activate().connect(source_code);
@@ -262,62 +261,63 @@ void Draw::populate_popup(Gtk::Menu* menu)
  * \param message Headliner
  * \param details Additional text info
  */
-void Draw::setMessage(const Glib::ustring& message, const Glib::ustring& details)
+void Draw::set_message(const Glib::ustring& message, const Glib::ustring& details)
 {
   if (get_editable())
-    this->disableEdit();
+    this->disable_edit();
   this->clear();
 
-  this->headingLevel = 1;
-  this->insertText(message);
-  this->headingLevel = 0;
-  this->insertMarkupText("\n\n");
-  this->insertText(details);
+  heading_level_ = 1;
+  this->insert_text(message);
+  heading_level_ = 0;
+  this->insert_markup_text("\n\n");
+  this->insert_text(details);
 }
 
 /**
  * \brief Draw homepage
  */
-void Draw::showHomepage()
+void Draw::show_homepage()
 {
   if (get_editable())
-    this->disableEdit();
+    this->disable_edit();
   this->clear();
 
-  this->headingLevel = 1;
-  this->insertText("Welcome to LibreWeb 🌍🚀");
-  this->headingLevel = 0;
-  this->insertText("\n\n");
-  this->insertMarkupText("Welcome to the decentralized web (also known as web 3.0). Thanks for using LibreWeb!👍\n\n"
-                         "LibreWeb is a free &amp; open-source decentralized web browser. With LibreWeb can surf the world-wide-web as originally "
-                         "intended, by leveraging IPFS as a decentralized file storage. LibreWeb is also the fastest browser in the world.\n\n"
-                         "The content can be fully written in <i>markdown format</i>, allowing you to easily publish your own site, blog article or "
-                         "e-book. And markdown makes surfing the web very safe.\n"
-                         "This browser has even a <b>built-in editor</b>. Check it out in the menu: <tt>File->New Document</tt>!");
-  this->insertText("\n\nSee an example page hosted on IPFS: ");
-  this->insertLink("Click here for the example page", "ipfs://QmQQQyYm8GcLBEE7H3NMQWfkyfU5yHiT5i1J98gbfDGRuX");
+  heading_level_ = 1;
+  this->insert_text("Welcome to LibreWeb 🌍🚀");
+  heading_level_ = 0;
+  this->insert_text("\n\n");
+  this->insert_markup_text(
+      "Welcome to the decentralized web (also known as web 3.0). Thanks for using LibreWeb!👍\n\n"
+      "LibreWeb is a free &amp; open-source decentralized web browser. With LibreWeb can surf the world-wide-web as originally "
+      "intended, by leveraging IPFS as a decentralized file storage. LibreWeb is also the fastest browser in the world.\n\n"
+      "The content can be fully written in <i>markdown format</i>, allowing you to easily publish your own site, blog article or "
+      "e-book. And markdown makes surfing the web very safe.\n"
+      "This browser has even a <b>built-in editor</b>. Check it out in the menu: <tt>File->New Document</tt>!");
+  this->insert_text("\n\nSee an example page hosted on IPFS: ");
+  this->insert_link_text("Click here for the example page", "ipfs://QmQQQyYm8GcLBEE7H3NMQWfkyfU5yHiT5i1J98gbfDGRuX");
 }
 
 /**
  * \brief Process AST document (markdown format) and draw the text in the GTK TextView
  * The cmark_node pointer will be automatically freed for you.
- * \param rootNode Markdown AST tree that will be displayed on screen
+ * \param root_node Markdown AST tree that will be displayed on screen
  */
-void Draw::setDocument(cmark_node* rootNode)
+void Draw::set_document(cmark_node* root_node)
 {
   if (get_editable())
-    this->disableEdit();
+    this->disable_edit();
   this->clear();
 
   // Loop over AST nodes
   cmark_event_type ev_type;
-  cmark_iter* iter = cmark_iter_new(rootNode);
+  cmark_iter* iter = cmark_iter_new(root_node);
   while ((ev_type = cmark_iter_next(iter)) != CMARK_EVENT_DONE)
   {
     cmark_node* cur = cmark_iter_get_node(iter);
     try
     {
-      processNode(cur, ev_type);
+      process_node(cur, ev_type);
     }
     catch (const std::runtime_error& error)
     {
@@ -326,21 +326,21 @@ void Draw::setDocument(cmark_node* rootNode)
     }
   }
   // Clean-up the memory
-  cmark_node_free(rootNode);
+  cmark_node_free(root_node);
 }
 
-void Draw::setViewSourceMenuItem(bool isEnabled)
+void Draw::set_view_source_menu_item(bool is_enabled)
 {
-  this->addViewSourceMenuItem = isEnabled;
+  add_view_source_menu_item_ = is_enabled;
 }
 
 /**
  * \brief Prepare for new document
  */
-void Draw::newDocument()
+void Draw::new_document()
 {
-  this->undoPool.clear();
-  this->redoPool.clear();
+  undo_pool_.clear();
+  redo_pool_.clear();
   this->clear();
 
   // Set margins to defaults in editor mode
@@ -351,14 +351,14 @@ void Draw::newDocument()
   // Reset word wrapping to default
   set_wrap_mode(Gtk::WRAP_WORD_CHAR);
 
-  enableEdit();
+  enable_edit();
   grab_focus(); // Claim focus on text view
 }
 
 /**
  * \brief Retrieve the current text buffer
  */
-Glib::ustring Draw::getText() const
+Glib::ustring Draw::get_text() const
 {
   return get_buffer()->get_text();
 }
@@ -367,7 +367,7 @@ Glib::ustring Draw::getText() const
  * \brief Set text in text buffer (for example plain text)
  * \param text Text string
  */
-void Draw::setText(const Glib::ustring& text)
+void Draw::set_text(const Glib::ustring& text)
 {
   get_buffer()->set_text(text);
 }
@@ -379,11 +379,11 @@ void Draw::clear()
 {
   auto buffer = get_buffer();
   buffer->erase(buffer->begin(), buffer->end());
-  for (const Glib::RefPtr<Gtk::TextMark>& mark : headingsToc)
+  for (const Glib::RefPtr<Gtk::TextMark>& mark : headings_toc_)
   {
     buffer->delete_mark(mark);
   }
-  headingsToc.clear();
+  headings_toc_.clear();
 }
 
 /**
@@ -391,25 +391,25 @@ void Draw::clear()
  */
 void Draw::undo()
 {
-  if (get_editable() && (undoPool.size() > 0))
+  if (get_editable() && (undo_pool_.size() > 0))
   {
-    auto undoAction = undoPool.at(undoPool.size() - 1);
+    auto undoAction = undo_pool_.at(undo_pool_.size() - 1);
     auto buffer = get_buffer();
-    undoPool.pop_back();
-    if (undoAction.isInsert)
+    undo_pool_.pop_back();
+    if (undoAction.is_insert)
     {
-      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.beginOffset);
-      Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_offset(undoAction.endOffset);
-      buffer->erase(startIter, endIter);
-      buffer->place_cursor(buffer->get_iter_at_offset(undoAction.beginOffset));
+      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.begin_offset);
+      Gtk::TextBuffer::iterator end_iter = buffer->get_iter_at_offset(undoAction.end_offset);
+      buffer->erase(startIter, end_iter);
+      buffer->place_cursor(buffer->get_iter_at_offset(undoAction.begin_offset));
     }
     else
     {
-      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.beginOffset);
+      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(undoAction.begin_offset);
       buffer->insert(startIter, undoAction.text);
-      buffer->place_cursor(buffer->get_iter_at_offset(undoAction.endOffset));
+      buffer->place_cursor(buffer->get_iter_at_offset(undoAction.end_offset));
     }
-    redoPool.push_back(undoAction);
+    redo_pool_.push_back(undoAction);
   }
 }
 
@@ -418,25 +418,25 @@ void Draw::undo()
  */
 void Draw::redo()
 {
-  if (get_editable() && (redoPool.size() > 0))
+  if (get_editable() && (redo_pool_.size() > 0))
   {
-    auto redoAction = redoPool.at(redoPool.size() - 1);
+    auto redoAction = redo_pool_.at(redo_pool_.size() - 1);
     auto buffer = get_buffer();
-    redoPool.pop_back();
-    if (redoAction.isInsert)
+    redo_pool_.pop_back();
+    if (redoAction.is_insert)
     {
-      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.beginOffset);
+      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.begin_offset);
       buffer->insert(startIter, redoAction.text);
-      buffer->place_cursor(buffer->get_iter_at_offset(redoAction.endOffset));
+      buffer->place_cursor(buffer->get_iter_at_offset(redoAction.end_offset));
     }
     else
     {
-      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.beginOffset);
-      Gtk::TextBuffer::iterator endIter = buffer->get_iter_at_offset(redoAction.endOffset);
-      buffer->erase(startIter, endIter);
-      buffer->place_cursor(buffer->get_iter_at_offset(redoAction.beginOffset));
+      Gtk::TextBuffer::iterator startIter = buffer->get_iter_at_offset(redoAction.begin_offset);
+      Gtk::TextBuffer::iterator end_iter = buffer->get_iter_at_offset(redoAction.end_offset);
+      buffer->erase(startIter, end_iter);
+      buffer->place_cursor(buffer->get_iter_at_offset(redoAction.begin_offset));
     }
-    undoPool.push_back(redoAction);
+    undo_pool_.push_back(redoAction);
   }
 }
 
@@ -504,7 +504,7 @@ void Draw::del()
 /**
  * \brief Select all text
  */
-void Draw::selectAll()
+void Draw::select_all()
 {
   auto buffer = get_buffer();
   buffer->select_range(buffer->begin(), buffer->end());
@@ -513,54 +513,54 @@ void Draw::selectAll()
 /**
  * \brief Return the Texr mark headings for Table of contents
  */
-std::vector<Glib::RefPtr<Gtk::TextMark>> Draw::getHeadings()
+std::vector<Glib::RefPtr<Gtk::TextMark>> Draw::get_headings()
 {
-  return headingsToc;
+  return headings_toc_;
 }
 
 /*************************************************************
  * Editor signals calls
  *************************************************************/
 
-void Draw::make_heading(int headingLevel)
+void Draw::make_heading(int heading_level)
 {
   Gtk::TextBuffer::iterator start, start_line, end_line, _;
   auto buffer = get_buffer();
   buffer->begin_user_action();
-  Glib::ustring heading = Glib::ustring(headingLevel, '#');
+  Glib::ustring heading = Glib::ustring(heading_level, '#');
   buffer->get_selection_bounds(start, _);
 
   start_line = buffer->get_iter_at_line(start.get_line());
   // Lookup to 12 places further
-  int insertLocation = start_line.get_offset();
-  end_line = buffer->get_iter_at_offset(insertLocation + 12);
+  int insert_location = start_line.get_offset();
+  end_line = buffer->get_iter_at_offset(insert_location + 12);
   std::string text = start_line.get_text(end_line);
   if (!text.empty() && text.starts_with("#"))
   {
-    std::size_t countHashes = 0;
-    bool hasSpace = false;
+    std::size_t count_hashes = 0;
+    bool has_space = false;
     std::size_t len = text.size();
     for (Glib::ustring::size_type i = 0; i < len; i++)
     {
       if (text[i] == '#')
-        countHashes++;
+        count_hashes++;
       else
         break;
     }
     // Check for next character after the #-signs, is there already a space?
-    if (countHashes < len)
+    if (count_hashes < len)
     {
-      if (text[countHashes] == ' ')
-        hasSpace = true;
+      if (text[count_hashes] == ' ')
+        has_space = true;
     }
-    Gtk::TextBuffer::iterator delete_iter_end = buffer->get_iter_at_offset(insertLocation + countHashes);
+    Gtk::TextBuffer::iterator delete_iter_end = buffer->get_iter_at_offset(insert_location + count_hashes);
     // Delete hashes at the beginning on the line
     buffer->erase(start_line, delete_iter_end);
     // Buffer is now modified, previous iteraters are now invalid, so get a new iter
-    Gtk::TextBuffer::iterator new_start = buffer->get_iter_at_offset(insertLocation);
+    Gtk::TextBuffer::iterator new_start = buffer->get_iter_at_offset(insert_location);
 
     // Finally, insert the new heading (add additional space indeed needed)
-    Glib::ustring insertHeading = (hasSpace) ? heading : heading + " ";
+    Glib::ustring insertHeading = (has_space) ? heading : heading + " ";
     buffer->insert(new_start, insertHeading);
   }
   else
@@ -583,10 +583,10 @@ void Draw::make_bold()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("****");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 2);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -604,10 +604,10 @@ void Draw::make_italic()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("**");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 1);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -625,10 +625,10 @@ void Draw::make_strikethrough()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("~~~~");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 2);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -646,10 +646,10 @@ void Draw::make_super()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("^^");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 1);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -667,10 +667,10 @@ void Draw::make_sub()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("%%");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 1);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -705,21 +705,21 @@ void Draw::insert_link()
   buffer->begin_user_action();
   if (buffer->get_selection_bounds(start, end))
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     Glib::ustring text = buffer->get_text(start, end);
     buffer->erase_selection();
     buffer->insert_at_cursor("[" + text + "](ipfs://url)");
-    auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 10);
-    auto endCursorPos = buffer->get_iter_at_offset(insertOffset + text.length() + 13);
-    buffer->select_range(beginCursorPos, endCursorPos);
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 10);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 13);
+    buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("[link](ipfs://url)");
-    auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 14);
-    auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 17);
-    buffer->select_range(beginCursorPos, endCursorPos);
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 14);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 17);
+    buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -737,11 +737,11 @@ void Draw::insert_image()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("![](ipfs://image.jpg)");
-    auto beginCursorPos = buffer->get_iter_at_offset(insertOffset + 11);
-    auto endCursorPos = buffer->get_iter_at_offset(insertOffset + 20);
-    buffer->select_range(beginCursorPos, endCursorPos);
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 11);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 20);
+    buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -777,10 +777,10 @@ void Draw::make_code()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("``");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 1);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 1);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
@@ -810,8 +810,8 @@ void Draw::insert_bullet_list()
   }
   else
   {
-    int curLineNumber = start.get_line();
-    Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(curLineNumber);
+    int current_line_number = start.get_line();
+    Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(current_line_number);
     if (start.is_start())
     {
       buffer->insert(begin_current_line_iter, "* ");
@@ -820,7 +820,7 @@ void Draw::insert_bullet_list()
     {
       Gtk::TextBuffer::iterator end_current_line_iter, prev_lines_iter;
       // Get the end of the line iter
-      end_current_line_iter = buffer->get_iter_at_line_offset(curLineNumber, begin_current_line_iter.get_chars_in_line());
+      end_current_line_iter = buffer->get_iter_at_line_offset(current_line_number, begin_current_line_iter.get_chars_in_line());
       std::string currentLineText = begin_current_line_iter.get_text(end_current_line_iter);
       // Get previous line (if possible)
       prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 1);
@@ -903,8 +903,8 @@ void Draw::insert_numbered_list()
   }
   else
   {
-    int curLineNumber = start.get_line();
-    Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(curLineNumber);
+    int current_line_number = start.get_line();
+    Gtk::TextBuffer::iterator begin_current_line_iter = buffer->get_iter_at_line(current_line_number);
     if (start.is_start())
     {
       buffer->insert(begin_current_line_iter, "1. ");
@@ -913,7 +913,7 @@ void Draw::insert_numbered_list()
     {
       Gtk::TextBuffer::iterator end_current_line_iter, prev_lines_iter;
       // Get the end of the line iter
-      end_current_line_iter = buffer->get_iter_at_line_offset(curLineNumber, begin_current_line_iter.get_chars_in_line());
+      end_current_line_iter = buffer->get_iter_at_line_offset(current_line_number, begin_current_line_iter.get_chars_in_line());
       std::string currentLineText = begin_current_line_iter.get_text(end_current_line_iter);
       // Get previous line (if possible)
       prev_lines_iter = buffer->get_iter_at_line(start.get_line() - 1);
@@ -1008,22 +1008,22 @@ void Draw::make_highlight()
   }
   else
   {
-    int insertOffset = buffer->get_insert()->get_iter().get_offset();
+    int insert_offset = buffer->get_insert()->get_iter().get_offset();
     buffer->insert_at_cursor("====");
-    auto newCursorPos = buffer->get_iter_at_offset(insertOffset + 2);
-    buffer->place_cursor(newCursorPos);
+    auto new_cursor_pos = buffer->get_iter_at_offset(insert_offset + 2);
+    buffer->place_cursor(new_cursor_pos);
   }
   buffer->end_user_action();
 }
 
 void Draw::begin_user_action()
 {
-  this->isUserAction = true;
+  is_user_action_ = true;
 }
 
 void Draw::end_user_action()
 {
-  this->isUserAction = false;
+  is_user_action_ = false;
 }
 
 /**
@@ -1031,15 +1031,15 @@ void Draw::end_user_action()
  */
 void Draw::on_insert(const Gtk::TextBuffer::iterator& pos, const Glib::ustring& text, int bytes __attribute__((unused)))
 {
-  if (this->isUserAction)
+  if (is_user_action_)
   {
     UndoRedoData undoData = {};
-    undoData.isInsert = true;
-    undoData.beginOffset = pos.get_offset();
-    undoData.endOffset = pos.get_offset() + text.size();
+    undoData.is_insert = true;
+    undoData.begin_offset = pos.get_offset();
+    undoData.end_offset = pos.get_offset() + text.size();
     undoData.text = text;
-    this->undoPool.push_back(undoData);
-    this->redoPool.clear();
+    undo_pool_.push_back(undoData);
+    redo_pool_.clear();
   }
 }
 
@@ -1048,15 +1048,15 @@ void Draw::on_insert(const Gtk::TextBuffer::iterator& pos, const Glib::ustring& 
  */
 void Draw::on_delete(const Gtk::TextBuffer::iterator& range_start, const Gtk::TextBuffer::iterator& range_end)
 {
-  if (this->isUserAction)
+  if (is_user_action_)
   {
     auto text = get_buffer()->get_text(range_start, range_end);
     UndoRedoData undoData = {};
-    undoData.isInsert = false;
-    undoData.beginOffset = range_start.get_offset();
-    undoData.endOffset = range_end.get_offset();
+    undoData.is_insert = false;
+    undoData.begin_offset = range_start.get_offset();
+    undoData.end_offset = range_end.get_offset();
     undoData.text = text;
-    this->undoPool.push_back(undoData);
+    undo_pool_.push_back(undoData);
   }
 }
 
@@ -1064,32 +1064,32 @@ void Draw::on_delete(const Gtk::TextBuffer::iterator& range_start, const Gtk::Te
  * Private methods
  ************************************************/
 
-void Draw::enableEdit()
+void Draw::enable_edit()
 {
   set_editable(true);
   set_cursor_visible(true);
   auto buffer = get_buffer();
-  this->beginUserActionSignalHandler = buffer->signal_begin_user_action().connect(sigc::mem_fun(this, &Draw::begin_user_action), false);
-  this->endUserActionSignalHandler = buffer->signal_end_user_action().connect(sigc::mem_fun(this, &Draw::end_user_action), false);
-  this->insertTextSignalHandler = buffer->signal_insert().connect(sigc::mem_fun(this, &Draw::on_insert), false);
-  this->deleteTextSignalHandler = buffer->signal_erase().connect(sigc::mem_fun(this, &Draw::on_delete), false);
+  this->begin_user_action_signal_handler = buffer->signal_begin_user_action().connect(sigc::mem_fun(this, &Draw::begin_user_action), false);
+  this->end_user_action_signal_handler = buffer->signal_end_user_action().connect(sigc::mem_fun(this, &Draw::end_user_action), false);
+  this->insert_text_signal_handler = buffer->signal_insert().connect(sigc::mem_fun(this, &Draw::on_insert), false);
+  this->delete_text_signal_handler = buffer->signal_erase().connect(sigc::mem_fun(this, &Draw::on_delete), false);
 }
 
-void Draw::disableEdit()
+void Draw::disable_edit()
 {
   set_editable(false);
   set_cursor_visible(false);
   // Disconnect signal handles
-  this->beginUserActionSignalHandler.disconnect();
-  this->endUserActionSignalHandler.disconnect();
-  this->insertTextSignalHandler.disconnect();
-  this->deleteTextSignalHandler.disconnect();
+  this->begin_user_action_signal_handler.disconnect();
+  this->end_user_action_signal_handler.disconnect();
+  this->insert_text_signal_handler.disconnect();
+  this->delete_text_signal_handler.disconnect();
 }
 
 /**
  * Search for links
  */
-void Draw::followLink(Gtk::TextBuffer::iterator& iter)
+void Draw::follow_link(Gtk::TextBuffer::iterator& iter)
 {
   auto tags = iter.get_tags();
   for (auto const& tag : tags)
@@ -1098,7 +1098,7 @@ void Draw::followLink(Gtk::TextBuffer::iterator& iter)
     if (url != 0 && (strlen(url) > 0))
     {
       // Got to URL
-      middleware.doRequest(url);
+      middleware_.do_request(url);
       break;
     }
   }
@@ -1107,7 +1107,7 @@ void Draw::followLink(Gtk::TextBuffer::iterator& iter)
 /**
  * Process and parse each node in the AST
  */
-void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
+void Draw::process_node(cmark_node* node, cmark_event_type ev_type)
 {
   bool entering = (ev_type == CMARK_EVENT_ENTER);
 
@@ -1116,22 +1116,22 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
   {
     if (strcmp(node->extension->name, "strikethrough") == 0)
     {
-      isStrikethrough = entering;
+      is_strikethrough_ = entering;
       return;
     }
     else if (strcmp(node->extension->name, "highlight") == 0)
     {
-      isHighlight = entering;
+      is_highlight_ = entering;
       return;
     }
     else if (strcmp(node->extension->name, "superscript") == 0)
     {
-      isSuperscript = entering;
+      is_superscript_ = entering;
       return;
     }
     else if (strcmp(node->extension->name, "subscript") == 0)
     {
-      isSubscript = entering;
+      is_subscript_ = entering;
       return;
     }
   }
@@ -1142,28 +1142,28 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
     if (entering)
     {
       // Reset all (better safe than sorry)
-      headingLevel = 0;
-      bulletListLevel = 0;
-      orderedListLevel = 0;
-      listLevel = 0;
-      isOrderedList = false;
-      isBold = false;
-      isItalic = false;
-      isStrikethrough = false;
-      isHighlight = false;
-      isSuperscript = false;
-      isSubscript = false;
-      isQuote = false;
+      heading_level_ = 0;
+      bullet_list_level_ = 0;
+      ordered_list_level_ = 0;
+      list_level_ = 0;
+      is_ordered_list_ = false;
+      is_bold_ = false;
+      is_italic_ = false;
+      is_strikethrough_ = false;
+      is_highlight_ = false;
+      is_superscript_ = false;
+      is_subscript_ = false;
+      is_quote_ = false;
     }
     break;
 
   case CMARK_NODE_BLOCK_QUOTE:
-    isQuote = entering;
+    is_quote_ = entering;
     if (!entering)
     {
       // Replace last quote '|'-sign with a normal blank line
-      this->truncateText(2);
-      this->insertMarkupText("\n");
+      this->truncate_text(2);
+      this->insert_markup_text("\n");
     }
     break;
 
@@ -1173,34 +1173,34 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
 
     if (entering)
     {
-      listLevel++;
+      list_level_++;
     }
     else
     {
-      listLevel--;
+      list_level_--;
     }
-    if (listLevel == 0)
+    if (list_level_ == 0)
     {
       // Reset bullet/ordered levels
-      bulletListLevel = 0;
-      orderedListLevel = 0;
-      isOrderedList = false;
+      bullet_list_level_ = 0;
+      ordered_list_level_ = 0;
+      is_ordered_list_ = false;
       if (!entering)
-        this->insertMarkupText("\n");
+        this->insert_markup_text("\n");
     }
-    else if (listLevel > 0)
+    else if (list_level_ > 0)
     {
       if (entering)
       {
         if (listType == cmark_list_type::CMARK_BULLET_LIST)
         {
-          bulletListLevel++;
+          bullet_list_level_++;
         }
         else if (listType == cmark_list_type::CMARK_ORDERED_LIST)
         {
-          orderedListLevel++;
+          ordered_list_level_++;
           // Create the counter (and reset to zero)
-          orderedListCounters[orderedListLevel] = 0;
+          ordered_list_counters[ordered_list_level_] = 0;
         }
       }
       else
@@ -1208,15 +1208,15 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
         // Un-indent list level again
         if (listType == cmark_list_type::CMARK_BULLET_LIST)
         {
-          bulletListLevel--;
+          bullet_list_level_--;
         }
         else if (listType == cmark_list_type::CMARK_ORDERED_LIST)
         {
-          orderedListLevel--;
+          ordered_list_level_--;
         }
       }
 
-      isOrderedList = (orderedListLevel > 0) && (bulletListLevel <= 0);
+      is_ordered_list_ = (ordered_list_level_ > 0) && (bullet_list_level_ <= 0);
     }
   }
   break;
@@ -1224,36 +1224,36 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
   case CMARK_NODE_ITEM:
     if (entering)
     {
-      if (isOrderedList)
+      if (is_ordered_list_)
       {
         // Increasement ordered list counter
-        orderedListCounters[orderedListLevel]++;
+        ordered_list_counters[ordered_list_level_]++;
       }
 
       // Insert tabs & bullet/number
-      if (bulletListLevel > 0)
+      if (bullet_list_level_ > 0)
       {
-        if (bulletListLevel % 2 == 0)
+        if (bullet_list_level_ % 2 == 0)
         {
-          this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u25e6 ");
+          this->insert_text(Glib::ustring(bullet_list_level_, '\u0009') + "\u25e6 ");
         }
         else
         {
-          this->insertText(Glib::ustring(bulletListLevel, '\u0009') + "\u2022 ");
+          this->insert_text(Glib::ustring(bullet_list_level_, '\u0009') + "\u2022 ");
         }
       }
-      else if (orderedListLevel > 0)
+      else if (ordered_list_level_ > 0)
       {
         Glib::ustring number;
-        if (orderedListLevel % 2 == 0)
+        if (ordered_list_level_ % 2 == 0)
         {
-          number = Draw::intToRoman(orderedListCounters[orderedListLevel]) + " ";
+          number = Draw::int_to_roman(ordered_list_counters[ordered_list_level_]) + " ";
         }
         else
         {
-          number = std::to_string(orderedListCounters[orderedListLevel]) + ". ";
+          number = std::to_string(ordered_list_counters[ordered_list_level_]) + ". ";
         }
-        this->insertText(Glib::ustring(orderedListLevel, '\u0009') + number);
+        this->insert_text(Glib::ustring(ordered_list_level_, '\u0009') + number);
       }
     }
     break;
@@ -1261,21 +1261,21 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
   case CMARK_NODE_HEADING:
     if (entering)
     {
-      headingLevel = node->as.heading.level;
+      heading_level_ = node->as.heading.level;
     }
     else
     {
       // Insert line break after heading
-      this->insertMarkupText("\n\n");
-      headingLevel = 0; // reset
+      this->insert_markup_text("\n\n");
+      heading_level_ = 0; // reset
     }
     break;
 
   case CMARK_NODE_CODE_BLOCK:
   {
     Glib::ustring code = cmark_node_get_literal(node);
-    Glib::ustring newline = (isQuote) ? "" : "\n";
-    this->insertText(code + newline, "", CodeTypeEnum::CODE_TYPE_CODE_BLOCK);
+    Glib::ustring newline = (is_quote_) ? "" : "\n";
+    this->insert_text(code + newline, "", CodeTypeEnum::CODE_TYPE_CODE_BLOCK);
   }
   break;
 
@@ -1287,32 +1287,32 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
 
   case CMARK_NODE_THEMATIC_BREAK:
   {
-    this->isBold = true;
-    this->insertText("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015"
-                     "\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\n\n");
-    this->isBold = false;
+    is_bold_ = true;
+    this->insert_text("\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015"
+                      "\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\u2015\n\n");
+    is_bold_ = false;
   }
   break;
 
   case CMARK_NODE_PARAGRAPH:
     // For listings only insert a single new line
-    if (!entering && (listLevel > 0))
+    if (!entering && (list_level_ > 0))
     {
-      this->insertMarkupText("\n");
+      this->insert_markup_text("\n");
     }
     // Dealing with paragraphs in quotes
-    else if (entering && isQuote)
+    else if (entering && is_quote_)
     {
-      this->insertText("\uFF5C ");
+      this->insert_text("\uFF5C ");
     }
-    else if (!entering && isQuote)
+    else if (!entering && is_quote_)
     {
-      this->insertText("\n\uFF5C\n");
+      this->insert_text("\n\uFF5C\n");
     }
     // Normal paragraph, just blank line
     else if (!entering)
     {
-      this->insertMarkupText("\n\n");
+      this->insert_markup_text("\n\n");
     }
     break;
 
@@ -1320,33 +1320,33 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
   {
     Glib::ustring text = cmark_node_get_literal(node);
     // URL
-    if (isLink)
+    if (is_link)
     {
-      this->insertText(text, linkURL);
-      linkURL = "";
+      this->insert_text(text, link_url_);
+      link_url_ = "";
     }
     // Text (with optional inline formatting)
     else
     {
-      this->insertText(text);
+      this->insert_text(text);
     }
   }
   break;
 
   case CMARK_NODE_LINEBREAK:
     // Hard brake
-    this->insertMarkupText("\n");
+    this->insert_markup_text("\n");
     break;
 
   case CMARK_NODE_SOFTBREAK:
     // only insert space
-    this->insertMarkupText(" ");
+    this->insert_markup_text(" ");
     break;
 
   case CMARK_NODE_CODE:
   {
     Glib::ustring code = cmark_node_get_literal(node);
-    this->insertText(code, "", CodeTypeEnum::CODE_TYPE_INLINE_CODE);
+    this->insert_text(code, "", CodeTypeEnum::CODE_TYPE_INLINE_CODE);
   }
   break;
 
@@ -1357,18 +1357,18 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
     break;
 
   case CMARK_NODE_STRONG:
-    isBold = entering;
+    is_bold_ = entering;
     break;
 
   case CMARK_NODE_EMPH:
-    isItalic = entering;
+    is_italic_ = entering;
     break;
 
   case CMARK_NODE_LINK:
-    isLink = entering;
+    is_link = entering;
     if (entering)
     {
-      linkURL = cmark_node_get_url(node);
+      link_url_ = cmark_node_get_url(node);
     }
     break;
 
@@ -1393,7 +1393,7 @@ void Draw::processNode(cmark_node* node, cmark_event_type ev_type)
  * Encode text string (eg. ampersand-character)
  * @param[in/out] string
  */
-void Draw::encodeText(std::string& string) const
+void Draw::encode_text(std::string& string) const
 {
   std::string buffer;
   buffer.reserve(string.size() + 5);
@@ -1413,183 +1413,183 @@ void Draw::encodeText(std::string& string) const
 }
 
 /**
- * Insert markup text (markup only works if you first parsed the text, otherwise use the insertMarkupText method)
+ * Insert markup text (markup only works if you first parsed the text, otherwise use the insert_markup_text method)
  */
-void Draw::insertText(std::string text, const Glib::ustring& url, CodeTypeEnum codeType)
+void Draw::insert_text(std::string text, const Glib::ustring& url, CodeTypeEnum code_type)
 {
-  std::vector<Glib::ustring> tagNames;
+  std::vector<Glib::ustring> tag_names;
 
   // Use by reference to replace the string
   // TODO: For normal text, you want to bring back the '&amp;' to '&' symbol again
-  this->encodeText(text);
+  this->encode_text(text);
 
-  if (isStrikethrough)
+  if (is_strikethrough_)
   {
-    tagNames.push_back("strikethrough");
+    tag_names.push_back("strikethrough");
   }
-  if (isSuperscript)
+  if (is_superscript_)
   {
-    tagNames.push_back("superscript");
+    tag_names.push_back("superscript");
   }
   // You can not have superscript & subscript applied together
-  else if (isSubscript)
+  else if (is_subscript_)
   {
-    tagNames.push_back("subscript");
+    tag_names.push_back("subscript");
   }
-  if (isBold)
+  if (is_bold_)
   {
-    tagNames.push_back("bold");
+    tag_names.push_back("bold");
   }
-  if (isItalic)
+  if (is_italic_)
   {
-    tagNames.push_back("italic");
+    tag_names.push_back("italic");
   }
-  if (isHighlight)
+  if (is_highlight_)
   {
-    tagNames.push_back("highlight");
+    tag_names.push_back("highlight");
   }
-  if (codeType != Draw::CodeTypeEnum::CODE_TYPE_NONE)
+  if (code_type != Draw::CodeTypeEnum::CODE_TYPE_NONE)
   {
-    tagNames.push_back("code");
+    tag_names.push_back("code");
   }
-  if (headingLevel > 0)
+  if (heading_level_ > 0)
   {
-    switch (headingLevel)
+    switch (heading_level_)
     {
     case 1:
-      tagNames.push_back("heading1");
+      tag_names.push_back("heading1");
       break;
     case 2:
-      tagNames.push_back("heading2");
+      tag_names.push_back("heading2");
       break;
     case 3:
-      tagNames.push_back("heading3");
+      tag_names.push_back("heading3");
       break;
     case 4:
-      tagNames.push_back("heading4");
+      tag_names.push_back("heading4");
       break;
     case 5:
-      tagNames.push_back("heading5");
+      tag_names.push_back("heading5");
       break;
     case 6:
-      tagNames.push_back("heading6");
+      tag_names.push_back("heading6");
       break;
     default:
       break;
     }
     // Already add the mark for the heading
-    addHeadingMark(text, headingLevel);
+    add_heading_mark(text, heading_level_);
   }
-  if (isQuote)
+  if (is_quote_)
   {
-    tagNames.push_back("quote");
+    tag_names.push_back("quote");
   }
 
   // Insert text (+ headings)
   if (url.empty())
   {
     // Special case for code blocks within quote
-    if ((codeType == Draw::CodeTypeEnum::CODE_TYPE_CODE_BLOCK) && isQuote)
+    if ((code_type == Draw::CodeTypeEnum::CODE_TYPE_CODE_BLOCK) && is_quote_)
     {
       std::istringstream iss(text);
       std::string line;
       // Add a quote for each new code line
       while (getline(iss, line))
       {
-        insertTagText("\uFF5C ", "quote");
-        insertTagText(line + "\n", tagNames);
+        insert_tag_text("\uFF5C ", "quote");
+        insert_tag_text(line + "\n", tag_names);
       }
-      insertTagText("\uFF5C\n", "quote");
+      insert_tag_text("\uFF5C\n", "quote");
     }
     // Special case for heading within quote
-    else if ((headingLevel > 0) && isQuote)
+    else if ((heading_level_ > 0) && is_quote_)
     {
-      insertTagText("\uFF5C ", "quote");
-      insertTagText(text, tagNames);
+      insert_tag_text("\uFF5C ", "quote");
+      insert_tag_text(text, tag_names);
     }
     else
     {
       // Just insert text (default) - which includes headings as well
-      insertTagText(text, tagNames);
+      insert_tag_text(text, tag_names);
     }
   }
-  // Insert URL
+  // Insert URL to text
   else
   {
-    insertLink(text, url);
+    insert_link_text(text, url);
   }
 }
 
 /**
  * Insert pango text with multiple tags
  */
-void Draw::insertTagText(const Glib::ustring& text, std::vector<Glib::ustring> const& tagNames)
+void Draw::insert_tag_text(const Glib::ustring& text, std::vector<Glib::ustring> const& tag_names)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
-  buffer->insert_with_tags_by_name(endIter, text, tagNames);
+  auto end_iter = buffer->end();
+  buffer->insert_with_tags_by_name(end_iter, text, tag_names);
 }
 
 /**
  * \brief Add mark for heading (ToC)
  */
-void Draw::addHeadingMark(const Glib::ustring& text, int headingLevel)
+void Draw::add_heading_mark(const Glib::ustring& text, int heading_level)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
+  auto end_iter = buffer->end();
   // Make anonymous marks, to avoid existing naming conflicts
   Glib::RefPtr<Gtk::TextMark> textMark = Gtk::TextMark::create();
   textMark->set_data("name", g_strdup(text.c_str()));
-  textMark->set_data("level", (void*)(intptr_t)headingLevel);
-  buffer->add_mark(textMark, endIter);
-  headingsToc.push_back(textMark);
+  textMark->set_data("level", (void*)(intptr_t)heading_level);
+  buffer->add_mark(textMark, end_iter);
+  headings_toc_.push_back(textMark);
 }
 
 /**
  * Insert pango text with a single tag name
  */
-void Draw::insertTagText(const Glib::ustring& text, const Glib::ustring& tagName)
+void Draw::insert_tag_text(const Glib::ustring& text, const Glib::ustring& tag_name)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
-  buffer->insert_with_tag(endIter, text, tagName);
+  auto end_iter = buffer->end();
+  buffer->insert_with_tag(end_iter, text, tag_name);
 }
 
 /**
  * Insert markup pango text
  */
-void Draw::insertMarkupText(const Glib::ustring& text)
+void Draw::insert_markup_text(const Glib::ustring& text)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
-  buffer->insert_markup(endIter, text);
+  auto end_iter = buffer->end();
+  buffer->insert_markup(end_iter, text);
 }
 
 /**
  * Insert url link
  */
-void Draw::insertLink(const Glib::ustring& text, const Glib::ustring& url)
+void Draw::insert_link_text(const Glib::ustring& text, const Glib::ustring& url)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
+  auto end_iter = buffer->end();
   auto tag = buffer->create_tag();
   // TODO: Create a tag name with name "url" and reuse tag if possible.
   tag->property_foreground() = "#569cd6";
   tag->property_underline() = Pango::Underline::UNDERLINE_SINGLE;
   tag->set_data("url", g_strdup(url.c_str()));
-  buffer->insert_with_tag(endIter, text, tag);
+  buffer->insert_with_tag(end_iter, text, tag);
 }
 
 /**
  * Remove nr. chars from the end of the text buffer
  */
-void Draw::truncateText(int charsTruncated)
+void Draw::truncate_text(int charsTruncated)
 {
   auto buffer = get_buffer();
-  auto endIter = buffer->end();
-  auto beginIter = endIter;
-  beginIter.backward_chars(charsTruncated);
-  buffer->erase(beginIter, endIter);
+  auto end_iter = buffer->end();
+  auto begin_iter = end_iter;
+  begin_iter.backward_chars(charsTruncated);
+  buffer->erase(begin_iter, end_iter);
 }
 
 /**
@@ -1597,7 +1597,7 @@ void Draw::truncateText(int charsTruncated)
  * and if one of them is a link, change the cursor to the "hands" cursor
  * typically used by web browsers.
  */
-void Draw::changeCursor(int x, int y)
+void Draw::change_cursor(int x, int y)
 {
   Gtk::TextBuffer::iterator iter;
   bool hovering = false;
@@ -1615,21 +1615,21 @@ void Draw::changeCursor(int x, int y)
     }
   }
 
-  if (hovering != hovingOverLink)
+  if (hovering != hoving_over_link_)
   {
-    hovingOverLink = hovering;
+    hoving_over_link_ = hovering;
     auto window = get_window(Gtk::TextWindowType::TEXT_WINDOW_TEXT);
-    if (hovingOverLink)
-      window->set_cursor(linkCursor);
+    if (hoving_over_link_)
+      window->set_cursor(link_cursor_);
     else
-      window->set_cursor(normalCursor);
+      window->set_cursor(normal_cursor_);
   }
 }
 
 /**
  * Convert number to roman numerals
  */
-Glib::ustring Draw::intToRoman(int num)
+Glib::ustring Draw::int_to_roman(int num)
 {
   static const int values[] = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
   static const Glib::ustring numerals[] = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};

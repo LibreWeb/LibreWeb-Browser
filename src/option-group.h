@@ -20,7 +20,7 @@ public:
   void on_error(Glib::OptionContext& context, Glib::OptionGroup& group) override;
 
   Glib::ustring timeout;
-  bool disableIPFSDaemon;
+  bool disable_ipfs_daemon;
   bool version;
 };
 

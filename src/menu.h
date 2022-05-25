@@ -41,35 +41,36 @@ public:
 
   explicit Menu(const Glib::RefPtr<Gtk::AccelGroup>& accelgroup);
   virtual ~Menu();
-  void setBackMenuSensitive(bool sensitive);
-  void setForwardMenuSensitive(bool sensitive);
-  void setPublishMenuSensitive(bool sensitive);
-  void setEditMenuSensitive(bool sensitive);
+  void set_back_menu_sensitive(bool sensitive);
+  void set_forward_menu_sensitive(bool sensitive);
+  void set_publish_menu_sensitive(bool sensitive);
+  void set_edit_menu_sensitive(bool sensitive);
 
 protected:
   // Child widgets
-  Gtk::MenuItem m_file;
-  Gtk::MenuItem m_edit;
-  Gtk::MenuItem m_view;
-  Gtk::MenuItem m_help;
-  Gtk::Menu m_fileSubmenu; /*!< File sub menu */
-  Gtk::Menu m_editSubmenu; /*!< Edit sub menu */
-  Gtk::Menu m_viewSubmenu; /*!< View sub menu */
-  Gtk::Menu m_helpSubmenu; /*!< Help sub menu */
-  Gtk::SeparatorMenuItem m_separator1;
-  Gtk::SeparatorMenuItem m_separator2;
-  Gtk::SeparatorMenuItem m_separator3;
-  Gtk::SeparatorMenuItem m_separator4;
-  Gtk::SeparatorMenuItem m_separator5;
-  Gtk::SeparatorMenuItem m_separator6;
-  Gtk::SeparatorMenuItem m_separator7;
-  Gtk::SeparatorMenuItem m_separator8;
+  Gtk::MenuItem file_menu_item;
+  Gtk::MenuItem edit_menu_item;
+  Gtk::MenuItem view_menu_item;
+  Gtk::MenuItem help_menu_item;
+  Gtk::Menu file_menu; /*!< File drop-down menu */
+  Gtk::Menu edit_menu; /*!< Edit drop-down menu */
+  Gtk::Menu view_menu; /*!< View drop-down menu */
+  Gtk::Menu help_menu; /*!< Help drop-down menu */
+  Gtk::SeparatorMenuItem separator1;
+  Gtk::SeparatorMenuItem separator2;
+  Gtk::SeparatorMenuItem separator3;
+  Gtk::SeparatorMenuItem separator4;
+  Gtk::SeparatorMenuItem separator5;
+  Gtk::SeparatorMenuItem separator6;
+  Gtk::SeparatorMenuItem separator7;
+  Gtk::SeparatorMenuItem separator8;
 
 private:
-  Gtk::MenuItem* createMenuItem(const Glib::ustring& label_text);
-  Gtk::MenuItem* backMenuItem;
-  Gtk::MenuItem* forwardMenuItem;
-  Gtk::MenuItem* publishMenuItem;
-  Gtk::MenuItem* editMenuItem;
+  Gtk::MenuItem* back_menu_item_;
+  Gtk::MenuItem* forward_menu_item_;
+  Gtk::MenuItem* publish_menu_item_;
+  Gtk::MenuItem* edit_menu_item_;
+
+  Gtk::MenuItem* create_menu_item(const Glib::ustring& label_text);
 };
 #endif

@@ -16,10 +16,10 @@ class MiddlewareInterface;
  */
 struct UndoRedoData
 {
-  bool isInsert;
+  bool is_insert;
   Glib::ustring text;
-  int beginOffset;
-  int endOffset;
+  int begin_offset;
+  int end_offset;
 };
 
 /**
@@ -38,13 +38,13 @@ public:
   };
 
   explicit Draw(MiddlewareInterface& middleware);
-  void setMessage(const Glib::ustring& message, const Glib::ustring& details = "");
-  void showHomepage();
-  void setDocument(cmark_node* rootNode);
-  void setViewSourceMenuItem(bool isEnabled);
-  void newDocument();
-  Glib::ustring getText() const;
-  void setText(const Glib::ustring& text);
+  void set_message(const Glib::ustring& message, const Glib::ustring& details = "");
+  void show_homepage();
+  void set_document(cmark_node* root_node);
+  void set_view_source_menu_item(bool is_enabled);
+  void new_document();
+  Glib::ustring get_text() const;
+  void set_text(const Glib::ustring& text);
   void clear();
   void undo();
   void redo();
@@ -52,11 +52,11 @@ public:
   void copy();
   void paste();
   void del();
-  void selectAll();
-  std::vector<Glib::RefPtr<Gtk::TextMark>> getHeadings();
+  void select_all();
+  std::vector<Glib::RefPtr<Gtk::TextMark>> get_headings();
 
   // Signals editor calls
-  void make_heading(int headingLevel);
+  void make_heading(int heading_level);
   void make_bold();
   void make_italic();
   void make_strikethrough();
@@ -82,53 +82,52 @@ protected:
   void populate_popup(Gtk::Menu* menu);
 
 private:
-  MiddlewareInterface& middleware;
-  GtkTextBuffer* buffer;
-  bool addViewSourceMenuItem;
-  int headingLevel;
-  int listLevel;
-  bool isBold;
-  bool isItalic;
-  bool isStrikethrough;
-  bool isHighlight;
-  bool isSuperscript;
-  bool isSubscript;
-  bool isQuote;
-  int bulletListLevel;
-  int orderedListLevel;
-  bool isOrderedList;
-  bool isLink;
-  Glib::ustring linkURL;
-  std::map<int, int> orderedListCounters;
-  Glib::RefPtr<Gdk::Cursor> normalCursor;
-  Glib::RefPtr<Gdk::Cursor> linkCursor;
-  Glib::RefPtr<Gdk::Cursor> textCursor;
-  bool hovingOverLink;
-  bool isUserAction;
-  std::vector<Glib::RefPtr<Gtk::TextMark>> headingsToc;
+  MiddlewareInterface& middleware_;
+  bool add_view_source_menu_item_;
+  int heading_level_;
+  int list_level_;
+  bool is_bold_;
+  bool is_italic_;
+  bool is_strikethrough_;
+  bool is_highlight_;
+  bool is_superscript_;
+  bool is_subscript_;
+  bool is_quote_;
+  int bullet_list_level_;
+  int ordered_list_level_;
+  bool is_ordered_list_;
+  bool is_link;
+  Glib::ustring link_url_;
+  std::map<int, int> ordered_list_counters;
+  Glib::RefPtr<Gdk::Cursor> normal_cursor_;
+  Glib::RefPtr<Gdk::Cursor> link_cursor_;
+  Glib::RefPtr<Gdk::Cursor> text_cursor_;
+  bool hoving_over_link_;
+  bool is_user_action_;
+  std::vector<Glib::RefPtr<Gtk::TextMark>> headings_toc_;
 
-  std::vector<UndoRedoData> undoPool;
-  std::vector<UndoRedoData> redoPool;
-  sigc::connection beginUserActionSignalHandler;
-  sigc::connection endUserActionSignalHandler;
-  sigc::connection insertTextSignalHandler;
-  sigc::connection deleteTextSignalHandler;
+  std::vector<UndoRedoData> undo_pool_;
+  std::vector<UndoRedoData> redo_pool_;
+  sigc::connection begin_user_action_signal_handler;
+  sigc::connection end_user_action_signal_handler;
+  sigc::connection insert_text_signal_handler;
+  sigc::connection delete_text_signal_handler;
 
-  void addTags();
-  void enableEdit();
-  void disableEdit();
-  void followLink(Gtk::TextBuffer::iterator& iter);
-  void processNode(cmark_node* node, cmark_event_type ev_type);
-  void encodeText(std::string& string) const;
-  void insertText(std::string text, const Glib::ustring& url = "", CodeTypeEnum codeType = CodeTypeEnum::CODE_TYPE_NONE);
-  void insertTagText(const Glib::ustring& text, std::vector<Glib::ustring> const& tagNames);
-  void addHeadingMark(const Glib::ustring& text, int headingLevel);
-  void insertTagText(const Glib::ustring& text, const Glib::ustring& tagName);
-  void insertMarkupText(const Glib::ustring& text);
-  void insertLink(const Glib::ustring& text, const Glib::ustring& url);
-  void truncateText(int charsTruncated);
-  void changeCursor(int x, int y);
-  static Glib::ustring intToRoman(int num);
+  void add_tags();
+  void enable_edit();
+  void disable_edit();
+  void follow_link(Gtk::TextBuffer::iterator& iter);
+  void process_node(cmark_node* node, cmark_event_type ev_type);
+  void encode_text(std::string& string) const;
+  void insert_text(std::string text, const Glib::ustring& url = "", CodeTypeEnum codeType = CodeTypeEnum::CODE_TYPE_NONE);
+  void insert_tag_text(const Glib::ustring& text, std::vector<Glib::ustring> const& tag_names);
+  void add_heading_mark(const Glib::ustring& text, int heading_level);
+  void insert_tag_text(const Glib::ustring& text, const Glib::ustring& tag_name);
+  void insert_markup_text(const Glib::ustring& text);
+  void insert_link_text(const Glib::ustring& text, const Glib::ustring& url);
+  void truncate_text(int chars_truncated);
+  void change_cursor(int x, int y);
+  static Glib::ustring int_to_roman(int num);
 };
 
 #endif

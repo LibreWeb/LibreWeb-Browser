@@ -22,12 +22,12 @@ std::string File::read(const std::string& path)
 {
   if (n_fs::exists(path) && n_fs::is_regular_file(path))
   {
-    std::ifstream inFile;
-    inFile.open(path, std::ifstream::in);
+    std::ifstream in_file;
+    in_file.open(path, std::ifstream::in);
 
-    std::stringstream strStream;
-    strStream << inFile.rdbuf();
-    return strStream.str();
+    std::stringstream str_stream;
+    str_stream << in_file.rdbuf();
+    return str_stream.str();
   }
   else
   {
@@ -55,7 +55,7 @@ void File::write(const std::string& path, const std::string& content)
  * \param path Full path
  * \return filename
  */
-std::string File::getFilename(const std::string& path)
+std::string File::get_filename(const std::string& path)
 {
   return n_fs::path(path).filename().string();
 }

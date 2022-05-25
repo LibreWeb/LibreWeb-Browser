@@ -20,11 +20,11 @@ public:
 
 protected:
   Gtk::Image logo; /*!< The logo of the app */
-  Gtk::LinkButton m_visitHomepage;
-  Gtk::LinkButton m_visitProjectLinkButton;
+  Gtk::LinkButton visit_homepage;
+  Gtk::LinkButton visit_project_link_button;
 
 private:
-  std::string getLogoImage();
+  std::string get_logo_image();
   void visit_gitlab_project();
 };
 #endif

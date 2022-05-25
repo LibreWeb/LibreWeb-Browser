@@ -7,10 +7,10 @@
  * \param timeout IPFS time-out (which is a string, eg. "6s" for 6 seconds)
  */
 IPFS::IPFS(const std::string& host, int port, const std::string& timeout)
-    : host(host),
-      port(port),
-      timeout(timeout),
-      client(this->host, this->port, this->timeout)
+    : host_(host),
+      port_(port),
+      timeout_(timeout),
+      client_(this->host_, this->port_, this->timeout_)
 {
 }
 
@@ -18,10 +18,10 @@ IPFS::IPFS(const std::string& host, int port, const std::string& timeout)
  * \brief Get the number of IPFS peers.
  * \return number of peers as size_t
  */
-std::size_t IPFS::getNrPeers()
+std::size_t IPFS::get_nr_peers()
 {
   ipfs::Json peers;
-  client.SwarmPeers(&peers);
+  client_.SwarmPeers(&peers);
   return peers["Peers"].size();
 }
 
@@ -29,10 +29,10 @@ std::size_t IPFS::getNrPeers()
  * \brief Retrieve your IPFS client ID.
  * \return ID as string
  */
-std::string IPFS::getClientID()
+std::string IPFS::get_client_id()
 {
   ipfs::Json id;
-  client.Id(&id);
+  client_.Id(&id);
   return id["ID"];
 }
 
@@ -40,10 +40,10 @@ std::string IPFS::getClientID()
  * \brief Retrieve your IPFS Public Key.
  * \return Public key string
  */
-std::string IPFS::getClientPublicKey()
+std::string IPFS::get_client_public_key()
 {
   ipfs::Json id;
-  client.Id(&id);
+  client_.Id(&id);
   return id["PublicKey"];
 }
 
@@ -51,10 +51,10 @@ std::string IPFS::getClientPublicKey()
  * \brief Retrieve the Go IPFS daemon version.
  * \return Version string
  */
-std::string IPFS::getVersion()
+std::string IPFS::get_version()
 {
   ipfs::Json version;
-  client.Version(&version);
+  client_.Version(&version);
   return version["Version"];
 }
 
@@ -62,32 +62,32 @@ std::string IPFS::getVersion()
  * \brief Get the number of IPFS peers.
  * \return Map with bandwidth information (with keys: 'in' and 'out')
  */
-std::map<std::string, float> IPFS::getBandwidthRates()
+std::map<std::string, float> IPFS::get_bandwidth_rates()
 {
-  std::map<std::string, float> bandwidthRates;
+  std::map<std::string, float> bandwidth_rates;
   ipfs::Json bandwidth_info;
-  client.StatsBw(&bandwidth_info);
+  client_.StatsBw(&bandwidth_info);
   float in = bandwidth_info["RateIn"];
   float out = bandwidth_info["RateOut"];
-  bandwidthRates.insert(std::pair<std::string, float>("in", in));
-  bandwidthRates.insert(std::pair<std::string, float>("out", out));
-  return bandwidthRates;
+  bandwidth_rates.insert(std::pair<std::string, float>("in", in));
+  bandwidth_rates.insert(std::pair<std::string, float>("out", out));
+  return bandwidth_rates;
 }
 
 /**
  * \brief Get the stats of the current Repo.
  * \return Map with repo stats (with keys: 'repo-size' and 'path')
  */
-std::map<std::string, std::variant<int, std::string>> IPFS::getRepoStats()
+std::map<std::string, std::variant<int, std::string>> IPFS::get_repo_stats()
 {
-  std::map<std::string, std::variant<int, std::string>> repoStats;
-  ipfs::Json repo_stats;
-  client.StatsRepo(&repo_stats);
-  int repoSize = (int)repo_stats["RepoSize"] / 1000000; // Convert from bytes to MB
-  std::string repoPath = repo_stats["RepoPath"];
-  repoStats.insert(std::pair<std::string, int>("repo-size", repoSize));
-  repoStats.insert(std::pair<std::string, std::string>("path", repoPath));
-  return repoStats;
+  std::map<std::string, std::variant<int, std::string>> repo_stats;
+  ipfs::Json repo_stats_info;
+  client_.StatsRepo(&repo_stats_info);
+  int repo_size = (int)repo_stats_info["RepoSize"] / 1000000; // Convert from bytes to MB
+  std::string repo_path = repo_stats_info["RepoPath"];
+  repo_stats.insert(std::pair<std::string, int>("repo-size", repo_size));
+  repo_stats.insert(std::pair<std::string, std::string>("path", repo_path));
+  return repo_stats;
 }
 
 /**
@@ -99,7 +99,7 @@ std::map<std::string, std::variant<int, std::string>> IPFS::getRepoStats()
  */
 void IPFS::fetch(const std::string& path, std::iostream* contents)
 {
-  client.FilesGet(path, contents);
+  client_.FilesGet(path, contents);
 }
 
 /**
@@ -114,7 +114,7 @@ std::string IPFS::add(const std::string& path, const std::string& content)
   ipfs::Json result;
   std::string hash;
   // Publish a single file
-  client.FilesAdd({{path, ipfs::http::FileUpload::Type::kFileContents, content}}, &result);
+  client_.FilesAdd({{path, ipfs::http::FileUpload::Type::kFileContents, content}}, &result);
   if (result.is_array() && result.size() > 0)
   {
     for (const auto& files : result.items())
@@ -135,7 +135,7 @@ std::string IPFS::add(const std::string& path, const std::string& content)
  */
 void IPFS::abort()
 {
-  client.Abort();
+  client_.Abort();
 }
 
 /**
@@ -143,5 +143,5 @@ void IPFS::abort()
  */
 void IPFS::reset()
 {
-  client.Reset();
+  client_.Reset();
 }
