@@ -41,64 +41,64 @@ MainWindow::MainWindow(const std::string& timeout)
       draw_primary(middleware_),
       draw_secondary(middleware_),
       about(*this),
-      vboxMain(Gtk::ORIENTATION_VERTICAL, 0),
-      vboxToc(Gtk::ORIENTATION_VERTICAL),
-      vboxSearch(Gtk::ORIENTATION_VERTICAL),
-      vboxStatus(Gtk::ORIENTATION_VERTICAL),
-      vboxSettings(Gtk::ORIENTATION_VERTICAL),
-      vboxIconTheme(Gtk::ORIENTATION_VERTICAL),
-      searchMatchCase("Match _Case", true),
-      wrapNone(wrappingGroup, "None"),
-      wrapChar(wrappingGroup, "Char"),
-      wrapWord(wrappingGroup, "Word"),
-      wrapWordChar(wrappingGroup, "Word+Char"),
-      closeTocWindowButton("Close table of contents"),
-      openTocButton("Show table of contents (Ctrl+Shift+T)", true),
-      backButton("Go back one page (Alt+Left arrow)", true),
-      forwardButton("Go forward one page (Alt+Right arrow)", true),
-      refreshButton("Reload current page (Ctrl+R)", true),
-      homeButton("Home page (Alt+Home)", true),
-      openButton("Open document (Ctrl+O)"),
-      saveButton("Save document (Ctrl+S)"),
-      publishButton("Publish document... (Ctrl+P)"),
-      cutButton("Cut (Ctrl+X)"),
-      copyButton("Copy (Ctrl+C)"),
-      pasteButton("Paste (Ctrl+V)"),
-      undoButton("Undo text (Ctrl+Z)"),
-      redoButton("Redo text (Ctrl+Y)"),
-      boldButton("Add bold text"),
-      italicButton("Add italic text"),
-      strikethroughButton("Add strikethrough text"),
-      superButton("Add superscript text"),
-      subButton("Add subscript text"),
-      linkButton("Add a link"),
-      imageButton("Add an image"),
-      emojiButton("Insert emoji"),
-      quoteButton("Insert a quote"),
-      codeButton("Insert code"),
-      bulletListButton("Add a bullet list"),
-      numberedListButton("Add a numbered list"),
-      highlightButton("Add highlight text"),
-      tableOfContentsLabel("Table of Contents"),
-      networkHeadingLabel("IPFS Network"),
-      networkRateHeadingLabel("Network rate"),
-      connectivityLabel("Status:"),
-      peersLabel("Connected peers:"),
-      repoSizeLabel("Repo size:"),
-      repoPathLabel("Repo path:"),
-      ipfsVersionLabel("IPFS version:"),
-      networkIncomingLabel("Incoming"),
-      networkOutcomingLabel("Outcoming"),
-      networkKiloBytesLabel("Kilobytes/s"),
-      fontLabel("Font"),
-      maxContentWidthLabel("Content width"),
-      spacingLabel("Spacing"),
-      marginsLabel("Margins"),
-      indentLabel("Indent"),
-      textWrappingLabel("Wrapping"),
-      themeLabel("Dark Theme"),
-      readerViewLabel("Reader View"),
-      iconThemeLabel("Active Theme"),
+      vbox_main(Gtk::ORIENTATION_VERTICAL, 0),
+      vbox_toc(Gtk::ORIENTATION_VERTICAL),
+      vbox_search(Gtk::ORIENTATION_VERTICAL),
+      vbox_status(Gtk::ORIENTATION_VERTICAL),
+      vbox_settings(Gtk::ORIENTATION_VERTICAL),
+      vbox_icon_theme(Gtk::ORIENTATION_VERTICAL),
+      search_match_case("Match _Case", true),
+      wrap_none(wrapping_group, "None"),
+      wrap_char(wrapping_group, "Char"),
+      wrap_word(wrapping_group, "Word"),
+      wrap_word_char(wrapping_group, "Word+Char"),
+      close_toc_window_button("Close table of contents"),
+      open_toc_button("Show table of contents (Ctrl+Shift+T)", true),
+      back_button("Go back one page (Alt+Left arrow)", true),
+      forward_button("Go forward one page (Alt+Right arrow)", true),
+      refresh_button("Reload current page (Ctrl+R)", true),
+      home_button("Home page (Alt+Home)", true),
+      open_button("Open document (Ctrl+O)"),
+      save_button("Save document (Ctrl+S)"),
+      publish_button("Publish document... (Ctrl+P)"),
+      cut_button("Cut (Ctrl+X)"),
+      copy_button("Copy (Ctrl+C)"),
+      paste_button("Paste (Ctrl+V)"),
+      undo_button("Undo text (Ctrl+Z)"),
+      redo_button("Redo text (Ctrl+Y)"),
+      bold_button("Add bold text"),
+      italic_button("Add italic text"),
+      strikethrough_button("Add strikethrough text"),
+      super_button("Add superscript text"),
+      sub_button("Add subscript text"),
+      link_button("Add a link"),
+      image_button("Add an image"),
+      emoji_button("Insert emoji"),
+      quote_button("Insert a quote"),
+      code_button("Insert code"),
+      bullet_list_button("Add a bullet list"),
+      numbered_list_button("Add a numbered list"),
+      highlight_button("Add highlight text"),
+      table_of_contents_label("Table of Contents"),
+      network_heading_label("IPFS Network"),
+      network_rate_heading_label("Network rate"),
+      connectivity_label("Status:"),
+      peers_label("Connected peers:"),
+      repo_size_label("Repo size:"),
+      repo_path_label("Repo path:"),
+      ipfs_version_label("IPFS version:"),
+      network_incoming_label("Incoming"),
+      network_outgoing_label("Outgoing"),
+      network_kilo_bytes_label("Kilobytes/s"),
+      font_label("Font"),
+      max_content_width_label("Content width"),
+      spacing_label("Spacing"),
+      margins_label("Margins"),
+      indent_label("Indent"),
+      text_wrapping_label("Wrapping"),
+      theme_label("Dark Theme"),
+      reader_view_label("Reader View"),
+      icon_theme_label("Active Theme"),
       // Private members
       middleware_(*this, timeout),
       app_name_("LibreWeb Browser"),
@@ -144,36 +144,36 @@ MainWindow::MainWindow(const std::string& timeout)
   update_css();
 
   // Primary drawing area
-  scrolledWindowPrimary.add(draw_primary);
-  scrolledWindowPrimary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  scrolled_window_primary.add(draw_primary);
+  scrolled_window_primary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
   // Secondary drawing area
   draw_secondary.set_view_source_menu_item(false);
-  scrolledWindowSecondary.add(draw_secondary);
-  scrolledWindowSecondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  panedDraw.pack1(scrolledWindowPrimary, true, false);
-  panedDraw.pack2(scrolledWindowSecondary, true, true);
+  scrolled_window_secondary.add(draw_secondary);
+  scrolled_window_secondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  paned_draw.pack1(scrolled_window_primary, true, false);
+  paned_draw.pack2(scrolled_window_secondary, true, true);
   // Left the vbox for the table of contents,
   // right the drawing paned windows (primary/secondary).
-  panedRoot.pack1(vboxToc, true, false);
-  panedRoot.pack2(panedDraw, true, false);
+  paned_root.pack1(vbox_toc, true, false);
+  paned_root.pack2(paned_draw, true, false);
   // Main virtual box
-  vboxMain.pack_start(menu, false, false, 0);
-  vboxMain.pack_start(hboxBrowserToolbar, false, false, 6);
-  vboxMain.pack_start(hboxStandardEditorToolbar, false, false, 6);
-  vboxMain.pack_start(hboxFormattingEditorToolbar, false, false, 6);
-  vboxMain.pack_start(panedRoot, true, true, 0);
-  add(vboxMain);
+  vbox_main.pack_start(menu, false, false, 0);
+  vbox_main.pack_start(hbox_browser_toolbar, false, false, 6);
+  vbox_main.pack_start(hbox_standard_editor_toolbar, false, false, 6);
+  vbox_main.pack_start(hbox_formatting_editor_toolbar, false, false, 6);
+  vbox_main.pack_start(paned_root, true, true, 0);
+  add(vbox_main);
   show_all_children();
 
   // Hide by default the table of contents, secondary textview, replace entry and editor toolbars
-  vboxToc.hide();
-  scrolledWindowSecondary.hide();
-  searchReplaceEntry.hide();
-  hboxStandardEditorToolbar.hide();
-  hboxFormattingEditorToolbar.hide();
+  vbox_toc.hide();
+  scrolled_window_secondary.hide();
+  search_replace_entry.hide();
+  hbox_standard_editor_toolbar.hide();
+  hbox_formatting_editor_toolbar.hide();
 
   // Grap focus to input field by default
-  addressBar.grab_focus();
+  address_bar.grab_focus();
 
 // Show homepage if debugging is disabled
 #ifdef NDEBUG
@@ -197,7 +197,7 @@ void MainWindow::pre_request(
     const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor)
 {
   if (is_set_address_bar)
-    addressBar.set_text(path);
+    address_bar.set_text(path);
   if (!title.empty())
     set_title(title + " - " + app_name_);
   else
@@ -220,13 +220,13 @@ void MainWindow::pre_request(
     }
   }
   // Enable back/forward buttons when possible
-  backButton.set_sensitive(current_history_index_ > 0);
+  back_button.set_sensitive(current_history_index_ > 0);
   menu.set_back_menu_sensitive(current_history_index_ > 0);
-  forwardButton.set_sensitive(current_history_index_ < history_.size() - 1);
+  forward_button.set_sensitive(current_history_index_ < history_.size() - 1);
   menu.set_forward_menu_sensitive(current_history_index_ < history_.size() - 1);
 
   // Clear table of contents (ToC)
-  tocTreeModel->clear();
+  toc_tree_model->clear();
 }
 
 /**
@@ -236,7 +236,7 @@ void MainWindow::post_write(const std::string& path, const std::string& title, b
 {
   if (is_set_address_and_title)
   {
-    addressBar.set_text(path);
+    address_bar.set_text(path);
     set_title(title + " - " + app_name_);
   }
 }
@@ -247,7 +247,7 @@ void MainWindow::post_write(const std::string& path, const std::string& title, b
 void MainWindow::started_request()
 {
   // Start spinning icon
-  refreshIcon.get_style_context()->add_class("spinning");
+  refresh_icon.get_style_context()->add_class("spinning");
 }
 
 /**
@@ -256,7 +256,7 @@ void MainWindow::started_request()
 void MainWindow::finished_request()
 {
   // Stop spinning icon
-  refreshIcon.get_style_context()->remove_class("spinning");
+  refresh_icon.get_style_context()->remove_class("spinning");
 }
 
 /**
@@ -321,11 +321,11 @@ void MainWindow::update_status_popover_and_icon()
     networkStatus = "Connected";
     if (use_current_gtk_icon_theme_)
     {
-      statusIcon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+      status_icon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     }
     else
     {
-      statusIcon.set(statusOnlineIcon);
+      status_icon.set(status_online_icon);
     }
   }
   else
@@ -333,20 +333,20 @@ void MainWindow::update_status_popover_and_icon()
     networkStatus = "Disconnected";
     if (use_current_gtk_icon_theme_)
     {
-      statusIcon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+      status_icon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
     }
     else
     {
-      statusIcon.set(statusOfflineIcon);
+      status_icon.set(status_offline_icon);
     }
   }
-  connectivityStatusLabel.set_markup("<b>" + networkStatus + "</b>");
-  peersStatusLabel.set_text(std::to_string(nrOfPeers));
-  repoSizeStatusLabel.set_text(std::to_string(middleware_.get_ipfs_repo_size()) + " MB");
-  repoPathStatusLabel.set_text(middleware_.get_ipfs_repo_path());
-  networkIncomingStatusLabel.set_text(middleware_.get_ipfs_incoming_rate());
-  networkOutcomingStatusLabel.set_text(middleware_.get_ipfs_outgoing_rate());
-  ipfsVersionStatusLabel.set_text(middleware_.get_ipfs_version());
+  connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
+  peers_status_label.set_text(std::to_string(nrOfPeers));
+  repo_size_status_label.set_text(std::to_string(middleware_.get_ipfs_repo_size()) + " MB");
+  repo_path_status_label.set_text(middleware_.get_ipfs_repo_path());
+  network_incoming_status_label.set_text(middleware_.get_ipfs_incoming_rate());
+  network_outgoing_status_label.set_text(middleware_.get_ipfs_outgoing_rate());
+  ipfs_version_status_label.set_text(middleware_.get_ipfs_version());
 }
 
 /**
@@ -374,10 +374,10 @@ void MainWindow::load_stored_settings()
     if (settings->get_boolean("maximized"))
       maximize();
     position_divider_draw_ = settings->get_int("position-divider-draw");
-    panedDraw.set_position(position_divider_draw_);
+    paned_draw.set_position(position_divider_draw_);
     font_family_ = settings->get_string("font-family");
     current_font_size_ = default_font_size_ = settings->get_int("font-size");
-    fontButton.set_font_name(font_family_ + " " + std::to_string(current_font_size_));
+    font_button.set_font_name(font_family_ + " " + std::to_string(current_font_size_));
 
     content_max_width_ = settings->get_int("max-content-width");
     font_spacing_ = settings->get_double("spacing");
@@ -390,7 +390,7 @@ void MainWindow::load_stored_settings()
     indent_adjustment->set_value(indent_);
     draw_primary.set_indent(indent_);
     int tocDividerPosition = settings->get_int("position-divider-toc");
-    panedRoot.set_position(tocDividerPosition);
+    paned_root.set_position(tocDividerPosition);
     icon_theme_ = settings->get_string("icon-theme");
     use_current_gtk_icon_theme_ = settings->get_boolean("icon-gtk-theme");
     brightness_scale_ = settings->get_double("brightness");
@@ -399,33 +399,33 @@ void MainWindow::load_stored_settings()
     switch (wrap_mode_)
     {
     case Gtk::WRAP_NONE:
-      wrapNone.set_active(true);
+      wrap_none.set_active(true);
       break;
     case Gtk::WRAP_CHAR:
-      wrapChar.set_active(true);
+      wrap_char.set_active(true);
       break;
     case Gtk::WRAP_WORD:
-      wrapWord.set_active(true);
+      wrap_word.set_active(true);
       break;
     case Gtk::WRAP_WORD_CHAR:
-      wrapWordChar.set_active(true);
+      wrap_word_char.set_active(true);
       break;
     default:
-      wrapWordChar.set_active(true);
+      wrap_word_char.set_active(true);
     }
   }
   else
   {
     std::cerr << "ERROR: Gsettings schema file could not be found!" << std::endl;
     // Select default fallback wrap mode
-    wrapWordChar.set_active(true);
+    wrap_word_char.set_active(true);
     // Fallback adjustment controls
     max_content_width_adjustment->set_value(content_max_width_);
     spacing_adjustment->set_value(font_spacing_);
     margins_adjustment->set_value(content_max_width_);
     indent_adjustment->set_value(indent_);
     // Fallback ToC paned divider
-    panedRoot.set_position(300);
+    paned_root.set_position(300);
   }
   // Apply settings that needs to be applied now
   // Note: margins are getting automatically applied (on resize),
@@ -440,17 +440,17 @@ void MainWindow::load_stored_settings()
 void MainWindow::set_gtk_icons()
 {
   // Toolbox buttons
-  tocIcon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  backIcon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  forwardIcon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  refreshIcon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  homeIcon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  searchIcon.set_from_icon_name("edit-find-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  settingsIcon.set_from_icon_name("open-menu-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  toc_icon.set_from_icon_name("view-list-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  back_icon.set_from_icon_name("go-previous", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  forward_icon.set_from_icon_name("go-next", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  refresh_icon.set_from_icon_name("view-refresh", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  home_icon.set_from_icon_name("go-home", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  search_icon.set_from_icon_name("edit-find-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  settings_icon.set_from_icon_name("open-menu-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   // Settings pop-over buttons
-  zoomOutImage.set_from_icon_name("zoom-out-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  zoomInImage.set_from_icon_name("zoom-in-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-  brightnessImage.set_from_icon_name("display-brightness-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  zoom_out_image.set_from_icon_name("zoom-out-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  zoom_in_image.set_from_icon_name("zoom-in-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  brightness_image.set_from_icon_name("display-brightness-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
 }
 
 /**
@@ -461,27 +461,27 @@ void MainWindow::load_icons()
   try
   {
     // Editor buttons
-    openIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("open_folder", "folders"), icon_size_, icon_size_));
-    saveIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("floppy_disk", "basic"), icon_size_, icon_size_));
-    publishIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("upload", "basic"), icon_size_, icon_size_));
-    cutIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("cut", "editor"), icon_size_, icon_size_));
-    copyIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("copy", "editor"), icon_size_, icon_size_));
-    pasteIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("clipboard", "editor"), icon_size_, icon_size_));
-    undoIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("undo", "editor"), icon_size_, icon_size_));
-    redoIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("redo", "editor"), icon_size_, icon_size_));
-    boldIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("bold", "editor"), icon_size_, icon_size_));
-    italicIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("italic", "editor"), icon_size_, icon_size_));
-    strikethroughIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("strikethrough", "editor"), icon_size_, icon_size_));
-    superIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("superscript", "editor"), icon_size_, icon_size_));
-    subIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("subscript", "editor"), icon_size_, icon_size_));
-    linkIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("link", "editor"), icon_size_, icon_size_));
-    imageIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("shapes", "editor"), icon_size_, icon_size_));
-    emojiIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("smile", "smiley"), icon_size_, icon_size_));
-    quoteIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("quote", "editor"), icon_size_, icon_size_));
-    codeIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("code", "editor"), icon_size_, icon_size_));
-    bulletListIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("bullet_list", "editor"), icon_size_, icon_size_));
-    numberedListIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("number_list", "editor"), icon_size_, icon_size_));
-    hightlightIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("highlighter", "editor"), icon_size_, icon_size_));
+    open_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("open_folder", "folders"), icon_size_, icon_size_));
+    save_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("floppy_disk", "basic"), icon_size_, icon_size_));
+    publish_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("upload", "basic"), icon_size_, icon_size_));
+    cut_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("cut", "editor"), icon_size_, icon_size_));
+    copy_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("copy", "editor"), icon_size_, icon_size_));
+    paste_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("clipboard", "editor"), icon_size_, icon_size_));
+    undo_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("undo", "editor"), icon_size_, icon_size_));
+    redo_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("redo", "editor"), icon_size_, icon_size_));
+    bold_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("bold", "editor"), icon_size_, icon_size_));
+    italic_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("italic", "editor"), icon_size_, icon_size_));
+    strikethrough_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("strikethrough", "editor"), icon_size_, icon_size_));
+    super_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("superscript", "editor"), icon_size_, icon_size_));
+    sub_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("subscript", "editor"), icon_size_, icon_size_));
+    link_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("link", "editor"), icon_size_, icon_size_));
+    image_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("shapes", "editor"), icon_size_, icon_size_));
+    emoji_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("smile", "smiley"), icon_size_, icon_size_));
+    quote_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("quote", "editor"), icon_size_, icon_size_));
+    code_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("code", "editor"), icon_size_, icon_size_));
+    bullet_list_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("bullet_list", "editor"), icon_size_, icon_size_));
+    numbered_list_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("number_list", "editor"), icon_size_, icon_size_));
+    hightlight_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("highlighter", "editor"), icon_size_, icon_size_));
 
     if (use_current_gtk_icon_theme_)
     {
@@ -490,20 +490,20 @@ void MainWindow::load_icons()
     else
     {
       // Toolbox buttons
-      tocIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("square_list", "editor"), icon_size_, icon_size_));
-      backIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("right_arrow_1", "arrows"), icon_size_, icon_size_)->flip());
-      forwardIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("right_arrow_1", "arrows"), icon_size_, icon_size_));
-      refreshIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("reload_centered", "arrows"), icon_size_ * 1.13, icon_size_));
-      homeIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("home", "basic"), icon_size_, icon_size_));
-      searchIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("search", "basic"), icon_size_, icon_size_));
-      settingsIcon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("menu", "basic"), icon_size_, icon_size_));
+      toc_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("square_list", "editor"), icon_size_, icon_size_));
+      back_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("right_arrow_1", "arrows"), icon_size_, icon_size_)->flip());
+      forward_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("right_arrow_1", "arrows"), icon_size_, icon_size_));
+      refresh_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("reload_centered", "arrows"), icon_size_ * 1.13, icon_size_));
+      home_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("home", "basic"), icon_size_, icon_size_));
+      search_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("search", "basic"), icon_size_, icon_size_));
+      settings_icon.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("menu", "basic"), icon_size_, icon_size_));
 
       // Settings pop-over buttons
-      zoomOutImage.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("zoom_out", "basic"), icon_size_, icon_size_));
-      zoomInImage.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("zoom_in", "basic"), icon_size_, icon_size_));
-      brightnessImage.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("brightness", "basic"), icon_size_, icon_size_));
-      statusOfflineIcon = Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("network_disconnected", "network"), icon_size_, icon_size_);
-      statusOnlineIcon = Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("network_connected", "network"), icon_size_, icon_size_);
+      zoom_out_image.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("zoom_out", "basic"), icon_size_, icon_size_));
+      zoom_in_image.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("zoom_in", "basic"), icon_size_, icon_size_));
+      brightness_image.set(Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("brightness", "basic"), icon_size_, icon_size_));
+      status_offline_icon = Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("network_disconnected", "network"), icon_size_, icon_size_);
+      status_online_icon = Gdk::Pixbuf::create_from_file(get_icon_image_from_theme("network_connected", "network"), icon_size_, icon_size_);
     }
   }
   catch (const Glib::FileError& error)
@@ -528,63 +528,63 @@ void MainWindow::load_icons()
 void MainWindow::init_toolbar_buttons()
 {
   // Add icons to the toolbar editor buttons
-  openButton.add(openIcon);
-  saveButton.add(saveIcon);
-  publishButton.add(publishIcon);
-  cutButton.add(cutIcon);
-  copyButton.add(copyIcon);
-  pasteButton.add(pasteIcon);
-  undoButton.add(undoIcon);
-  redoButton.add(redoIcon);
-  boldButton.add(boldIcon);
-  italicButton.add(italicIcon);
-  strikethroughButton.add(strikethroughIcon);
-  superButton.add(superIcon);
-  subButton.add(subIcon);
-  linkButton.add(linkIcon);
-  imageButton.add(imageIcon);
-  emojiButton.add(emojiIcon);
-  quoteButton.add(quoteIcon);
-  codeButton.add(codeIcon);
-  bulletListButton.add(bulletListIcon);
-  numberedListButton.add(numberedListIcon);
-  highlightButton.add(hightlightIcon);
+  open_button.add(open_icon);
+  save_button.add(save_icon);
+  publish_button.add(publish_icon);
+  cut_button.add(cut_icon);
+  copy_button.add(copy_icon);
+  paste_button.add(paste_icon);
+  undo_button.add(undo_icon);
+  redo_button.add(redo_icon);
+  bold_button.add(bold_icon);
+  italic_button.add(italic_icon);
+  strikethrough_button.add(strikethrough_icon);
+  super_button.add(super_icon);
+  sub_button.add(sub_icon);
+  link_button.add(link_icon);
+  image_button.add(image_icon);
+  emoji_button.add(emoji_icon);
+  quote_button.add(quote_icon);
+  code_button.add(code_icon);
+  bullet_list_button.add(bullet_list_icon);
+  numbered_list_button.add(numbered_list_icon);
+  highlight_button.add(hightlight_icon);
 
   // Disable focus the other buttons as well
-  searchMatchCase.set_can_focus(false);
-  headingsComboBox.set_can_focus(false);
-  headingsComboBox.set_focus_on_click(false);
+  search_match_case.set_can_focus(false);
+  headings_combo_box.set_can_focus(false);
+  headings_combo_box.set_focus_on_click(false);
 
   // Populate the heading comboboxtext
-  headingsComboBox.append("", "Select Heading");
-  headingsComboBox.append("1", "Heading 1");
-  headingsComboBox.append("2", "Heading 2");
-  headingsComboBox.append("3", "Heading 3");
-  headingsComboBox.append("4", "Heading 4");
-  headingsComboBox.append("5", "Heading 5");
-  headingsComboBox.append("6", "Heading 6");
-  headingsComboBox.set_active(0);
+  headings_combo_box.append("", "Select Heading");
+  headings_combo_box.append("1", "Heading 1");
+  headings_combo_box.append("2", "Heading 2");
+  headings_combo_box.append("3", "Heading 3");
+  headings_combo_box.append("4", "Heading 4");
+  headings_combo_box.append("5", "Heading 5");
+  headings_combo_box.append("6", "Heading 6");
+  headings_combo_box.set_active(0);
 
   // Horizontal bar
-  backButton.get_style_context()->add_class("circular");
-  forwardButton.get_style_context()->add_class("circular");
-  refreshButton.get_style_context()->add_class("circular");
-  searchButton.set_popover(searchPopover);
-  statusButton.set_popover(statusPopover);
-  settingsButton.set_popover(settingsPopover);
-  searchButton.set_relief(Gtk::RELIEF_NONE);
-  statusButton.set_relief(Gtk::RELIEF_NONE);
-  settingsButton.set_relief(Gtk::RELIEF_NONE);
+  back_button.get_style_context()->add_class("circular");
+  forward_button.get_style_context()->add_class("circular");
+  refresh_button.get_style_context()->add_class("circular");
+  search_button.set_popover(search_popover);
+  status_button.set_popover(status_popover);
+  settings_button.set_popover(settings_popover);
+  search_button.set_relief(Gtk::RELIEF_NONE);
+  status_button.set_relief(Gtk::RELIEF_NONE);
+  settings_button.set_relief(Gtk::RELIEF_NONE);
 
   // Add icons to the toolbar buttons
-  openTocButton.add(tocIcon);
-  backButton.add(backIcon);
-  forwardButton.add(forwardIcon);
-  refreshButton.add(refreshIcon);
-  homeButton.add(homeIcon);
-  searchButton.add(searchIcon);
-  statusButton.add(statusIcon);
-  settingsButton.add(settingsIcon);
+  open_toc_button.add(toc_icon);
+  back_button.add(back_icon);
+  forward_button.add(forward_icon);
+  refresh_button.add(refresh_icon);
+  home_button.add(home_icon);
+  search_button.add(search_icon);
+  status_button.add(status_icon);
+  settings_button.add(settings_icon);
 
   // Add spinning CSS class to refresh icon
   auto cssProvider = Gtk::CssProvider::create();
@@ -595,63 +595,63 @@ void MainWindow::init_toolbar_buttons()
   {
     std::cerr << "ERROR: CSS data parsing went wrong." << std::endl;
   }
-  auto refreshIconStyle = refreshIcon.get_style_context();
+  auto refreshIconStyle = refresh_icon.get_style_context();
   refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   // Add tooltips to the toolbar buttons
-  searchButton.set_tooltip_text("Find");
-  statusButton.set_tooltip_text("IPFS Network Status");
-  settingsButton.set_tooltip_text("Settings");
+  search_button.set_tooltip_text("Find");
+  status_button.set_tooltip_text("IPFS Network Status");
+  settings_button.set_tooltip_text("Settings");
   // Disable back/forward buttons on start-up
-  backButton.set_sensitive(false);
-  forwardButton.set_sensitive(false);
+  back_button.set_sensitive(false);
+  forward_button.set_sensitive(false);
 
   /*
    * Adding the buttons to the boxes
    */
   // Browser Toolbar
-  openTocButton.set_margin_left(6);
-  hboxBrowserToolbar.pack_start(openTocButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(backButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(forwardButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(refreshButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(homeButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(addressBar, true, true, 4);
-  hboxBrowserToolbar.pack_start(searchButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(statusButton, false, false, 0);
-  hboxBrowserToolbar.pack_start(settingsButton, false, false, 0);
+  open_toc_button.set_margin_left(6);
+  hbox_browser_toolbar.pack_start(open_toc_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(back_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(forward_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(refresh_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(home_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(address_bar, true, true, 4);
+  hbox_browser_toolbar.pack_start(search_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(status_button, false, false, 0);
+  hbox_browser_toolbar.pack_start(settings_button, false, false, 0);
 
   // Standard editor toolbar
-  headingsComboBox.set_margin_left(4);
-  hboxStandardEditorToolbar.pack_start(openButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(saveButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(publishButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(separator1, false, false, 0);
-  hboxStandardEditorToolbar.pack_start(cutButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(copyButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(pasteButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(separator2, false, false, 0);
-  hboxStandardEditorToolbar.pack_start(undoButton, false, false, 2);
-  hboxStandardEditorToolbar.pack_start(redoButton, false, false, 2);
+  headings_combo_box.set_margin_left(4);
+  hbox_standard_editor_toolbar.pack_start(open_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(save_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(publish_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(separator1, false, false, 0);
+  hbox_standard_editor_toolbar.pack_start(cut_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(copy_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(paste_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(separator2, false, false, 0);
+  hbox_standard_editor_toolbar.pack_start(undo_button, false, false, 2);
+  hbox_standard_editor_toolbar.pack_start(redo_button, false, false, 2);
 
   // Formatting toolbar
-  headingsComboBox.set_margin_left(4);
-  hboxFormattingEditorToolbar.pack_start(headingsComboBox, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(boldButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(italicButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(strikethroughButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(superButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(subButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(separator3, false, false, 0);
-  hboxFormattingEditorToolbar.pack_start(linkButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(imageButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(emojiButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(separator4, false, false, 0);
-  hboxFormattingEditorToolbar.pack_start(quoteButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(codeButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(bulletListButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(numberedListButton, false, false, 2);
-  hboxFormattingEditorToolbar.pack_start(highlightButton, false, false, 2);
+  headings_combo_box.set_margin_left(4);
+  hbox_formatting_editor_toolbar.pack_start(headings_combo_box, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(bold_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(italic_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(strikethrough_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(super_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(sub_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(separator3, false, false, 0);
+  hbox_formatting_editor_toolbar.pack_start(link_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(image_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(emoji_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(separator4, false, false, 0);
+  hbox_formatting_editor_toolbar.pack_start(quote_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(code_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(bullet_list_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(numbered_list_button, false, false, 2);
+  hbox_formatting_editor_toolbar.pack_start(highlight_button, false, false, 2);
 }
 
 /**
@@ -668,25 +668,25 @@ void MainWindow::set_theme()
  */
 void MainWindow::init_search_popover()
 {
-  searchEntry.set_placeholder_text("Find");
-  searchReplaceEntry.set_placeholder_text("Replace");
-  search.connect_entry(searchEntry);
-  searchReplace.connect_entry(searchReplaceEntry);
-  searchEntry.set_size_request(250, -1);
-  searchReplaceEntry.set_size_request(250, -1);
-  vboxSearch.set_margin_left(8);
-  vboxSearch.set_margin_right(8);
-  vboxSearch.set_spacing(8);
-  hboxSearch.set_spacing(8);
+  search_entry.set_placeholder_text("Find");
+  search_replace_entry.set_placeholder_text("Replace");
+  search.connect_entry(search_entry);
+  search_replace.connect_entry(search_replace_entry);
+  search_entry.set_size_request(250, -1);
+  search_replace_entry.set_size_request(250, -1);
+  vbox_search.set_margin_left(8);
+  vbox_search.set_margin_right(8);
+  vbox_search.set_spacing(8);
+  hbox_search.set_spacing(8);
 
-  hboxSearch.pack_start(searchEntry, false, false);
-  hboxSearch.pack_start(searchMatchCase, false, false);
-  vboxSearch.pack_start(hboxSearch, false, false, 4);
-  vboxSearch.pack_end(searchReplaceEntry, false, false, 4);
-  searchPopover.set_position(Gtk::POS_BOTTOM);
-  searchPopover.set_size_request(300, 50);
-  searchPopover.add(vboxSearch);
-  searchPopover.show_all_children();
+  hbox_search.pack_start(search_entry, false, false);
+  hbox_search.pack_start(search_match_case, false, false);
+  vbox_search.pack_start(hbox_search, false, false, 4);
+  vbox_search.pack_end(search_replace_entry, false, false, 4);
+  search_popover.set_position(Gtk::POS_BOTTOM);
+  search_popover.set_size_request(300, 50);
+  search_popover.add(vbox_search);
+  search_popover.show_all_children();
 }
 
 /**
@@ -694,82 +694,82 @@ void MainWindow::init_search_popover()
  */
 void MainWindow::init_status_popover()
 {
-  connectivityLabel.set_xalign(0.0);
-  peersLabel.set_xalign(0.0);
-  repoSizeLabel.set_xalign(0.0);
-  repoPathLabel.set_xalign(0.0);
-  ipfsVersionLabel.set_xalign(0.0);
-  connectivityStatusLabel.set_xalign(1.0);
-  peersStatusLabel.set_xalign(1.0);
-  repoSizeStatusLabel.set_xalign(1.0);
-  repoPathStatusLabel.set_xalign(1.0);
-  ipfsVersionStatusLabel.set_xalign(1.0);
-  connectivityLabel.get_style_context()->add_class("dim-label");
-  peersLabel.get_style_context()->add_class("dim-label");
-  repoSizeLabel.get_style_context()->add_class("dim-label");
-  repoPathLabel.get_style_context()->add_class("dim-label");
-  ipfsVersionLabel.get_style_context()->add_class("dim-label");
+  connectivity_label.set_xalign(0.0);
+  peers_label.set_xalign(0.0);
+  repo_size_label.set_xalign(0.0);
+  repo_path_label.set_xalign(0.0);
+  ipfs_version_label.set_xalign(0.0);
+  connectivity_status_label.set_xalign(1.0);
+  peers_status_label.set_xalign(1.0);
+  repo_size_status_label.set_xalign(1.0);
+  repo_path_status_label.set_xalign(1.0);
+  ipfs_version_status_label.set_xalign(1.0);
+  connectivity_label.get_style_context()->add_class("dim-label");
+  peers_label.get_style_context()->add_class("dim-label");
+  repo_size_label.get_style_context()->add_class("dim-label");
+  repo_path_label.get_style_context()->add_class("dim-label");
+  ipfs_version_label.get_style_context()->add_class("dim-label");
   // Status popover grid
-  statusGrid.set_column_homogeneous(true);
-  statusGrid.set_margin_start(6);
-  statusGrid.set_margin_top(6);
-  statusGrid.set_margin_bottom(6);
-  statusGrid.set_margin_end(12);
-  statusGrid.set_row_spacing(10);
-  statusGrid.set_column_spacing(6);
-  statusGrid.attach(connectivityLabel, 0, 0);
-  statusGrid.attach(connectivityStatusLabel, 1, 0);
-  statusGrid.attach(peersLabel, 0, 1);
-  statusGrid.attach(peersStatusLabel, 1, 1);
-  statusGrid.attach(repoSizeLabel, 0, 2);
-  statusGrid.attach(repoSizeStatusLabel, 1, 2);
-  statusGrid.attach(repoPathLabel, 0, 3);
-  statusGrid.attach(repoPathStatusLabel, 1, 3);
-  statusGrid.attach(ipfsVersionLabel, 0, 4);
-  statusGrid.attach(ipfsVersionStatusLabel, 1, 4);
+  status_grid.set_column_homogeneous(true);
+  status_grid.set_margin_start(6);
+  status_grid.set_margin_top(6);
+  status_grid.set_margin_bottom(6);
+  status_grid.set_margin_end(12);
+  status_grid.set_row_spacing(10);
+  status_grid.set_column_spacing(6);
+  status_grid.attach(connectivity_label, 0, 0);
+  status_grid.attach(connectivity_status_label, 1, 0);
+  status_grid.attach(peers_label, 0, 1);
+  status_grid.attach(peers_status_label, 1, 1);
+  status_grid.attach(repo_size_label, 0, 2);
+  status_grid.attach(repo_size_status_label, 1, 2);
+  status_grid.attach(repo_path_label, 0, 3);
+  status_grid.attach(repo_path_status_label, 1, 3);
+  status_grid.attach(ipfs_version_label, 0, 4);
+  status_grid.attach(ipfs_version_status_label, 1, 4);
   // IPFS Network activity status grid
-  networkKiloBytesLabel.get_style_context()->add_class("dim-label");
-  activityStatusGrid.set_column_homogeneous(true);
-  activityStatusGrid.set_margin_start(6);
-  activityStatusGrid.set_margin_top(6);
-  activityStatusGrid.set_margin_bottom(6);
-  activityStatusGrid.set_margin_end(6);
-  activityStatusGrid.set_row_spacing(10);
-  activityStatusGrid.set_column_spacing(6);
-  activityStatusGrid.attach(networkIncomingLabel, 1, 0);
-  activityStatusGrid.attach(networkOutcomingLabel, 2, 0);
-  activityStatusGrid.attach(networkKiloBytesLabel, 0, 1);
-  activityStatusGrid.attach(networkIncomingStatusLabel, 1, 1);
-  activityStatusGrid.attach(networkOutcomingStatusLabel, 2, 1);
+  network_kilo_bytes_label.get_style_context()->add_class("dim-label");
+  activity_status_grid.set_column_homogeneous(true);
+  activity_status_grid.set_margin_start(6);
+  activity_status_grid.set_margin_top(6);
+  activity_status_grid.set_margin_bottom(6);
+  activity_status_grid.set_margin_end(6);
+  activity_status_grid.set_row_spacing(10);
+  activity_status_grid.set_column_spacing(6);
+  activity_status_grid.attach(network_incoming_label, 1, 0);
+  activity_status_grid.attach(network_outgoing_label, 2, 0);
+  activity_status_grid.attach(network_kilo_bytes_label, 0, 1);
+  activity_status_grid.attach(network_incoming_status_label, 1, 1);
+  activity_status_grid.attach(network_outgoing_status_label, 2, 1);
 
-  networkHeadingLabel.get_style_context()->add_class("dim-label");
-  networkRateHeadingLabel.get_style_context()->add_class("dim-label");
+  network_heading_label.get_style_context()->add_class("dim-label");
+  network_rate_heading_label.get_style_context()->add_class("dim-label");
   // Copy ID & public key buttons
-  copyIDButton.set_label("Copy your ID");
-  copyPublicKeyButton.set_label("Copy Public Key");
-  copyIDButton.set_margin_start(6);
-  copyIDButton.set_margin_end(6);
-  copyPublicKeyButton.set_margin_start(6);
-  copyPublicKeyButton.set_margin_end(6);
+  copy_id_button.set_label("Copy your ID");
+  copy_public_key_button.set_label("Copy Public Key");
+  copy_id_button.set_margin_start(6);
+  copy_id_button.set_margin_end(6);
+  copy_public_key_button.set_margin_start(6);
+  copy_public_key_button.set_margin_end(6);
   // Add all items to status box & status popover
-  vboxStatus.set_margin_start(10);
-  vboxStatus.set_margin_end(10);
-  vboxStatus.set_margin_top(10);
-  vboxStatus.set_margin_bottom(10);
-  vboxStatus.set_spacing(6);
-  vboxStatus.add(networkHeadingLabel);
-  vboxStatus.add(statusGrid);
-  vboxStatus.add(separator9);
-  vboxStatus.add(networkRateHeadingLabel);
-  vboxStatus.add(activityStatusGrid);
-  vboxStatus.add(separator10);
-  vboxStatus.add(copyPublicKeyButton);
-  vboxStatus.add(copyIDButton);
-  statusPopover.set_position(Gtk::POS_BOTTOM);
-  statusPopover.set_size_request(100, 250);
-  statusPopover.set_margin_end(2);
-  statusPopover.add(vboxStatus);
-  statusPopover.show_all_children();
+  vbox_status.set_margin_start(10);
+  vbox_status.set_margin_end(10);
+  vbox_status.set_margin_top(10);
+  vbox_status.set_margin_bottom(10);
+  vbox_status.set_spacing(6);
+  vbox_status.add(network_heading_label);
+  vbox_status.add(status_grid);
+  vbox_status.add(separator9);
+  vbox_status.add(network_rate_heading_label);
+  vbox_status.add(activity_status_grid);
+  vbox_status.add(separator10);
+  vbox_status.add(copy_public_key_button);
+  vbox_status.add(copy_id_button);
+  status_popover.set_position(Gtk::POS_BOTTOM);
+  status_popover.set_size_request(100, 250);
+  status_popover.set_margin_end(2);
+  status_popover.add(vbox_status);
+  status_popover.show_all_children();
   // Set fallback values for all status fields + status icon
   update_status_popover_and_icon();
 }
@@ -779,21 +779,21 @@ void MainWindow::init_status_popover()
  */
 void MainWindow::init_table_of_contents()
 {
-  closeTocWindowButton.set_image_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_SMALL_TOOLBAR));
-  tableOfContentsLabel.set_margin_start(6);
-  hboxToc.pack_start(tableOfContentsLabel, false, false);
-  hboxToc.pack_end(closeTocWindowButton, false, false);
-  tocTreeView.append_column("Level", tocColumns.col_level);
-  tocTreeView.append_column("Name", tocColumns.col_heading);
-  tocTreeView.set_activate_on_single_click(true);
-  tocTreeView.set_headers_visible(false);
-  tocTreeView.set_tooltip_column(2);
-  scrolledToc.add(tocTreeView);
-  scrolledToc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  tocTreeModel = Gtk::TreeStore::create(tocColumns);
-  tocTreeView.set_model(tocTreeModel);
-  vboxToc.pack_start(hboxToc, Gtk::PackOptions::PACK_SHRINK);
-  vboxToc.pack_end(scrolledToc);
+  close_toc_window_button.set_image_from_icon_name("window-close-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_SMALL_TOOLBAR));
+  table_of_contents_label.set_margin_start(6);
+  hbox_toc.pack_start(table_of_contents_label, false, false);
+  hbox_toc.pack_end(close_toc_window_button, false, false);
+  toc_tree_view.append_column("Level", toc_columns.col_level);
+  toc_tree_view.append_column("Name", toc_columns.col_heading);
+  toc_tree_view.set_activate_on_single_click(true);
+  toc_tree_view.set_headers_visible(false);
+  toc_tree_view.set_tooltip_column(2);
+  scrolled_toc.add(toc_tree_view);
+  scrolled_toc.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
+  toc_tree_model = Gtk::TreeStore::create(toc_columns);
+  toc_tree_view.set_model(toc_tree_model);
+  vbox_toc.pack_start(hbox_toc, Gtk::PackOptions::PACK_SHRINK);
+  vbox_toc.pack_end(scrolled_toc);
 }
 
 /**
@@ -802,126 +802,126 @@ void MainWindow::init_table_of_contents()
 void MainWindow::init_settings_popover()
 {
   // Toolbar buttons / images
-  zoomOutButton.add(zoomOutImage);
-  zoomInButton.add(zoomInImage);
-  brightnessImage.set_tooltip_text("Brightness");
-  brightnessImage.set_margin_start(2);
-  brightnessImage.set_margin_end(2);
-  brightnessImage.set_margin_top(1);
-  brightnessImage.set_margin_bottom(1);
+  zoom_out_button.add(zoom_out_image);
+  zoom_in_button.add(zoom_in_image);
+  brightness_image.set_tooltip_text("Brightness");
+  brightness_image.set_margin_start(2);
+  brightness_image.set_margin_end(2);
+  brightness_image.set_margin_top(1);
+  brightness_image.set_margin_bottom(1);
   // Zoom buttons
-  auto hboxZoomStyleContext = hboxSetingsZoom.get_style_context();
+  auto hboxZoomStyleContext = hbox_setings_zoom.get_style_context();
   hboxZoomStyleContext->add_class("linked");
-  zoomRestoreButton.set_sensitive(false); // By default restore button disabled
-  zoomRestoreButton.set_label("100%");
-  zoomOutButton.set_tooltip_text("Zoom out");
-  zoomRestoreButton.set_tooltip_text("Restore zoom");
-  zoomInButton.set_tooltip_text("Zoom in");
-  hboxSetingsZoom.set_size_request(-1, 40);
-  hboxSetingsZoom.set_margin_bottom(6);
-  hboxSetingsZoom.pack_start(zoomOutButton);
-  hboxSetingsZoom.pack_start(zoomRestoreButton);
-  hboxSetingsZoom.pack_end(zoomInButton);
+  zoom_restore_button.set_sensitive(false); // By default restore button disabled
+  zoom_restore_button.set_label("100%");
+  zoom_out_button.set_tooltip_text("Zoom out");
+  zoom_restore_button.set_tooltip_text("Restore zoom");
+  zoom_in_button.set_tooltip_text("Zoom in");
+  hbox_setings_zoom.set_size_request(-1, 40);
+  hbox_setings_zoom.set_margin_bottom(6);
+  hbox_setings_zoom.pack_start(zoom_out_button);
+  hbox_setings_zoom.pack_start(zoom_restore_button);
+  hbox_setings_zoom.pack_end(zoom_in_button);
   // Brightness slider
   brightness_adjustment->set_value(brightness_scale_); // Override with current loaded brightness setting
-  scaleSettingsBrightness.set_adjustment(brightness_adjustment);
-  scaleSettingsBrightness.add_mark(0.5, Gtk::PositionType::POS_BOTTOM, "");
-  scaleSettingsBrightness.set_draw_value(false);
-  scaleSettingsBrightness.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_brightness_changed));
-  hboxSetingsBrightness.pack_start(brightnessImage, false, false);
-  hboxSetingsBrightness.pack_end(scaleSettingsBrightness);
+  scale_settings_brightness.set_adjustment(brightness_adjustment);
+  scale_settings_brightness.add_mark(0.5, Gtk::PositionType::POS_BOTTOM, "");
+  scale_settings_brightness.set_draw_value(false);
+  scale_settings_brightness.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_brightness_changed));
+  hbox_setings_brightness.pack_start(brightness_image, false, false);
+  hbox_setings_brightness.pack_end(scale_settings_brightness);
   // Settings labels / buttons
-  fontLabel.set_tooltip_text("Font familiy");
-  maxContentWidthLabel.set_tooltip_text("Max content width");
-  spacingLabel.set_tooltip_text("Text spacing");
-  marginsLabel.set_tooltip_text("Text margins");
-  indentLabel.set_tooltip_text("Text indentation");
-  textWrappingLabel.set_tooltip_text("Text wrapping");
-  wrapNone.set_tooltip_text("No wrapping");
-  wrapChar.set_tooltip_text("Character wrapping");
-  wrapWord.set_tooltip_text("Word wrapping");
-  wrapWordChar.set_tooltip_text("Word wrapping (+ character)");
-  maxContentWidthSpinButton.set_adjustment(max_content_width_adjustment);
-  spacingSpinButton.set_adjustment(spacing_adjustment);
-  spacingSpinButton.set_digits(1);
-  marginsSpinButton.set_adjustment(margins_adjustment);
-  indentSpinButton.set_adjustment(indent_adjustment);
-  fontLabel.set_xalign(1);
-  maxContentWidthLabel.set_xalign(1);
-  spacingLabel.set_xalign(1);
-  marginsLabel.set_xalign(1);
-  indentLabel.set_xalign(1);
-  textWrappingLabel.set_xalign(1);
-  themeLabel.set_xalign(1);
-  readerViewLabel.set_xalign(1);
-  fontLabel.get_style_context()->add_class("dim-label");
-  maxContentWidthLabel.get_style_context()->add_class("dim-label");
-  spacingLabel.get_style_context()->add_class("dim-label");
-  marginsLabel.get_style_context()->add_class("dim-label");
-  indentLabel.get_style_context()->add_class("dim-label");
-  textWrappingLabel.get_style_context()->add_class("dim-label");
-  themeLabel.get_style_context()->add_class("dim-label");
-  readerViewLabel.get_style_context()->add_class("dim-label");
+  font_label.set_tooltip_text("Font familiy");
+  max_content_width_label.set_tooltip_text("Max content width");
+  spacing_label.set_tooltip_text("Text spacing");
+  margins_label.set_tooltip_text("Text margins");
+  indent_label.set_tooltip_text("Text indentation");
+  text_wrapping_label.set_tooltip_text("Text wrapping");
+  wrap_none.set_tooltip_text("No wrapping");
+  wrap_char.set_tooltip_text("Character wrapping");
+  wrap_word.set_tooltip_text("Word wrapping");
+  wrap_word_char.set_tooltip_text("Word wrapping (+ character)");
+  max_content_width_spin_button.set_adjustment(max_content_width_adjustment);
+  spacing_spin_button.set_adjustment(spacing_adjustment);
+  spacing_spin_button.set_digits(1);
+  margins_spin_button.set_adjustment(margins_adjustment);
+  indent_spin_button.set_adjustment(indent_adjustment);
+  font_label.set_xalign(1);
+  max_content_width_label.set_xalign(1);
+  spacing_label.set_xalign(1);
+  margins_label.set_xalign(1);
+  indent_label.set_xalign(1);
+  text_wrapping_label.set_xalign(1);
+  theme_label.set_xalign(1);
+  reader_view_label.set_xalign(1);
+  font_label.get_style_context()->add_class("dim-label");
+  max_content_width_label.get_style_context()->add_class("dim-label");
+  spacing_label.get_style_context()->add_class("dim-label");
+  margins_label.get_style_context()->add_class("dim-label");
+  indent_label.get_style_context()->add_class("dim-label");
+  text_wrapping_label.get_style_context()->add_class("dim-label");
+  theme_label.get_style_context()->add_class("dim-label");
+  reader_view_label.get_style_context()->add_class("dim-label");
   // Dark theme switch
-  themeSwitch.set_active(use_dark_theme_); // Override with current dark theme preference
+  theme_switch.set_active(use_dark_theme_); // Override with current dark theme preference
   // Reader view switch
-  readerViewSwitch.set_active(is_reader_view_enabled_);
+  reader_view_switch.set_active(is_reader_view_enabled_);
   // Settings grid
-  settingsGrid.set_margin_start(6);
-  settingsGrid.set_margin_top(6);
-  settingsGrid.set_margin_bottom(6);
-  settingsGrid.set_row_spacing(10);
-  settingsGrid.set_column_spacing(10);
-  settingsGrid.attach(fontLabel, 0, 0, 1);
-  settingsGrid.attach(fontButton, 1, 0, 2);
-  settingsGrid.attach(maxContentWidthLabel, 0, 1, 1);
-  settingsGrid.attach(maxContentWidthSpinButton, 1, 1, 2);
-  settingsGrid.attach(spacingLabel, 0, 2, 1);
-  settingsGrid.attach(spacingSpinButton, 1, 2, 2);
-  settingsGrid.attach(marginsLabel, 0, 3, 1);
-  settingsGrid.attach(marginsSpinButton, 1, 3, 2);
-  settingsGrid.attach(indentLabel, 0, 4, 1);
-  settingsGrid.attach(indentSpinButton, 1, 4, 2);
-  settingsGrid.attach(textWrappingLabel, 0, 5, 1);
-  settingsGrid.attach(wrapNone, 1, 5, 1);
-  settingsGrid.attach(wrapChar, 2, 5, 1);
-  settingsGrid.attach(wrapWord, 1, 6, 1);
-  settingsGrid.attach(wrapWordChar, 2, 6, 1);
-  settingsGrid.attach(themeLabel, 0, 7, 1);
-  settingsGrid.attach(themeSwitch, 1, 7, 2);
-  settingsGrid.attach(readerViewLabel, 0, 8, 1);
-  settingsGrid.attach(readerViewSwitch, 1, 8, 2);
+  settings_grid.set_margin_start(6);
+  settings_grid.set_margin_top(6);
+  settings_grid.set_margin_bottom(6);
+  settings_grid.set_row_spacing(10);
+  settings_grid.set_column_spacing(10);
+  settings_grid.attach(font_label, 0, 0, 1);
+  settings_grid.attach(font_button, 1, 0, 2);
+  settings_grid.attach(max_content_width_label, 0, 1, 1);
+  settings_grid.attach(max_content_width_spin_button, 1, 1, 2);
+  settings_grid.attach(spacing_label, 0, 2, 1);
+  settings_grid.attach(spacing_spin_button, 1, 2, 2);
+  settings_grid.attach(margins_label, 0, 3, 1);
+  settings_grid.attach(margins_spin_button, 1, 3, 2);
+  settings_grid.attach(indent_label, 0, 4, 1);
+  settings_grid.attach(indent_spin_button, 1, 4, 2);
+  settings_grid.attach(text_wrapping_label, 0, 5, 1);
+  settings_grid.attach(wrap_none, 1, 5, 1);
+  settings_grid.attach(wrap_char, 2, 5, 1);
+  settings_grid.attach(wrap_word, 1, 6, 1);
+  settings_grid.attach(wrap_word_char, 2, 6, 1);
+  settings_grid.attach(theme_label, 0, 7, 1);
+  settings_grid.attach(theme_switch, 1, 7, 2);
+  settings_grid.attach(reader_view_label, 0, 8, 1);
+  settings_grid.attach(reader_view_switch, 1, 8, 2);
   // Icon theme (+ submenu)
-  iconThemeButton.set_label("Icon Theme");
-  iconThemeButton.property_menu_name() = "icon-theme";
-  aboutButton.set_label("About LibreWeb");
-  Gtk::Label* iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(iconThemeButton.get_child());
+  icon_theme_button.set_label("Icon Theme");
+  icon_theme_button.property_menu_name() = "icon-theme";
+  about_button.set_label("About LibreWeb");
+  Gtk::Label* iconThemeButtonlabel = dynamic_cast<Gtk::Label*>(icon_theme_button.get_child());
   iconThemeButtonlabel->set_xalign(0.0);
-  Gtk::Label* aboutButtonLabel = dynamic_cast<Gtk::Label*>(aboutButton.get_child());
+  Gtk::Label* aboutButtonLabel = dynamic_cast<Gtk::Label*>(about_button.get_child());
   iconThemeButtonlabel->set_xalign(0.0);
   aboutButtonLabel->set_xalign(0.0);
   // Add Settings vbox to popover menu
-  vboxSettings.set_margin_start(10);
-  vboxSettings.set_margin_end(10);
-  vboxSettings.set_margin_top(10);
-  vboxSettings.set_margin_bottom(10);
-  vboxSettings.set_spacing(8);
-  vboxSettings.add(hboxSetingsZoom);
-  vboxSettings.add(hboxSetingsBrightness);
-  vboxSettings.add(separator5);
-  vboxSettings.add(settingsGrid);
-  vboxSettings.add(separator6);
-  vboxSettings.add(iconThemeButton);
-  vboxSettings.add(separator7);
-  vboxSettings.pack_end(aboutButton, false, false);
-  settingsPopover.set_position(Gtk::POS_BOTTOM);
-  settingsPopover.set_size_request(200, 300);
-  settingsPopover.set_margin_end(2);
-  settingsPopover.add(vboxSettings);
+  vbox_settings.set_margin_start(10);
+  vbox_settings.set_margin_end(10);
+  vbox_settings.set_margin_top(10);
+  vbox_settings.set_margin_bottom(10);
+  vbox_settings.set_spacing(8);
+  vbox_settings.add(hbox_setings_zoom);
+  vbox_settings.add(hbox_setings_brightness);
+  vbox_settings.add(separator5);
+  vbox_settings.add(settings_grid);
+  vbox_settings.add(separator6);
+  vbox_settings.add(icon_theme_button);
+  vbox_settings.add(separator7);
+  vbox_settings.pack_end(about_button, false, false);
+  settings_popover.set_position(Gtk::POS_BOTTOM);
+  settings_popover.set_size_request(200, 300);
+  settings_popover.set_margin_end(2);
+  settings_popover.add(vbox_settings);
   // Add Theme vbox to popover menu
-  iconThemeBackButton.set_label("Icon Theme");
-  iconThemeBackButton.property_menu_name() = "main";
-  iconThemeBackButton.property_inverted() = true;
+  icon_theme_back_button.set_label("Icon Theme");
+  icon_theme_back_button.property_menu_name() = "main";
+  icon_theme_back_button.property_inverted() = true;
   // List of themes in list box
   Gtk::Label* iconTheme1 = Gtk::manage(new Gtk::Label("Flat theme"));
   Gtk::ListBoxRow* row1 = Gtk::manage(new Gtk::ListBoxRow());
@@ -935,28 +935,28 @@ void MainWindow::init_settings_popover()
   Gtk::ListBoxRow* row3 = Gtk::manage(new Gtk::ListBoxRow());
   row3->add(*iconTheme3);
   row3->set_data("value", (void*)"none");
-  iconThemeListBox.add(*row1);
-  iconThemeListBox.add(*row2);
-  iconThemeListBox.add(*row3);
+  icon_theme_list_box.add(*row1);
+  icon_theme_list_box.add(*row2);
+  icon_theme_list_box.add(*row3);
   // Select the correct row by default
   if (use_current_gtk_icon_theme_)
-    iconThemeListBox.select_row(*row3);
+    icon_theme_list_box.select_row(*row3);
   else if (icon_theme_ == "flat")
-    iconThemeListBox.select_row(*row1);
+    icon_theme_list_box.select_row(*row1);
   else if (icon_theme_ == "filled")
-    iconThemeListBox.select_row(*row2);
+    icon_theme_list_box.select_row(*row2);
   else
-    iconThemeListBox.select_row(*row1); // flat is fallback
-  iconThemeListScrolledWindow.property_height_request() = 200;
-  iconThemeListScrolledWindow.add(iconThemeListBox);
-  iconThemeLabel.get_style_context()->add_class("dim-label");
-  vboxIconTheme.add(iconThemeBackButton);
-  vboxIconTheme.add(separator8);
-  vboxIconTheme.add(iconThemeLabel);
-  vboxIconTheme.add(iconThemeListScrolledWindow);
-  settingsPopover.add(vboxIconTheme);
-  settingsPopover.child_property_submenu(vboxIconTheme) = "icon-theme";
-  settingsPopover.show_all_children();
+    icon_theme_list_box.select_row(*row1); // flat is fallback
+  icon_theme_list_scrolled_window.property_height_request() = 200;
+  icon_theme_list_scrolled_window.add(icon_theme_list_box);
+  icon_theme_label.get_style_context()->add_class("dim-label");
+  vbox_icon_theme.add(icon_theme_back_button);
+  vbox_icon_theme.add(separator8);
+  vbox_icon_theme.add(icon_theme_label);
+  vbox_icon_theme.add(icon_theme_list_scrolled_window);
+  settings_popover.add(vbox_icon_theme);
+  settings_popover.child_property_submenu(vbox_icon_theme) = "icon-theme";
+  settings_popover.show_all_children();
 }
 
 /**
@@ -969,8 +969,8 @@ void MainWindow::init_signals()
   draw_primary.signal_size_allocate().connect(sigc::mem_fun(this, &MainWindow::on_size_alloc));
 
   // Table of contents
-  closeTocWindowButton.signal_clicked().connect(sigc::mem_fun(vboxToc, &Gtk::Widget::hide));
-  tocTreeView.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
+  close_toc_window_button.signal_clicked().connect(sigc::mem_fun(vbox_toc, &Gtk::Widget::hide));
+  toc_tree_view.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
   // Menu & toolbar signals
   menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                       /*!< Menu item for new document */
   menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                             /*!< Menu item for opening existing document */
@@ -995,61 +995,61 @@ void MainWindow::init_signals()
   menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                          /*!< Menu item for home page */
   menu.toc.connect(sigc::mem_fun(this, &MainWindow::show_toc));                          /*!< Menu item for table of contents */
   menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
-  sourceCodeDialog.signal_response().connect(sigc::mem_fun(sourceCodeDialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
+  source_code_dialog.signal_response().connect(sigc::mem_fun(source_code_dialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                /*!< Display about dialog */
   draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                 /*!< Open source code dialog */
   about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                   /*!< Close about dialog */
-  addressBar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
-  openTocButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
-  backButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
-  forwardButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
-  refreshButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh_request));    /*!< Button for reloading the page */
-  homeButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
-  searchEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));           /*!< Execute the text search */
-  searchReplaceEntry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));   /*!< Execute the text replace */
+  address_bar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
+  open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
+  back_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
+  forward_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
+  refresh_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh_request));    /*!< Button for reloading the page */
+  home_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
+  search_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));           /*!< Execute the text search */
+  search_replace_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));   /*!< Execute the text replace */
   // Editor toolbar buttons
-  openButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
-  saveButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
-  publishButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::publish));
-  cutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
-  copyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
-  pasteButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
-  undoButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::undo));
-  redoButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::redo));
-  headingsComboBox.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
-  boldButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_bold));
-  italicButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_italic));
-  strikethroughButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_strikethrough));
-  superButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_super));
-  subButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_sub));
-  linkButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_link));
-  imageButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_image));
-  emojiButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
-  quoteButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_quote));
-  codeButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_code));
-  bulletListButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_bullet_list));
-  numberedListButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_numbered_list));
-  highlightButton.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_highlight));
+  open_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
+  save_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
+  publish_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::publish));
+  cut_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
+  copy_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
+  paste_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
+  undo_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::undo));
+  redo_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::redo));
+  headings_combo_box.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
+  bold_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_bold));
+  italic_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_italic));
+  strikethrough_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_strikethrough));
+  super_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_super));
+  sub_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_sub));
+  link_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_link));
+  image_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_image));
+  emoji_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
+  quote_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_quote));
+  code_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_code));
+  bullet_list_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_bullet_list));
+  numbered_list_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_numbered_list));
+  highlight_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_highlight));
   // Status pop-over buttons
-  copyIDButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
-  copyPublicKeyButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
+  copy_id_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
+  copy_public_key_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
   // Settings pop-over buttons
-  zoomOutButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
-  zoomRestoreButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
-  zoomInButton.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_in));
-  fontButton.signal_font_set().connect(sigc::mem_fun(this, &MainWindow::on_font_set));
-  maxContentWidthSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_max_content_width_changed));
-  spacingSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
-  marginsSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
-  indentSpinButton.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
-  wrapNone.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_NONE));
-  wrapChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_CHAR));
-  wrapWord.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
-  wrapWordChar.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
-  themeSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
-  readerViewSwitch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_reader_view_changed));
-  iconThemeListBox.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
-  aboutButton.signal_clicked().connect(sigc::mem_fun(about, &About::show_about));
+  zoom_out_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
+  zoom_restore_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
+  zoom_in_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_in));
+  font_button.signal_font_set().connect(sigc::mem_fun(this, &MainWindow::on_font_set));
+  max_content_width_spin_button.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_max_content_width_changed));
+  spacing_spin_button.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_spacing_changed));
+  margins_spin_button.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_margins_changed));
+  indent_spin_button.signal_value_changed().connect(sigc::mem_fun(this, &MainWindow::on_indent_changed));
+  wrap_none.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_NONE));
+  wrap_char.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_CHAR));
+  wrap_word.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD));
+  wrap_word_char.signal_toggled().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_wrap_toggled), Gtk::WrapMode::WRAP_WORD_CHAR));
+  theme_switch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_theme_changed));
+  reader_view_switch.property_active().signal_changed().connect(sigc::mem_fun(this, &MainWindow::on_reader_view_changed));
+  icon_theme_list_box.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_icon_theme_activated));
+  about_button.signal_clicked().connect(sigc::mem_fun(about, &About::show_about));
 }
 
 void MainWindow::init_mac_os()
@@ -1083,12 +1083,12 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     settings->set_int("width", get_width());
     settings->set_int("height", get_height());
     settings->set_boolean("maximized", is_maximized());
-    if (panedRoot.get_position() > 0)
-      settings->set_int("position-divider-toc", panedRoot.get_position());
+    if (paned_root.get_position() > 0)
+      settings->set_int("position-divider-toc", paned_root.get_position());
     // Only store a divider value bigger than zero,
     // because the secondary draw window is hidden by default, resulting into a zero value.
-    if (panedDraw.get_position() > 0)
-      settings->set_int("position-divider-draw", panedDraw.get_position());
+    if (paned_draw.get_position() > 0)
+      settings->set_int("position-divider-draw", paned_draw.get_position());
     // Fullscreen will be availible with gtkmm-4.0
     // settings->set_boolean("fullscreen", is_fullscreen());
     settings->set_string("font-family", font_family_);
@@ -1120,17 +1120,17 @@ void MainWindow::cut()
   {
     draw_secondary.cut();
   }
-  else if (addressBar.has_focus())
+  else if (address_bar.has_focus())
   {
-    addressBar.cut_clipboard();
+    address_bar.cut_clipboard();
   }
-  else if (searchEntry.has_focus())
+  else if (search_entry.has_focus())
   {
-    searchEntry.cut_clipboard();
+    search_entry.cut_clipboard();
   }
-  else if (searchReplaceEntry.has_focus())
+  else if (search_replace_entry.has_focus())
   {
-    searchReplaceEntry.cut_clipboard();
+    search_replace_entry.cut_clipboard();
   }
 }
 
@@ -1144,17 +1144,17 @@ void MainWindow::copy()
   {
     draw_secondary.copy();
   }
-  else if (addressBar.has_focus())
+  else if (address_bar.has_focus())
   {
-    addressBar.copy_clipboard();
+    address_bar.copy_clipboard();
   }
-  else if (searchEntry.has_focus())
+  else if (search_entry.has_focus())
   {
-    searchEntry.copy_clipboard();
+    search_entry.copy_clipboard();
   }
-  else if (searchReplaceEntry.has_focus())
+  else if (search_replace_entry.has_focus())
   {
-    searchReplaceEntry.copy_clipboard();
+    search_replace_entry.copy_clipboard();
   }
 }
 
@@ -1168,17 +1168,17 @@ void MainWindow::paste()
   {
     draw_secondary.paste();
   }
-  else if (addressBar.has_focus())
+  else if (address_bar.has_focus())
   {
-    addressBar.paste_clipboard();
+    address_bar.paste_clipboard();
   }
-  else if (searchEntry.has_focus())
+  else if (search_entry.has_focus())
   {
-    searchEntry.paste_clipboard();
+    search_entry.paste_clipboard();
   }
-  else if (searchReplaceEntry.has_focus())
+  else if (search_replace_entry.has_focus())
   {
-    searchReplaceEntry.paste_clipboard();
+    search_replace_entry.paste_clipboard();
   }
 }
 
@@ -1192,43 +1192,43 @@ void MainWindow::del()
   {
     draw_secondary.del();
   }
-  else if (addressBar.has_focus())
+  else if (address_bar.has_focus())
   {
     int start, end;
-    if (addressBar.get_selection_bounds(start, end))
+    if (address_bar.get_selection_bounds(start, end))
     {
-      addressBar.delete_text(start, end);
+      address_bar.delete_text(start, end);
     }
     else
     {
       ++end;
-      addressBar.delete_text(start, end);
+      address_bar.delete_text(start, end);
     }
   }
-  else if (searchEntry.has_focus())
+  else if (search_entry.has_focus())
   {
     int start, end;
-    if (searchEntry.get_selection_bounds(start, end))
+    if (search_entry.get_selection_bounds(start, end))
     {
-      searchEntry.delete_text(start, end);
+      search_entry.delete_text(start, end);
     }
     else
     {
       ++end;
-      searchEntry.delete_text(start, end);
+      search_entry.delete_text(start, end);
     }
   }
-  else if (searchReplaceEntry.has_focus())
+  else if (search_replace_entry.has_focus())
   {
     int start, end;
-    if (searchReplaceEntry.get_selection_bounds(start, end))
+    if (search_replace_entry.get_selection_bounds(start, end))
     {
-      searchReplaceEntry.delete_text(start, end);
+      search_replace_entry.delete_text(start, end);
     }
     else
     {
       ++end;
-      searchReplaceEntry.delete_text(start, end);
+      search_replace_entry.delete_text(start, end);
     }
   }
 }
@@ -1243,17 +1243,17 @@ void MainWindow::selectAll()
   {
     draw_secondary.select_all();
   }
-  else if (addressBar.has_focus())
+  else if (address_bar.has_focus())
   {
-    addressBar.select_region(0, -1);
+    address_bar.select_region(0, -1);
   }
-  else if (searchEntry.has_focus())
+  else if (search_entry.has_focus())
   {
-    searchEntry.select_region(0, -1);
+    search_entry.select_region(0, -1);
   }
-  else if (searchReplaceEntry.has_focus())
+  else if (search_replace_entry.has_focus())
   {
-    searchReplaceEntry.select_region(0, -1);
+    search_replace_entry.select_region(0, -1);
   }
 }
 
@@ -1271,13 +1271,13 @@ void MainWindow::on_size_alloc(__attribute__((unused)) Gdk::Rectangle& allocatio
  */
 void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attribute__((unused)) Gtk::TreeViewColumn* column)
 {
-  const auto iter = tocTreeModel->get_iter(path);
+  const auto iter = toc_tree_model->get_iter(path);
   if (iter)
   {
     const auto row = *iter;
-    if (row[tocColumns.col_valid])
+    if (row[toc_columns.col_valid])
     {
-      Gtk::TextIter textIter = row[tocColumns.col_iter];
+      Gtk::TextIter textIter = row[toc_columns.col_iter];
       // Scroll to to mark iterator
       if (is_editor_enabled())
         draw_secondary.scroll_to(textIter);
@@ -1297,7 +1297,7 @@ void MainWindow::new_doc()
   // Enable editing mode
   enable_edit();
   // Change address bar
-  addressBar.set_text("file://unsaved");
+  address_bar.set_text("file://unsaved");
   // Set new title
   set_title("Untitled * - " + app_name_);
 }
@@ -1593,27 +1593,27 @@ void MainWindow::publish()
         throw std::runtime_error("CID hash is empty.");
       }
       // Show dialog
-      contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
-      contentPublishedDialog->set_secondary_text("The content is now available on the decentralized web, via:");
+      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
+      content_published_dialog->set_secondary_text("The content is now available on the decentralized web, via:");
       // Add custom label
       Gtk::Label* label = Gtk::manage(new Gtk::Label("ipfs://" + cid));
       label->set_selectable(true);
-      Gtk::Box* box = contentPublishedDialog->get_content_area();
+      Gtk::Box* box = content_published_dialog->get_content_area();
       box->pack_end(*label);
 
-      contentPublishedDialog->set_modal(true);
-      // contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
-      contentPublishedDialog->signal_response().connect(sigc::hide(sigc::mem_fun(*contentPublishedDialog, &Gtk::Widget::hide)));
-      contentPublishedDialog->show_all();
+      content_published_dialog->set_modal(true);
+      // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
+      content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
+      content_published_dialog->show_all();
     }
     catch (const std::runtime_error& error)
     {
-      contentPublishedDialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false, Gtk::MESSAGE_ERROR));
-      contentPublishedDialog->set_secondary_text("Error message: " + std::string(error.what()));
-      contentPublishedDialog->set_modal(true);
-      // contentPublishedDialog->set_hide_on_close(true); available in gtk-4.0
-      contentPublishedDialog->signal_response().connect(sigc::hide(sigc::mem_fun(*contentPublishedDialog, &Gtk::Widget::hide)));
-      contentPublishedDialog->show();
+      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false, Gtk::MESSAGE_ERROR));
+      content_published_dialog->set_secondary_text("Error message: " + std::string(error.what()));
+      content_published_dialog->set_modal(true);
+      // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
+      content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
+      content_published_dialog->show();
     }
   }
 }
@@ -1631,10 +1631,10 @@ void MainWindow::go_home()
  */
 void MainWindow::show_toc()
 {
-  if (vboxToc.is_visible())
-    vboxToc.hide();
+  if (vbox_toc.is_visible())
+    vbox_toc.hide();
   else
-    vboxToc.show();
+    vbox_toc.show();
 }
 
 /**
@@ -1675,11 +1675,11 @@ void MainWindow::copy_client_public_key()
 void MainWindow::on_search()
 {
   // Forward search, find and select
-  std::string text = searchEntry.get_text();
+  std::string text = search_entry.get_text();
   auto buffer = draw_primary.get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
   Gtk::TextBuffer::iterator start, end;
-  bool matchCase = searchMatchCase.get_active();
+  bool matchCase = search_match_case.get_active();
   Gtk::TextSearchFlags flags = Gtk::TextSearchFlags::TEXT_SEARCH_TEXT_ONLY;
   if (!matchCase)
   {
@@ -1716,7 +1716,7 @@ void MainWindow::on_replace()
     if (startIter != endIter)
     {
       // replace
-      std::string replace = searchReplaceEntry.get_text();
+      std::string replace = search_replace_entry.get_text();
       buffer->begin_user_action();
       buffer->erase(startIter, endIter);
       buffer->insert_at_cursor(replace);
@@ -1731,7 +1731,7 @@ void MainWindow::on_replace()
  */
 void MainWindow::address_bar_activate()
 {
-  middleware_.do_request(addressBar.get_text(), false);
+  middleware_.do_request(address_bar.get_text(), false);
   // When user actually entered the address bar, focus on the primary draw
   draw_primary.grab_focus();
 }
@@ -1741,44 +1741,44 @@ void MainWindow::address_bar_activate()
  */
 void MainWindow::show_search(bool replace)
 {
-  if (searchPopover.is_visible() && searchReplaceEntry.is_visible())
+  if (search_popover.is_visible() && search_replace_entry.is_visible())
   {
     if (replace)
     {
-      searchPopover.hide();
-      addressBar.grab_focus();
-      searchReplaceEntry.hide();
+      search_popover.hide();
+      address_bar.grab_focus();
+      search_replace_entry.hide();
     }
     else
     {
-      searchEntry.grab_focus();
-      searchReplaceEntry.hide();
+      search_entry.grab_focus();
+      search_replace_entry.hide();
     }
   }
-  else if (searchPopover.is_visible())
+  else if (search_popover.is_visible())
   {
     if (replace)
     {
-      searchReplaceEntry.show();
+      search_replace_entry.show();
     }
     else
     {
-      searchPopover.hide();
-      addressBar.grab_focus();
-      searchReplaceEntry.hide();
+      search_popover.hide();
+      address_bar.grab_focus();
+      search_replace_entry.hide();
     }
   }
   else
   {
-    searchPopover.show();
-    searchEntry.grab_focus();
+    search_popover.show();
+    search_entry.grab_focus();
     if (replace)
     {
-      searchReplaceEntry.show();
+      search_replace_entry.show();
     }
     else
     {
-      searchReplaceEntry.hide();
+      search_replace_entry.hide();
     }
   }
 }
@@ -1816,11 +1816,11 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
     {
     case 1:
     {
-      heading1Row = *(tocTreeModel->append());
-      heading1Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading1Row[tocColumns.col_level] = level;
-      heading1Row[tocColumns.col_heading] = heading;
-      heading1Row[tocColumns.col_valid] = true;
+      heading1Row = *(toc_tree_model->append());
+      heading1Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading1Row[toc_columns.col_level] = level;
+      heading1Row[toc_columns.col_heading] = heading;
+      heading1Row[toc_columns.col_valid] = true;
       // Reset
       if (previousLevel > 1)
       {
@@ -1836,16 +1836,16 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
       if (heading1Row->get_model_gobject() == nullptr)
       {
         // Add missing heading as top-level
-        heading1Row = *(tocTreeModel->append());
-        heading1Row[tocColumns.col_level] = 1;
-        heading1Row[tocColumns.col_heading] = "-Missing heading-";
-        heading1Row[tocColumns.col_valid] = false;
+        heading1Row = *(toc_tree_model->append());
+        heading1Row[toc_columns.col_level] = 1;
+        heading1Row[toc_columns.col_heading] = "-Missing heading-";
+        heading1Row[toc_columns.col_valid] = false;
       }
-      heading2Row = *(tocTreeModel->append(heading1Row.children()));
-      heading2Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading2Row[tocColumns.col_level] = level;
-      heading2Row[tocColumns.col_heading] = heading;
-      heading2Row[tocColumns.col_valid] = true;
+      heading2Row = *(toc_tree_model->append(heading1Row.children()));
+      heading2Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading2Row[toc_columns.col_level] = level;
+      heading2Row[toc_columns.col_heading] = heading;
+      heading2Row[toc_columns.col_valid] = true;
       // Reset
       if (previousLevel > 2)
       {
@@ -1860,16 +1860,16 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
       if (heading2Row->get_model_gobject() == nullptr)
       {
         // Add missing heading as top-level
-        heading2Row = *(tocTreeModel->append(heading1Row.children()));
-        heading2Row[tocColumns.col_level] = 2;
-        heading2Row[tocColumns.col_heading] = "-Missing heading-";
-        heading2Row[tocColumns.col_valid] = false;
+        heading2Row = *(toc_tree_model->append(heading1Row.children()));
+        heading2Row[toc_columns.col_level] = 2;
+        heading2Row[toc_columns.col_heading] = "-Missing heading-";
+        heading2Row[toc_columns.col_valid] = false;
       }
-      heading3Row = *(tocTreeModel->append(heading2Row.children()));
-      heading3Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading3Row[tocColumns.col_level] = level;
-      heading3Row[tocColumns.col_heading] = heading;
-      heading3Row[tocColumns.col_valid] = true;
+      heading3Row = *(toc_tree_model->append(heading2Row.children()));
+      heading3Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading3Row[toc_columns.col_level] = level;
+      heading3Row[toc_columns.col_heading] = heading;
+      heading3Row[toc_columns.col_valid] = true;
       // Reset
       if (previousLevel > 3)
       {
@@ -1883,16 +1883,16 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
       if (heading3Row->get_model_gobject() == nullptr)
       {
         // Add missing heading as top-level
-        heading3Row = *(tocTreeModel->append(heading2Row.children()));
-        heading3Row[tocColumns.col_level] = 3;
-        heading3Row[tocColumns.col_heading] = "-Missing heading-";
-        heading3Row[tocColumns.col_valid] = false;
+        heading3Row = *(toc_tree_model->append(heading2Row.children()));
+        heading3Row[toc_columns.col_level] = 3;
+        heading3Row[toc_columns.col_heading] = "-Missing heading-";
+        heading3Row[toc_columns.col_valid] = false;
       }
-      heading4Row = *(tocTreeModel->append(heading3Row.children()));
-      heading4Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading4Row[tocColumns.col_level] = level;
-      heading4Row[tocColumns.col_heading] = heading;
-      heading4Row[tocColumns.col_valid] = true;
+      heading4Row = *(toc_tree_model->append(heading3Row.children()));
+      heading4Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading4Row[toc_columns.col_level] = level;
+      heading4Row[toc_columns.col_heading] = heading;
+      heading4Row[toc_columns.col_valid] = true;
       // Reset
       if (previousLevel > 4)
       {
@@ -1905,16 +1905,16 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
       if (heading4Row->get_model_gobject() == nullptr)
       {
         // Add missing heading as top-level
-        heading4Row = *(tocTreeModel->append(heading3Row.children()));
-        heading4Row[tocColumns.col_level] = 4;
-        heading4Row[tocColumns.col_heading] = "-Missing heading-";
-        heading4Row[tocColumns.col_valid] = false;
+        heading4Row = *(toc_tree_model->append(heading3Row.children()));
+        heading4Row[toc_columns.col_level] = 4;
+        heading4Row[toc_columns.col_heading] = "-Missing heading-";
+        heading4Row[toc_columns.col_valid] = false;
       }
-      heading5Row = *(tocTreeModel->append(heading4Row.children()));
-      heading5Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading5Row[tocColumns.col_level] = level;
-      heading5Row[tocColumns.col_heading] = heading;
-      heading5Row[tocColumns.col_valid] = true;
+      heading5Row = *(toc_tree_model->append(heading4Row.children()));
+      heading5Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading5Row[toc_columns.col_level] = level;
+      heading5Row[toc_columns.col_heading] = heading;
+      heading5Row[toc_columns.col_valid] = true;
       break;
     }
     case 6:
@@ -1922,16 +1922,16 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
       if (heading5Row->get_model_gobject() == nullptr)
       {
         // Add missing heading as top-level
-        heading5Row = *(tocTreeModel->append(heading4Row.children()));
-        heading5Row[tocColumns.col_level] = 5;
-        heading5Row[tocColumns.col_heading] = "- Missing heading -";
-        heading5Row[tocColumns.col_valid] = false;
+        heading5Row = *(toc_tree_model->append(heading4Row.children()));
+        heading5Row[toc_columns.col_level] = 5;
+        heading5Row[toc_columns.col_heading] = "- Missing heading -";
+        heading5Row[toc_columns.col_valid] = false;
       }
-      auto heading6Row = *(tocTreeModel->append(heading5Row.children()));
-      heading6Row[tocColumns.col_iter] = headerMark->get_iter();
-      heading6Row[tocColumns.col_level] = level;
-      heading6Row[tocColumns.col_heading] = heading;
-      heading6Row[tocColumns.col_valid] = true;
+      auto heading6Row = *(toc_tree_model->append(heading5Row.children()));
+      heading6Row[toc_columns.col_iter] = headerMark->get_iter();
+      heading6Row[toc_columns.col_level] = level;
+      heading6Row[toc_columns.col_heading] = heading;
+      heading6Row[toc_columns.col_valid] = true;
       break;
     }
     default:
@@ -1940,8 +1940,8 @@ void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> 
     }
     previousLevel = level;
   }
-  tocTreeView.columns_autosize();
-  tocTreeView.expand_all();
+  toc_tree_view.columns_autosize();
+  toc_tree_view.expand_all();
 }
 
 /**
@@ -1993,8 +1993,8 @@ void MainWindow::enable_edit()
   // will apply change some textview setting changes
   draw_primary.new_document();
   // Show editor toolbars
-  hboxStandardEditorToolbar.show();
-  hboxFormattingEditorToolbar.show();
+  hbox_standard_editor_toolbar.show();
+  hbox_formatting_editor_toolbar.show();
   // Enable monospace in editor
   draw_primary.set_monospace(true);
   // Apply some settings from primary to secondary window
@@ -2007,17 +2007,17 @@ void MainWindow::enable_edit()
   int maxWidth = currentWidth - 40;
   // Recalculate the position divider if it's too big,
   // or position_divider_draw_ is still on default value
-  if ((panedDraw.get_position() >= maxWidth) || position_divider_draw_ == -1)
+  if ((paned_draw.get_position() >= maxWidth) || position_divider_draw_ == -1)
   {
     int proposedPosition = position_divider_draw_; // Try to first use the gsettings
     if ((proposedPosition == -1) || (proposedPosition >= maxWidth))
     {
       proposedPosition = static_cast<int>(currentWidth / 2.0);
     }
-    panedDraw.set_position(proposedPosition);
+    paned_draw.set_position(proposedPosition);
   }
   // Enabled secondary text view (on the right)
-  scrolledWindowSecondary.show();
+  scrolled_window_secondary.show();
   // Disable "view source" menu item
   draw_primary.set_view_source_menu_item(false);
   // Connect changed signal
@@ -2027,7 +2027,7 @@ void MainWindow::enable_edit()
   // Disable edit menu item (you are already editing)
   menu.set_edit_menu_sensitive(false);
   // Just to be sure, disable the spinning animation
-  refreshIcon.get_style_context()->remove_class("spinning");
+  refresh_icon.get_style_context()->remove_class("spinning");
 }
 
 /**
@@ -2037,9 +2037,9 @@ void MainWindow::disable_edit()
 {
   if (is_editor_enabled())
   {
-    hboxStandardEditorToolbar.hide();
-    hboxFormattingEditorToolbar.hide();
-    scrolledWindowSecondary.hide();
+    hbox_standard_editor_toolbar.hide();
+    hbox_formatting_editor_toolbar.hide();
+    scrolled_window_secondary.hide();
     // Disconnect text changed signal
     text_changed_signal_handler_.disconnect();
     // Disable monospace
@@ -2065,7 +2065,7 @@ void MainWindow::disable_edit()
  */
 bool MainWindow::is_editor_enabled()
 {
-  return hboxStandardEditorToolbar.is_visible();
+  return hbox_standard_editor_toolbar.is_visible();
 }
 
 /**
@@ -2202,7 +2202,7 @@ void MainWindow::editor_changed_text()
   // So it will never block the GUI thread. Or is this already running in another context
 
   // Clear table of contents (ToC)
-  tocTreeModel->clear();
+  toc_tree_model->clear();
   // Retrieve text from editor and parse the markdown contents
   middleware_.set_content(draw_primary.get_text());
   cmark_node* doc = middleware_.parse_content();
@@ -2219,8 +2219,8 @@ void MainWindow::editor_changed_text()
  */
 void MainWindow::show_source_code_dialog()
 {
-  sourceCodeDialog.set_text(middleware_.get_content());
-  sourceCodeDialog.run();
+  source_code_dialog.set_text(middleware_.get_content());
+  source_code_dialog.run();
 }
 
 /**
@@ -2229,8 +2229,8 @@ void MainWindow::show_source_code_dialog()
  */
 void MainWindow::get_heading()
 {
-  std::string active = headingsComboBox.get_active_id();
-  headingsComboBox.set_active(0); // Reset
+  std::string active = headings_combo_box.get_active_id();
+  headings_combo_box.set_active(0); // Reset
   if (active != "")
   {
     std::string::size_type sz;
@@ -2261,26 +2261,26 @@ void MainWindow::on_zoom_out()
 {
   current_font_size_ -= 1;
   update_css();
-  zoomRestoreButton.set_sensitive(current_font_size_ != default_font_size_);
+  zoom_restore_button.set_sensitive(current_font_size_ != default_font_size_);
 }
 
 void MainWindow::on_zoom_restore()
 {
   current_font_size_ = default_font_size_; // reset
   update_css();
-  zoomRestoreButton.set_sensitive(false);
+  zoom_restore_button.set_sensitive(false);
 }
 
 void MainWindow::on_zoom_in()
 {
   current_font_size_ += 1;
   update_css();
-  zoomRestoreButton.set_sensitive(current_font_size_ != default_font_size_);
+  zoom_restore_button.set_sensitive(current_font_size_ != default_font_size_);
 }
 
 void MainWindow::on_font_set()
 {
-  Pango::FontDescription fontDesc = Pango::FontDescription(fontButton.get_font_name());
+  Pango::FontDescription fontDesc = Pango::FontDescription(font_button.get_font_name());
   font_family_ = fontDesc.get_family();
   current_font_size_ = default_font_size_ = (fontDesc.get_size_is_absolute()) ? fontDesc.get_size() : fontDesc.get_size() / PANGO_SCALE;
   update_css();
@@ -2288,26 +2288,26 @@ void MainWindow::on_font_set()
 
 void MainWindow::on_max_content_width_changed()
 {
-  content_max_width_ = maxContentWidthSpinButton.get_value_as_int();
+  content_max_width_ = max_content_width_spin_button.get_value_as_int();
   if (!is_editor_enabled())
     update_margins();
 }
 
 void MainWindow::on_spacing_changed()
 {
-  font_spacing_ = spacingSpinButton.get_value(); // Letter-spacing
+  font_spacing_ = spacing_spin_button.get_value(); // Letter-spacing
   update_css();
 }
 
 void MainWindow::on_margins_changed()
 {
-  content_margin_ = marginsSpinButton.get_value_as_int();
+  content_margin_ = margins_spin_button.get_value_as_int();
   update_margins();
 }
 
 void MainWindow::on_indent_changed()
 {
-  indent_ = indentSpinButton.get_value_as_int();
+  indent_ = indent_spin_button.get_value_as_int();
   if (is_editor_enabled())
     draw_secondary.set_indent(indent_);
   else
@@ -2325,20 +2325,20 @@ void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
 
 void MainWindow::on_brightness_changed()
 {
-  brightness_scale_ = scaleSettingsBrightness.get_value();
+  brightness_scale_ = scale_settings_brightness.get_value();
   update_css();
 }
 
 void MainWindow::on_theme_changed()
 {
   // Switch between dark or light theme preference
-  use_dark_theme_ = themeSwitch.get_active();
+  use_dark_theme_ = theme_switch.get_active();
   set_theme();
 }
 
 void MainWindow::on_reader_view_changed()
 {
-  is_reader_view_enabled_ = readerViewSwitch.get_active();
+  is_reader_view_enabled_ = reader_view_switch.get_active();
   if (!is_editor_enabled())
     update_margins();
 }
