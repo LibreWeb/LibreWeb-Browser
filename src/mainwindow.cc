@@ -996,17 +996,17 @@ void MainWindow::init_signals()
   menu.toc.connect(sigc::mem_fun(this, &MainWindow::show_toc));                          /*!< Menu item for table of contents */
   menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
   source_code_dialog.signal_response().connect(sigc::mem_fun(source_code_dialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
-  menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                /*!< Display about dialog */
-  draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                 /*!< Open source code dialog */
-  about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                   /*!< Close about dialog */
+  menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                    /*!< Display about dialog */
+  draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                     /*!< Open source code dialog */
+  about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                       /*!< Close about dialog */
   address_bar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
-  open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));           /*!< Button for showing Table of Contents */
+  open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));          /*!< Button for showing Table of Contents */
   back_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
   forward_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
   refresh_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh_request));    /*!< Button for reloading the page */
   home_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
   search_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));           /*!< Execute the text search */
-  search_replace_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));   /*!< Execute the text replace */
+  search_replace_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));  /*!< Execute the text replace */
   // Editor toolbar buttons
   open_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
   save_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
