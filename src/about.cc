@@ -6,7 +6,7 @@
 
 About::About(Gtk::Window& parent)
     : m_visitHomepage("https://libreweb.org/", "Visit Homepage"),
-      m_visitProjectLinkButton("https://gitlab.melroy.org/libreweb/browser", "Visit the GitLab Project")
+      m_visitProjectLinkButton("https://gitlab.melroy.org/libreweb/libreweb-browser", "Visit the GitLab Project")
 {
   std::vector<Glib::ustring> devs;
   devs.push_back("Melroy van den Berg <info@libreweb.org>");

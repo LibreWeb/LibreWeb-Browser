@@ -3,15 +3,14 @@
 LibreWeb is an **open-source decentralized web browser**, leveraging IPFS. What would you do different; if you could **reinvent** The Internet in 21st century?  
 With all the knowledge and new technologies available today. I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET and more.
 
-[![Pipeline](https://gitlab.melroy.org/libreweb/browser/badges/main/pipeline.svg)](https://gitlab.melroy.org/libreweb/browser/-/pipelines/latest)
+[![Pipeline](https://gitlab.melroy.org/libreweb/libreweb-browser/badges/main/pipeline.svg)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/pipelines/latest)
 [![Telegram](https://img.shields.io/badge/chat-on%20telegram-brightgreen)](https://t.me/libreweb)
 [![Matrix](https://img.shields.io/badge/chat-on%20matrix-brightgreen)](https://matrix.to/#/#libreweb:melroy.org)
-[![Gitter](https://img.shields.io/badge/chat-on%20gitter-brightgreen)](https://gitter.im/LibreWeb/Browser)
-[![Roadmap](https://img.shields.io/badge/Roadmap-yellow)](https://gitlab.melroy.org/libreweb/browser/-/milestones)
+[![Roadmap](https://img.shields.io/badge/Roadmap-yellow)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/milestones)
 [![Docs](https://img.shields.io/badge/Documentation-orange)](https://docs.libreweb.org/)
-[![Release](https://img.shields.io/badge/release-latest-orange)](https://gitlab.melroy.org/libreweb/browser/-/releases)
+[![Release](https://img.shields.io/badge/release-latest-orange)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
 
-*Note:* This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/browser/-/releases).
+*Note:* This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 LibreWeb is:
 
@@ -26,7 +25,7 @@ LibreWeb is:
 
 Just download the latest LibreWeb release and get started:
 
-* [Download the latest release](https://gitlab.melroy.org/libreweb/browser/-/releases)
+* [Download the latest release](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
 
 ### Documentation
 
@@ -36,7 +35,7 @@ Visit the [dedicated documentation site](https://docs.libreweb.org) for *user* d
 
 **Reporting**
 
-Create a new issue in [GitLab Issues](https://gitlab.melroy.org/libreweb/browser/-/issues).
+Create a new issue in [GitLab Issues](https://gitlab.melroy.org/libreweb/libreweb-browser/-/issues).
 
 **Supporting**
 
@@ -48,7 +47,7 @@ You could help us with:
 
 - [Documentation](https://docs.libreweb.org)
 - Discussions on the [Telegram](https://t.me/libreweb) or [Matrix](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) groups
-- [Bugs & Feature requests](https://gitlab.melroy.org/libreweb/browser/-/issues)
+- [Bugs & Feature requests](https://gitlab.melroy.org/libreweb/libreweb-browser/-/issues)
 - [Coding](https://gitlab.melroy.org/libreweb/)
 - [Sponsor us](https://docs.libreweb.org/project/sponsor/)
 
@@ -121,7 +120,7 @@ For the **GNU/Linux build** you need at least:
 Clone the source-code with SSH (do not forget `--recurse-submodules`):
 
 ```sh
-git clone --recurse-submodules -j5 git@gitlab.melroy.org:libreweb/browser.git
+git clone --recurse-submodules -j5 git@gitlab.melroy.org:libreweb/libreweb-browser.git
 ```
 
 Start the Linux build, which is using CMake and Ninja build system, using the wrapper script:
@@ -134,7 +133,7 @@ Optionally, use the VSCode `CMake Tools` extension to start the build or build w
 
 #### Linux Packaging
 
-*Note:* Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+*Note:* Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 To build a release target yourself including packaging under GNU/Linux, use: `./scripts/build-lnx-prod.sh`
 
@@ -170,7 +169,7 @@ We also tend to follow the popular [C++ Core Guidelines](http://isocpp.github.io
 
 ### Doxygen
 
-See latest [Developer Documentation](https://gitlab.melroy.org/libreweb/browser/-/jobs/artifacts/main/file/build_docs/docs/html/index.html?job=doxygen).
+See latest [Developer Documentation](https://gitlab.melroy.org/libreweb/libreweb-browser/-/jobs/artifacts/main/file/build_docs/docs/html/index.html?job=doxygen).
 
 Doxygen is build by default. You can disable the doxygen build, if you want, using: `cmake -DDOXYGEN:BOOL=FALSE ..`
 
@@ -235,7 +234,7 @@ Build a Windows development release:
 
 #### Windows Packaging
 
-*Note:* Windows Installer is already [available under releases](https://gitlab.melroy.org/libreweb/browser/-/releases).
+*Note:* Windows Installer is already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 Build a production release + packaging with [NSIS Installer](https://sourceforge.net/projects/nsis/), execute the following:
 
@@ -259,7 +258,7 @@ For more info, see also: [Packaging readme](packaging.md).
 
 #### MacOS Build
 
-We're currently using [GitHub Actions](https://github.com/LibreWeb/Browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/Browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want, but do not expect the runtime to work.
+We're currently using [GitHub Actions](https://github.com/LibreWeb/libreweb-browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/libreweb-browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want, but do not expect the runtime to work.
 
 *Note:* **Packaging towards MacOS is still in progress**.
 

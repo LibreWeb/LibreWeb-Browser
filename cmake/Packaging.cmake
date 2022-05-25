@@ -22,7 +22,7 @@ set(CPACK_NSIS_PACKAGE_NAME "${CPACK_PACKAGE_INSTALL_DIRECTORY} v${CPACK_PACKAGE
 set(CPACK_PACKAGE_EXECUTABLES "libreweb-browser;LibreWeb Browser")
 set(CPACK_NSIS_MENU_LINKS 
   "${CPACK_PACKAGE_HOMEPAGE_URL}" "LibreWeb Homepage"
-  "https://gitlab.melroy.org/libreweb/browser" "LibreWeb Source code"
+  "https://gitlab.melroy.org/libreweb/libreweb-browser" "LibreWeb Source code"
 )
 set(CPACK_NSIS_INSTALLED_ICON_NAME "bin\\\\libreweb-browser.exe") # Import: double backlash
 set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.ico")
@@ -62,4 +62,3 @@ set(CPACK_DEBIAN_PACKAGE_SUGGESTS "")
 
 # include CPack model once all variables are set
 include(CPack)
-
