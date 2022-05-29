@@ -1,7 +1,7 @@
 #include "middleware.h"
 
 #include "file.h"
-#include "mainwindow.h"
+#include "main-window.h"
 #include "md-parser.h"
 #include <cmark-gfm.h>
 #include <glibmm.h>

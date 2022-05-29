@@ -20,7 +20,7 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # Source code
 set(HEADERS
-    about.h
+    about-dialog.h
     draw.h
     file.h
     ipfs.h
@@ -28,7 +28,7 @@ set(HEADERS
     middleware.h
     toolbar-button.h
     toc-model-cols.h
-    mainwindow.h
+    main-window.h
     md-parser.h
     menu.h
     ipfs-daemon.h
@@ -37,13 +37,13 @@ set(HEADERS
 )
 set(SOURCES 
   main.cc
-  about.cc
+  about-dialog.cc
   draw.cc
   file.cc
   ipfs.cc
   middleware.cc
   toolbar-button.cc
-  mainwindow.cc
+  main-window.cc
   md-parser.cc
   menu.cc
   ipfs-daemon.cc

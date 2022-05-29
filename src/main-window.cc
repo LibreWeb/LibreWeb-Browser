@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+#include "main-window.h"
 
 #include "menu.h"
 #include "project_config.h"

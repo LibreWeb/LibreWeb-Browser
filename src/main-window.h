@@ -1,7 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "about.h"
+#include "about-dialog.h"
 #include "draw.h"
 #include "menu.h"
 #include "middleware.h"

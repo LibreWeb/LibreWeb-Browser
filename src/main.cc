@@ -1,5 +1,5 @@
 #include "ipfs-daemon.h"
-#include "mainwindow.h"
+#include "main-window.h"
 #include "option-group.h"
 #include "project_config.h"
 

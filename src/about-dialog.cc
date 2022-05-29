@@ -1,4 +1,4 @@
-#include "about.h"
+#include "about-dialog.h"
 #include "project_config.h"
 
 #include <glibmm/fileutils.h>
