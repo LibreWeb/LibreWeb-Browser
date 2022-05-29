@@ -188,7 +188,7 @@ Next, check for memory leaks using `valgrind` by executing:
 Or to generate a memory usage plot in [massif format](https://valgrind.org/docs/manual/ms-manual.html), execute:
 
 ```sh
-./scripts/valgrind_plot.sh
+./scripts/valgrind-plot.sh
 ```
 
 ## Other platforms
