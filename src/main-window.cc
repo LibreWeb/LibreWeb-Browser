@@ -831,7 +831,7 @@ void MainWindow::init_settings_popover()
   hbox_setings_brightness.pack_start(brightness_image, false, false);
   hbox_setings_brightness.pack_end(scale_settings_brightness);
   // Settings labels / buttons
-  font_label.set_tooltip_text("Font familiy");
+  font_label.set_tooltip_text("Font family");
   max_content_width_label.set_tooltip_text("Max content width");
   spacing_label.set_tooltip_text("Text spacing");
   margins_label.set_tooltip_text("Text margins");
@@ -979,7 +979,7 @@ void MainWindow::init_signals()
   menu.save.connect(sigc::mem_fun(this, &MainWindow::save));                             /*!< Menu item for save document */
   menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                       /*!< Menu item for save document as */
   menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                       /*!< Menu item for publishing */
-  menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                            /*!< close main window and therefor closes the app */
+  menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                            /*!< close main window and therefore closes the app */
   menu.undo.connect(sigc::mem_fun(draw_primary, &Draw::undo));                           /*!< Menu item for undo text */
   menu.redo.connect(sigc::mem_fun(draw_primary, &Draw::redo));                           /*!< Menu item for redo text */
   menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                               /*!< Menu item for cut text */
@@ -1057,7 +1057,7 @@ void MainWindow::init_mac_os()
 #if defined(__APPLE__)
   {
     osx_app = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
-    // TODO: Should I implement those terminate signals. Sinse I disabled quartz accelerators
+    // TODO: Should I implement those terminate signals. Since I disabled quartz accelerators
     MainWindow* mainWindow = this;
     g_signal_connect(osx_app, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
     // TODO: Open file callback?
@@ -1089,7 +1089,7 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     // because the secondary draw window is hidden by default, resulting into a zero value.
     if (paned_draw.get_position() > 0)
       settings->set_int("position-divider-draw", paned_draw.get_position());
-    // Fullscreen will be availible with gtkmm-4.0
+    // Fullscreen will be available with gtkmm-4.0
     // settings->set_boolean("fullscreen", is_fullscreen());
     settings->set_string("font-family", font_family_);
     settings->set_int("font-size", current_font_size_);
@@ -2184,7 +2184,7 @@ void MainWindow::update_css()
 /**
  * \brief Show Gio notification
  * \param title Title of the notification
- * \param message The message displayed along with the notificiation
+ * \param message The message displayed along with the notification
  */
 void MainWindow::show_notification(const Glib::ustring& title, const Glib::ustring& message)
 {

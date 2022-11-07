@@ -96,7 +96,7 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
  */
 std::string Middleware::do_add(const std::string& path)
 {
-  // TODO: We should run this within a seperate thread, to avoid blocking the main thread.
+  // TODO: We should run this within a separate thread, to avoid blocking the main thread.
   // See also the other status calls we are making, but maybe we should use ipfs_fetch_ anyway.
   return ipfs_status_.add(path, get_content());
 }
@@ -292,7 +292,7 @@ void Middleware::process_request(const std::string& path, bool isParseContent)
 
 /**
  * \brief Helper method for process_request(), display markdown file from IPFS network.
- * Runs in a seperate thread.
+ * Runs in a separate thread.
  * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS
  * network), set to false if you want to edit the content
  */
@@ -381,7 +381,7 @@ void Middleware::fetch_from_ipfs(bool isParseContent)
 
 /**
  * \brief Helper method for process_request(), display markdown file from disk.
- * Runs in a seperate thread.
+ * Runs in a separate thread.
  * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS
  * network), set to false if you want to edit the content
  */
@@ -389,7 +389,7 @@ void Middleware::open_from_disk(bool isParseContent)
 {
   try
   {
-    // TODO: Abort file read if keep_request_thread_running_ = false and throw runtime error, to stop futher execution
+    // TODO: Abort file read if keep_request_thread_running_ = false and throw runtime error, to stop further execution
     // eg. when you are reading a very big file from disk.
     const Glib::ustring content = File::read(final_request_path_);
     // If the thread stops, don't brother to parse the file/update the GTK window
@@ -452,7 +452,7 @@ void Middleware::do_ipfs_status_update_once()
 
 /**
  * \brief Timeout slot: Update the IPFS connection status every x seconds.
- * Process requests inside a seperate thread, to avoid blocking the GUI thread.
+ * Process requests inside a separate thread, to avoid blocking the GUI thread.
  * \return always true, when running as a GTK timeout handler
  */
 bool Middleware::do_ipfs_status_update()
