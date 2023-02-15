@@ -103,7 +103,10 @@ MainWindow::MainWindow(const std::string& timeout)
       middleware_(*this, timeout),
       app_name_("LibreWeb Browser"),
       use_current_gtk_icon_theme_(false), // Use LibreWeb icon theme or the GTK icons
-      icon_theme_("flat"),                // Default is flat built-in theme
+      icon_theme_flat_("flat"),
+      icon_theme_filled_("filled"),
+      icon_theme_none_("none"),
+      current_icon_theme_(icon_theme_flat_), // Default is flat built-in theme
       icon_size_(18),
       font_family_("Sans"),
       default_font_size_(10),
@@ -391,7 +394,7 @@ void MainWindow::load_stored_settings()
     draw_primary.set_indent(indent_);
     int tocDividerPosition = settings->get_int("position-divider-toc");
     paned_root.set_position(tocDividerPosition);
-    icon_theme_ = settings->get_string("icon-theme");
+    current_icon_theme_ = settings->get_string("icon-theme");
     use_current_gtk_icon_theme_ = settings->get_boolean("icon-gtk-theme");
     brightness_scale_ = settings->get_double("brightness");
     use_dark_theme_ = settings->get_boolean("dark-theme");
@@ -926,24 +929,24 @@ void MainWindow::init_settings_popover()
   Gtk::Label* iconTheme1 = Gtk::manage(new Gtk::Label("Flat theme"));
   Gtk::ListBoxRow* row1 = Gtk::manage(new Gtk::ListBoxRow());
   row1->add(*iconTheme1);
-  row1->set_data("value", (void*)"flat");
+  row1->set_data("value", &icon_theme_flat_[0]);
   Gtk::Label* iconTheme2 = Gtk::manage(new Gtk::Label("Filled theme"));
   Gtk::ListBoxRow* row2 = Gtk::manage(new Gtk::ListBoxRow());
   row2->add(*iconTheme2);
-  row2->set_data("value", (void*)"filled");
+  row2->set_data("value", &icon_theme_filled_[0]);
   Gtk::Label* iconTheme3 = Gtk::manage(new Gtk::Label("Gtk default theme"));
   Gtk::ListBoxRow* row3 = Gtk::manage(new Gtk::ListBoxRow());
   row3->add(*iconTheme3);
-  row3->set_data("value", (void*)"none");
+  row3->set_data("value", &icon_theme_none_[0]);
   icon_theme_list_box.add(*row1);
   icon_theme_list_box.add(*row2);
   icon_theme_list_box.add(*row3);
   // Select the correct row by default
   if (use_current_gtk_icon_theme_)
     icon_theme_list_box.select_row(*row3);
-  else if (icon_theme_ == "flat")
+  else if (current_icon_theme_ == "flat")
     icon_theme_list_box.select_row(*row1);
-  else if (icon_theme_ == "filled")
+  else if (current_icon_theme_ == "filled")
     icon_theme_list_box.select_row(*row2);
   else
     icon_theme_list_box.select_row(*row1); // flat is fallback
@@ -1098,7 +1101,7 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
     settings->set_int("margins", content_margin_);
     settings->set_int("indent", indent_);
     settings->set_enum("wrap-mode", wrap_mode_);
-    settings->set_string("icon-theme", icon_theme_);
+    settings->set_string("icon-theme", current_icon_theme_);
     settings->set_boolean("icon-gtk-theme", use_current_gtk_icon_theme_);
     settings->set_double("brightness", brightness_scale_);
     settings->set_boolean("dark-theme", use_dark_theme_);
@@ -2079,7 +2082,7 @@ std::string MainWindow::get_icon_image_from_theme(const std::string& icon_name, 
   // Use data directory first, used when LibreWeb is installed (Linux or Windows)
   for (std::string data_dir : Glib::get_system_data_dirs())
   {
-    std::vector<std::string> path_builder{data_dir, "libreweb", "images", "icons", icon_theme_, typeof_icon, icon_name + ".png"};
+    std::vector<std::string> path_builder{data_dir, "libreweb", "images", "icons", current_icon_theme_, typeof_icon, icon_name + ".png"};
     std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
     if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
     {
@@ -2089,7 +2092,7 @@ std::string MainWindow::get_icon_image_from_theme(const std::string& icon_name, 
 
   // Try local path if the images are not (yet) installed
   // When working directory is in the build/bin folder (relative path)
-  std::vector<std::string> path_builder{"..", "..", "images", "icons", icon_theme_, typeof_icon, icon_name + ".png"};
+  std::vector<std::string> path_builder{"..", "..", "images", "icons", current_icon_theme_, typeof_icon, icon_name + ".png"};
   std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
   if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
   {
@@ -2348,7 +2351,7 @@ void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow* row)
   std::string themeName = static_cast<char*>(row->get_data("value"));
   if (themeName != "none")
   {
-    icon_theme_ = themeName;
+    current_icon_theme_ = themeName;
     use_current_gtk_icon_theme_ = false;
   }
   else

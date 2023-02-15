@@ -137,7 +137,7 @@ std::string IPFSDaemon::locate_ipfs_binary()
   length = wai_getExecutablePath(NULL, 0, &dirname_length);
   if (length > 0)
   {
-    path = (char*)malloc(length + 1);
+    path = static_cast<char*>(malloc(length + 1));
     if (!path)
     {
       std::cerr << "ERROR: Couldn't create executable path." << std::endl;

@@ -300,7 +300,10 @@ private:
   Middleware middleware_;
   std::string app_name_;
   bool use_current_gtk_icon_theme_;
-  std::string icon_theme_;
+  std::string icon_theme_flat_;
+  std::string icon_theme_filled_;
+  std::string icon_theme_none_;
+  std::string current_icon_theme_;
   int icon_size_;
   std::string font_family_;
   int default_font_size_;
