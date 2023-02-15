@@ -1059,14 +1059,14 @@ void MainWindow::init_mac_os()
 {
 #if defined(__APPLE__)
   {
-    osx_app = (GtkosxApplication*)g_object_new(GTKOSX_TYPE_APPLICATION, NULL);
+    osx_app = reinterpret_cast<GtkosxApplication*>(g_object_new(GTKOSX_TYPE_APPLICATION, NULL));
     // TODO: Should I implement those terminate signals. Since I disabled quartz accelerators
     MainWindow* mainWindow = this;
     g_signal_connect(osx_app, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
     // TODO: Open file callback?
     // g_signal_connect (osx_app, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
     menu.hide();
-    GtkWidget* menubar = (GtkWidget*)menu.gobj();
+    GtkWidget* menubar = reinterpret_cast<GtkWidget*>(menu.gobj());
     gtkosx_application_set_menu_bar(osx_app, GTK_MENU_SHELL(menubar));
     // Use GTK accelerators
     gtkosx_application_set_use_quartz_accelerators(osx_app, FALSE);
@@ -1958,7 +1958,7 @@ bool MainWindow::is_installed()
   length = wai_getExecutablePath(NULL, 0, NULL);
   if (length > 0)
   {
-    path = (char*)malloc(length + 1);
+    path = static_cast<char*>(malloc(length + 1));
     if (!path)
     {
       std::cerr << "ERROR: Couldn't create executable path." << std::endl;

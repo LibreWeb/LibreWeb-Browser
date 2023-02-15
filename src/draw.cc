@@ -137,7 +137,7 @@ void Draw::event_after(GdkEvent* ev)
   if (ev->type == GDK_BUTTON_RELEASE)
   {
     GdkEventButton* event;
-    event = (GdkEventButton*)ev;
+    event = reinterpret_cast<GdkEventButton*>(ev);
     if (event->button != GDK_BUTTON_PRIMARY)
       return;
     ex = event->x;
@@ -146,7 +146,7 @@ void Draw::event_after(GdkEvent* ev)
   else if (ev->type == GDK_TOUCH_END)
   {
     GdkEventTouch* event;
-    event = (GdkEventTouch*)ev;
+    event = reinterpret_cast<GdkEventTouch*>(ev);
     ex = event->x;
     ey = event->y;
   }
@@ -1540,7 +1540,7 @@ void Draw::add_heading_mark(const Glib::ustring& text, int heading_level)
   // Make anonymous marks, to avoid existing naming conflicts
   Glib::RefPtr<Gtk::TextMark> textMark = Gtk::TextMark::create();
   textMark->set_data("name", g_strdup(text.c_str()));
-  textMark->set_data("level", (void*)(intptr_t)heading_level);
+  textMark->set_data("level", reinterpret_cast<void*>(static_cast<intptr_t>(heading_level)));
   buffer->add_mark(textMark, end_iter);
   headings_toc_.push_back(textMark);
 }
