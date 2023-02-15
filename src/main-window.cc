@@ -590,17 +590,19 @@ void MainWindow::init_toolbar_buttons()
   settings_button.add(settings_icon);
 
   // Add spinning CSS class to refresh icon
-  auto cssProvider = Gtk::CssProvider::create();
   auto screen = Gdk::Screen::get_default();
-  std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  "
-                            "animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
-  if (!cssProvider->load_from_data(spinningCSS))
+  if (screen)
   {
-    std::cerr << "ERROR: CSS data parsing went wrong." << std::endl;
+    auto cssProvider = Gtk::CssProvider::create();
+    std::string spinningCSS = "@keyframes spin {  to { -gtk-icon-transform: rotate(1turn); }} .spinning { animation-name: spin;  "
+                              "animation-duration: 1s;  animation-timing-function: linear;  animation-iteration-count: infinite;}";
+    if (!cssProvider->load_from_data(spinningCSS))
+    {
+      std::cerr << "ERROR: CSS data parsing went wrong." << std::endl;
+    }
+    auto refreshIconStyle = refresh_icon.get_style_context();
+    refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   }
-  auto refreshIconStyle = refresh_icon.get_style_context();
-  refreshIconStyle->add_provider_for_screen(screen, cssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
   // Add tooltips to the toolbar buttons
   search_button.set_tooltip_text("Find");
   status_button.set_tooltip_text("IPFS Network Status");
@@ -662,8 +664,9 @@ void MainWindow::init_toolbar_buttons()
  */
 void MainWindow::set_theme()
 {
-  auto settings = Gtk::Settings::get_default();
-  settings->property_gtk_application_prefer_dark_theme().set_value(use_dark_theme_);
+  auto settings_default = Gtk::Settings::get_default();
+  if (settings_default)
+    settings_default->property_gtk_application_prefer_dark_theme().set_value(use_dark_theme_);
 }
 
 /**
