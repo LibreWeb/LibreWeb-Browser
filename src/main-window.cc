@@ -1968,23 +1968,23 @@ bool MainWindow::is_installed()
     }
     else
     {
-      bool is_installed = true;
+      bool is_browser_installed = true;
       wai_getExecutablePath(path, length, NULL);
       path[length] = '\0';
 #if defined(_WIN32)
       // Does the executable path starts with "C:\Program"?
       const char* windowsPrefix = "C:\\Program";
-      is_installed = (strncmp(path, windowsPrefix, strlen(windowsPrefix)) == 0);
+      is_browser_installed = (strncmp(path, windowsPrefix, strlen(windowsPrefix)) == 0);
 #elif defined(_APPLE_)
       // Does the executable path contains "Applications"?
       const char* macOsNeedle = "Applications";
-      is_installed = (strstr(path, macOsNeedle) != NULL);
+      is_browser_installed = (strstr(path, macOsNeedle) != NULL);
 #elif defined(__linux__)
       // Does the executable path starts with "/usr/local"?
-      is_installed = (strncmp(path, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
+      is_browser_installed = (strncmp(path, INSTALL_PREFIX, strlen(INSTALL_PREFIX)) == 0);
 #endif
       free(path);
-      return is_installed;
+      return is_browser_installed;
     }
   }
   return true; // fallback; assume always installed
