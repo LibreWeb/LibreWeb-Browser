@@ -10,7 +10,7 @@ With all the knowledge and new technologies available today. I was inspired by D
 [![Docs](https://img.shields.io/badge/Documentation-orange)](https://docs.libreweb.org/)
 [![Release](https://img.shields.io/badge/release-latest-orange)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
 
-*Note:* This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
+_Note:_ This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 LibreWeb is:
 
@@ -25,11 +25,11 @@ LibreWeb is:
 
 Just download the latest LibreWeb release and get started:
 
-* [Download the latest release](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
+- [Download the latest release](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
 
 ### Documentation
 
-Visit the [dedicated documentation site](https://docs.libreweb.org) for *user* documentation.
+Visit the [dedicated documentation site](https://docs.libreweb.org) for _user_ documentation.
 
 ### How to Report issues
 
@@ -69,7 +69,7 @@ The current success criteria:
 - Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
 - Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
 - **Decentralized** (no single-point of failure or censorship), like: P2P, DHT and IPFS;
-- *No* client-server approach (the client is also the server and visa versa) - think **mesh network**.
+- _No_ client-server approach (the client is also the server and visa versa) - think **mesh network**.
 - **Encrypted** transfers;
 - Data is stored **redundantly** within the network (no single-point of failure);
 - **Versioning**/revisions of content and documenents (automatically solves broken 'links', that can't happy anymore);
@@ -79,7 +79,7 @@ The current success criteria:
 - Content is King;
 - Fast and Extensible!
 
-*Note:* Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
+_Note:_ Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
 
 ---
 
@@ -110,10 +110,11 @@ For the **GNU/Linux build** you need at least:
 
 **Dependencies for testing:**
 
-* X virtual framebuffer (Package: `xvfb`)
-* Clang-format (Package: `clang-format`)
+- X virtual framebuffer (Package: `xvfb`)
+- Clang-format (Package: `clang-format`)
+- cppcheck (v2.10 or higher)
 
-*Note:* For cross-compiling towards Windows and building on macOS see "[Other platforms](#other-platforms)" section below.
+_Note:_ For cross-compiling towards Windows and building on macOS see "[Other platforms](#other-platforms)" section below.
 
 ### Linux Build
 
@@ -133,7 +134,7 @@ Optionally, use the VSCode `CMake Tools` extension to start the build or build w
 
 #### Linux Packaging
 
-*Note:* Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
+_Note:_ Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 To build a release target yourself including packaging under GNU/Linux, use: `./scripts/build-lnx-prod.sh`
 
@@ -167,7 +168,7 @@ Check only for errors, run: `./scripts/check-format.sh`
 
 First we try to use the [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) as basis.
 
-Next, we also tend to follow the popular  [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) as much as possible.
+Next, we also tend to follow the popular [C++ Core Guidelines](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines) as much as possible.
 
 ### Doxygen
 
@@ -177,7 +178,7 @@ Doxygen is build by default. You can disable the doxygen build, if you want, usi
 
 ### Memory check
 
-First **build** the (Linux) target including *debug symbols*. Binary should be present in the `build/src` folder.
+First **build** the (Linux) target including _debug symbols_. Binary should be present in the `build/src` folder.
 
 Next, check for memory leaks using `valgrind` by executing:
 
@@ -214,7 +215,7 @@ We used the following build command to get the Windows dependencies and MXE cros
 make gtkmm3 curl -j 16 MXE_TARGETS='x86_64-w64-mingw32.static' MXE_PLUGIN_DIRS='plugins/gcc10'
 ```
 
-*NOTE:* Soon we need gcc11, but GTK3 upstream needs to create a new release that fixes the GCC11 builds.
+_NOTE:_ Soon we need gcc11, but GTK3 upstream needs to create a new release that fixes the GCC11 builds.
 
 Add the following line to the end of the `~/.bashrc` file:
 
@@ -226,7 +227,7 @@ export PATH="/opt/mxe/usr/bin:$PATH"
 
 Please, be sure you meet all the requirements above. So your MXE environment should be ready in: `/opt/mxe/usr`.
 
-To start the *cross-compile* build towards Windows 64-bit (using GNU/Linux as host) you can use the commands below.
+To start the _cross-compile_ build towards Windows 64-bit (using GNU/Linux as host) you can use the commands below.
 
 Build a Windows development release:
 
@@ -236,7 +237,7 @@ Build a Windows development release:
 
 #### Windows Packaging
 
-*Note:* Windows Installer is already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
+_Note:_ Windows Installer is already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 Build a production release + packaging with [NSIS Installer](https://sourceforge.net/projects/nsis/), execute the following:
 
@@ -262,7 +263,7 @@ For more info, see also: [Packaging readme](packaging.md).
 
 We're currently using [GitHub Actions](https://github.com/LibreWeb/libreweb-browser/blob/master/.github/workflows/macOS-build.yml) for the [macOS build](https://github.com/LibreWeb/libreweb-browser/actions/workflows/macOS-build.yml). You could already download the artifact if you want, but do not expect the runtime to work.
 
-*Note:* **Packaging towards MacOS is still in progress**.
+_Note:_ **Packaging towards MacOS is still in progress**.
 
 For more info, see also: [Packaging readme](packaging.md)
 

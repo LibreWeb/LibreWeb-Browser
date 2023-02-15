@@ -1,4 +1,4 @@
-image: danger89/gtk3-docker-cmake-ninja:3.3
+image: danger89/gtk3-docker-cmake-ninja:3.4
 stages:
   - build
   #- upload
@@ -23,15 +23,15 @@ doxygen:
 
 linux_build:
   stage: build
-  script: 
+  script:
     - "./scripts/build-lnx-prod.sh"
   artifacts:
     name: Packages
     expire_in: 4 weeks
     paths:
-    - build_prod/libreweb-browser-*.deb
-    - build_prod/libreweb-browser-*.rpm
-    - build_prod/libreweb-browser-*.tar.gz
+      - build_prod/libreweb-browser-*.deb
+      - build_prod/libreweb-browser-*.rpm
+      - build_prod/libreweb-browser-*.tar.gz
 
 static_code_analysis:
   stage: build
@@ -75,7 +75,6 @@ upload_and_release:
     - 'curl --header "PRIVATE-TOKEN: ${ACCESS_TOKEN}" --header "Content-Type: application/json"
       --request POST --data "{\"name\":\"LibreWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
-
 # Create new release
 #release:
 #  stage: release
