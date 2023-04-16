@@ -361,15 +361,15 @@ void MainWindow::load_stored_settings()
   if (!is_installed())
   {
     // Relative to the binary path
-    std::vector<std::string> relativePath{".."};
-    std::string schemaDir = Glib::build_path(G_DIR_SEPARATOR_S, relativePath);
+    std::vector<std::string> relative_path{".."};
+    std::string schema_dir = Glib::build_path(G_DIR_SEPARATOR_S, relative_path);
     std::cout << "INFO: Binary not installed. Try to find the gschema file one directory up (..)." << std::endl;
-    Glib::setenv("GSETTINGS_SCHEMA_DIR", schemaDir);
+    Glib::setenv("GSETTINGS_SCHEMA_DIR", schema_dir);
   }
 
   // Load schema settings file
-  auto schemaSource = Gio::SettingsSchemaSource::get_default()->lookup("org.libreweb.browser", true);
-  if (schemaSource)
+  auto schema_source = Gio::SettingsSchemaSource::get_default()->lookup("org.libreweb.browser", true);
+  if (schema_source)
   {
     settings = Gio::Settings::create("org.libreweb.browser");
     // Apply global settings
