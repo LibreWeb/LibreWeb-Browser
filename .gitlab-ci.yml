@@ -1,4 +1,5 @@
-image: danger89/gtk3-docker-cmake-ninja:3.4
+image: danger89/gtk3-docker-cmake-ninja:4.0
+
 stages:
   - build
   #- upload

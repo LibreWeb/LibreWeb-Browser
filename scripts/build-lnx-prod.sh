@@ -5,11 +5,9 @@
 #
 #  Installs into /usr prefix directory under Linux.
 
-rm -rf build_prod
-mkdir build_prod
-cd build_prod
 # First build the application for Linux
-echo "INFO: Start building...";
-cmake -G Ninja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release .. &&
-ninja &&
+cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release -B build_prod
+cmake --build ./build_prod --config Release 
+# Build packages
+cd build_prod
 cpack -C Release -G "TGZ;DEB;RPM"
