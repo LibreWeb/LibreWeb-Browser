@@ -111,7 +111,7 @@ int IPFSDaemon::get_pid() const
   if (pid_ == 0)
     return 0;
 #ifdef _WIN32
-  return GetProcessId(pid);
+  return GetProcessId(pid_);
 #else
   return pid_;
 #endif
