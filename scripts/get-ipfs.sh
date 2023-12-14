@@ -3,7 +3,7 @@
 # Description: Automatically download and unzip the IPFS CLI binaries for Linux & Windows
 
 ## Provide the IPFS version below ##
-IPFS_VERSION=0.11.0
+IPFS_VERSION=0.24.0
 
 ##############################
 # Leave the code alone below #
