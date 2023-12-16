@@ -107,6 +107,7 @@ For the **GNU/Linux build** you need at least:
 - Ninja build system (Package: `ninja-build`)
 - Libcurl (Package: `libcurl4-openssl-dev`)
 - GTK3/Gtkmm3 (Package: `libgtkmm-3.0-dev`)
+- Ccache (optional, but much **recommended**: `ccache`)
 
 **Dependencies for testing:**
 
