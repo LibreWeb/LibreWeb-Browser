@@ -213,7 +213,6 @@ else()
 
     # Set C++20
     target_compile_features(${PROJECT_TARGET_LIB} PUBLIC cxx_std_20)
-    set_target_properties(${PROJECT_TARGET_LIB} PROPERTIES CXX_EXTENSIONS OFF)
     # Set C99
     target_compile_features(${PROJECT_TARGET_LIB} PUBLIC c_std_99)
 
