@@ -211,10 +211,13 @@ else()
     add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)
     add_library(${PROJECT_TARGET_LIB}-parser STATIC md-parser.h md-parser.cc)
 
-    # Set C++20
-    target_compile_features(${PROJECT_TARGET_LIB} PUBLIC cxx_std_20)
-    # Set C99
-    target_compile_features(${PROJECT_TARGET_LIB} PUBLIC c_std_99)
+    # Set C++20 for all libs
+    target_compile_features(${PROJECT_TARGET_LIB}-file PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET_LIB}-file PROPERTIES CXX_EXTENSIONS OFF)
+    target_compile_features(${PROJECT_TARGET_LIB}-draw PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET_LIB}-draw PROPERTIES CXX_EXTENSIONS OFF)
+    target_compile_features(${PROJECT_TARGET_LIB}-parser PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET_LIB}-parser PROPERTIES CXX_EXTENSIONS OFF)
 
     # Only link/include external libs we really need for the unittest libaries
     target_include_directories(${PROJECT_TARGET_LIB}-draw PRIVATE
