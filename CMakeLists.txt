@@ -48,16 +48,6 @@ if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
   include(Packaging)
 endif()
 
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED YES)
-set(CMAKE_C_EXTENSIONS NO)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-if(NOT CYGWIN)
-  set(CMAKE_CXX_EXTENSIONS OFF)
-endif()
-
 if(WIN32)
   set(WINDOWS_FLAGS -mwindows)
 endif()

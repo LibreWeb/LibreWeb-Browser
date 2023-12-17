@@ -128,6 +128,12 @@ if(NOT UNITTEST)
         target_compile_definitions(${PROJECT_TARGET} PRIVATE __linux__)
     endif()
 
+    # Set C++20
+    target_compile_features(${PROJECT_TARGET} PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET} PROPERTIES CXX_EXTENSIONS OFF)
+    # Set C99
+    target_compile_features(${PROJECT_TARGET} PUBLIC c_std_99)
+
     # Add fallback for std filesystem in older GCC versions
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.4)
@@ -204,6 +210,13 @@ else()
     add_library(${PROJECT_TARGET_LIB}-file STATIC file.h file.cc)
     add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)
     add_library(${PROJECT_TARGET_LIB}-parser STATIC md-parser.h md-parser.cc)
+
+    # Set C++20
+    target_compile_features(${PROJECT_TARGET_LIB} PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET_LIB} PROPERTIES CXX_EXTENSIONS OFF)
+    # Set C99
+    target_compile_features(${PROJECT_TARGET_LIB} PUBLIC c_std_99)
+
     # Only link/include external libs we really need for the unittest libaries
     target_include_directories(${PROJECT_TARGET_LIB}-draw PRIVATE
         ${CMARK_BINARY_DIR}
