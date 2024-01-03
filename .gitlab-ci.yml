@@ -2,7 +2,6 @@ image: danger89/gtk3-docker-cmake-ninja:4.0
 
 stages:
   - build
-  #- upload
   - test
   - release
 
@@ -56,7 +55,7 @@ include:
 
 # Upload artifacts & Create new release
 upload_and_release:
-  stage: release # upload
+  stage: release
   image: curlimages/curl:latest
   rules:
     - if: $CI_PROJECT_NAMESPACE == "libreweb" && $CI_COMMIT_TAG
