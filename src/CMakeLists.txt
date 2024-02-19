@@ -179,7 +179,7 @@ if(NOT UNITTEST)
         # Maybe try to use: find_library()
         # Hack solution to get the dylib.
         # Also add other libs, like gtk-3 and libgtk-quartz?
-        set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1/lib/libgtkmacintegration-gtk3.4.dylib")
+        set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1_1/lib/libgtkmacintegration-gtk3.dylib")
         install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
         # TODO: Also copy GTK/GTKMM to the app dmg image
 
