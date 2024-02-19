@@ -27,7 +27,7 @@ else()
   endif()
 endif()
 
-project({PROJECT_NAME}
+project(${PROJECT_NAME}
   VERSION ${LOCAL_PROJECT_VERSION}
   DESCRIPTION "LibreWeb Browser - Decentralized Web-Browser"
   LANGUAGES C CXX)
