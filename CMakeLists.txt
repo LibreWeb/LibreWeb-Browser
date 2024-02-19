@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 3.20)
 
 option(DOXYGEN "Build Doxygen documentation" ON)
 option(UNITTEST "Build unit tests")
+option(PACKAGE "Build packages in release mode" OFF)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum macOS deployment version")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
@@ -13,8 +14,10 @@ project(libreweb-browser
   DESCRIPTION "LibreWeb Browser - Decentralized Web-Browser"
   LANGUAGES C CXX)
 
-message(STATUS "CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
-message(STATUS "PROJECT_VERSION: ${PROJECT_VERSION}")
+message(STATUS "Project version: ${PROJECT_VERSION}")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Create packages: ${PACKAGE}")
+message(STATUS "Generate documentation: ${DOXYGEN}")
 if(UNITTEST)
   message(STATUS "Building the unit tests")
 endif()
@@ -44,7 +47,7 @@ elseif(UNIX)
 endif()
 
 # Production build, let's include the CPack settings
-if("${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" AND PACKAGE)
   include(Packaging)
 endif()
 
@@ -54,10 +57,10 @@ endif()
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Werror -pedantic -Werror=incompatible-pointer-types")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}  -Wall")
-set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O2 -DNDEBUG")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${WINDOWS_FLAGS} -O3 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${WINDOWS_FLAGS} -O2 -DNDEBUG")
 
 # Disable CTest testcases & install in cpp-ipfs-http-client
 set (BUILD_TESTING OFF CACHE BOOL "Disable CTest" FORCE)

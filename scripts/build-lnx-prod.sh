@@ -7,7 +7,7 @@
 
 # First build the application for Linux
 rm -rf build_prod
-cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DCMAKE_BUILD_TYPE=Release -B build_prod
+cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DPACKAGE=ON -DCMAKE_BUILD_TYPE=Release -B build_prod
 cmake --build ./build_prod --config Release 
 # Build packages
 cd build_prod
