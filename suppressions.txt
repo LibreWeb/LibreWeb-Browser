@@ -1,4 +1,5 @@
 missingIncludeSystem
-missingInclude:lib/*
+missingInclude
 unusedFunction
 *:lib/commonmarker/*
+checkersReport

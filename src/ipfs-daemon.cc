@@ -28,6 +28,7 @@ void IPFSDaemon::spawn()
   // Check for PID under UNIX
   int daemon_pid = IPFSDaemon::get_existing_pid();
   // Is IPFS Daemon already running?
+  // cppcheck-suppress knownConditionTrueFalse
   if (daemon_pid > 0)
   {
     std::cout << "INFO: IPFS Daemon is already running. Do not start another IPFS process." << std::endl;

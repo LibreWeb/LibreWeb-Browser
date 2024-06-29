@@ -23,7 +23,7 @@ class Middleware : public MiddlewareInterface
 {
 public:
   explicit Middleware(MainWindow& main_window, const std::string& timeout);
-  virtual ~Middleware();
+  virtual ~Middleware() override;
   void do_request(const std::string& path = std::string(),
                   bool is_set_address_bar = true,
                   bool is_history_request = false,

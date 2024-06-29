@@ -136,7 +136,7 @@ void Draw::event_after(GdkEvent* ev)
 
   if (ev->type == GDK_BUTTON_RELEASE)
   {
-    GdkEventButton* event;
+    const GdkEventButton* event;
     event = reinterpret_cast<GdkEventButton*>(ev);
     if (event->button != GDK_BUTTON_PRIMARY)
       return;
@@ -145,7 +145,7 @@ void Draw::event_after(GdkEvent* ev)
   }
   else if (ev->type == GDK_TOUCH_END)
   {
-    GdkEventTouch* event;
+    const GdkEventTouch* event;
     event = reinterpret_cast<GdkEventTouch*>(ev);
     ex = event->x;
     ey = event->y;
@@ -513,7 +513,7 @@ void Draw::select_all()
 /**
  * \brief Return the Texr mark headings for Table of contents
  */
-std::vector<Glib::RefPtr<Gtk::TextMark>> Draw::get_headings()
+const std::vector<Glib::RefPtr<Gtk::TextMark>>& Draw::get_headings() const
 {
   return headings_toc_;
 }
@@ -1606,7 +1606,7 @@ void Draw::change_cursor(int x, int y)
   auto tags = iter.get_tags();
   for (auto const& tag : tags)
   {
-    char* url = static_cast<char*>(tag->get_data("url"));
+    const char* url = static_cast<char*>(tag->get_data("url"));
     if (url != 0 && (strlen(url) > 0))
     {
       // Link

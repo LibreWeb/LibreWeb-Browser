@@ -48,7 +48,7 @@ void About::hide_about(__attribute__((unused)) int response)
 std::string About::get_logo_image()
 {
   // Use data directory first, used when LibreWeb is installed (Linux or Windows)
-  for (std::string data_dir : Glib::get_system_data_dirs())
+  for (const std::string& data_dir : Glib::get_system_data_dirs())
   {
     std::vector<std::string> path_builder{data_dir, "libreweb", "images", "browser_logo_small.png"};
     std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);

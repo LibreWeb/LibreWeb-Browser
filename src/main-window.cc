@@ -22,7 +22,7 @@
 #include <whereami.h>
 
 #if defined(__APPLE__)
-static void osx_will_quit_cb(__attribute__((unused)) GtkosxApplication* app, __attribute__((unused)) gpointer data)
+static void osx_will_quit_cb(__attribute__((unused)) const GtkosxApplication* app, __attribute__((unused)) gpointer data)
 {
   gtk_main_quit();
 }
@@ -358,6 +358,7 @@ void MainWindow::update_status_popover_and_icon()
 void MainWindow::load_stored_settings()
 {
   // Set additional schema directory, when browser is not yet installed
+  // cppcheck-suppress knownConditionTrueFalse
   if (!is_installed())
   {
     // Relative to the binary path
@@ -1065,6 +1066,7 @@ void MainWindow::init_mac_os()
     osx_app = reinterpret_cast<GtkosxApplication*>(g_object_new(GTKOSX_TYPE_APPLICATION, NULL));
     // TODO: Should I implement those terminate signals. Since I disabled quartz accelerators
     MainWindow* mainWindow = this;
+    // If needed: reinterpret_cast<void(*)(GtkosxApplication*, gpointer)>(osx_will_quit_cb))
     g_signal_connect(osx_app, "NSApplicationWillTerminate", G_CALLBACK(osx_will_quit_cb), mainWindow);
     // TODO: Open file callback?
     // g_signal_connect (osx_app, "NSApplicationOpenFile", G_CALLBACK (osx_open_file_cb), mainWindow);
@@ -1266,7 +1268,7 @@ void MainWindow::selectAll()
 /**
  * \brief Triggers when the textview widget changes size
  */
-void MainWindow::on_size_alloc(__attribute__((unused)) Gdk::Rectangle& allocation)
+void MainWindow::on_size_alloc(__attribute__((unused)) const Gdk::Rectangle& allocation)
 {
   if (!is_editor_enabled())
     update_margins();
@@ -1810,7 +1812,7 @@ void MainWindow::forward()
 /**
  * \brief Fill-in table of contents and show
  */
-void MainWindow::set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings)
+void MainWindow::set_table_of_contents(const std::vector<Glib::RefPtr<Gtk::TextMark>>& headings)
 {
   Gtk::TreeRow heading1Row, heading2Row, heading3Row, heading4Row, heading5Row;
   int previousLevel = 1; // Default heading 1
@@ -2083,7 +2085,7 @@ bool MainWindow::is_editor_enabled()
 std::string MainWindow::get_icon_image_from_theme(const std::string& icon_name, const std::string& typeof_icon)
 {
   // Use data directory first, used when LibreWeb is installed (Linux or Windows)
-  for (std::string data_dir : Glib::get_system_data_dirs())
+  for (const std::string& data_dir : Glib::get_system_data_dirs())
   {
     std::vector<std::string> path_builder{data_dir, "libreweb", "images", "icons", current_icon_theme_, typeof_icon, icon_name + ".png"};
     std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);

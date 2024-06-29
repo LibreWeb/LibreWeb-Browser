@@ -75,7 +75,7 @@ protected:
   void paste();
   void del();
   void selectAll();
-  void on_size_alloc(Gdk::Rectangle& allocation);
+  void on_size_alloc(const Gdk::Rectangle& allocation);
   void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
@@ -334,7 +334,7 @@ private:
   void init_signals();
   void init_mac_os();
   bool is_installed();
-  void set_table_of_contents(std::vector<Glib::RefPtr<Gtk::TextMark>> headings);
+  void set_table_of_contents(const std::vector<Glib::RefPtr<Gtk::TextMark>>& headings);
   void enable_edit();
   void disable_edit();
   bool is_editor_enabled();

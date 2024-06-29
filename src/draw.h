@@ -53,7 +53,7 @@ public:
   void paste();
   void del();
   void select_all();
-  std::vector<Glib::RefPtr<Gtk::TextMark>> get_headings();
+  const std::vector<Glib::RefPtr<Gtk::TextMark>>& get_headings() const;
 
   // Signals editor calls
   void make_heading(int heading_level);
