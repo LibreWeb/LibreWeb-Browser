@@ -1,4 +1,4 @@
-image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:3.0-bookworm
+image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:3.0-trixie
 
 stages:
   - build
