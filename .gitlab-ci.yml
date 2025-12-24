@@ -62,32 +62,36 @@ upload_and_release:
   rules:
     - if: $CI_PROJECT_NAMESPACE == "libreweb" && $CI_COMMIT_TAG
   script:
-    - 'curl --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}" --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.deb
+    - 'curl --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
+      --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.deb
       ${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.deb'
-    - 'curl --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}" --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.rpm
+    - 'curl --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
+       --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.rpm
       ${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm'
-    - 'curl --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}" --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz
+    - 'curl --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
+      --upload-file build_prod/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz
       ${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz'
-    - 'curl --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}" --upload-file build_prod/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz
+    - 'curl --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
+      --upload-file build_prod/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz
       ${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz'
 
     - 'curl --request POST 
-      --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}"
+      --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
       --header "Content-Type: application/json"
       --data "{\"name\":\"LibreWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
-      --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}"
+      --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
       --header "Content-Type: application/json"
       --data "{\"name\":\"LibreWeb Browser (Fedora/openSUSE/CentOS)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
-      --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}"
+      --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
       --header "Content-Type: application/json"
       --data "{\"name\":\"LibreWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
-      --header "JOB-TOKEN: ${CI_DEPLOY_PASSWORD}"
+      --user "${CI_DEPLOY_USER}:${CI_DEPLOY_PASSWORD}"
       --header "Content-Type: application/json"
       --data "{\"name\":\"LibreWeb Browser Source Code Archive (tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
