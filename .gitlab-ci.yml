@@ -1,4 +1,4 @@
-image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:3.0-trixie
+image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:trixie
 
 stages:
   - build
@@ -25,7 +25,7 @@ linux_build:
   stage: build
   script:
     - ./scripts/build-lnx-prod.sh
-    - ./scripts/create_source_archive.sh
+    - ./scripts/create-source-archive.sh
   artifacts:
     name: Packages
     expire_in: 4 weeks

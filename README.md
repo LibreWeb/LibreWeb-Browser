@@ -102,18 +102,28 @@ Personally, I'm using VSCodium editor, with the following extensions installed: 
 
 For the **GNU/Linux build** you need at least:
 
-- GCC 9 or higher (Packages: `build-essential g++-9`)
+- GCC 13 or higher (Packages: `build-essential g++`)
 - CMake (Package: `cmake`)
 - Ninja build system (Package: `ninja-build`)
 - Libcurl (Package: `libcurl4-openssl-dev`)
 - GTK3/Gtkmm3 (Package: `libgtkmm-3.0-dev`)
+
+Optionally:
+
 - Ccache (optional, but much **recommended**: `ccache`)
+- rpm
+- clangd (v18 or higher, if clangd is used in your IDE)
 
 **Dependencies for testing:**
 
 - X virtual framebuffer (Package: `xvfb`)
 - Clang-format (Package: `clang-format`)
-- cppcheck (v2.10 or higher)
+- cppcheck (v2.19 or higher)
+
+For generating docs:
+
+- doxygen
+- graphviz
 
 _Note:_ For cross-compiling towards Windows and building on macOS see "[Other platforms](#other-platforms)" section below.
 
@@ -123,6 +133,12 @@ Clone the source-code with SSH (do not forget `--recurse-submodules`):
 
 ```sh
 git clone --recurse-submodules -j5 git@gitlab.melroy.org:libreweb/libreweb-browser.git
+```
+
+Or if you cloned it already but forgot to use the `--recurse-submodules` flag, you can still do it:
+
+```sh
+git clone --recurse-submodules 
 ```
 
 Start the Linux build, which is using CMake and Ninja build system, using the wrapper script:

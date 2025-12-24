@@ -308,7 +308,7 @@ void Middleware::fetch_from_ipfs(bool isParseContent)
       // Retrieve content to string
       Glib::ustring content = contents.str();
       // Only set content if valid UTF-8
-      if (validate_utf8(content) && keep_request_thread_running_)
+      if (Middleware::validate_utf8(content) && keep_request_thread_running_)
       {
         set_content(content);
         if (isParseContent)
@@ -396,7 +396,7 @@ void Middleware::open_from_disk(bool isParseContent)
     if (keep_request_thread_running_)
     {
       // Only set content if valid UTF-8
-      if (validate_utf8(content))
+      if (Middleware::validate_utf8(content))
       {
         set_content(content);
         if (isParseContent)
@@ -432,15 +432,6 @@ void Middleware::open_from_disk(bool isParseContent)
   }
 }
 
-/**
- * \brief Validate if text is valid UTF-8.
- * \param text String that needs to be validated
- * \return true if valid UTF-8
- */
-bool Middleware::validate_utf8(const Glib::ustring& text) const
-{
-  return text.validate();
-}
 
 /**
  * \brief Simple wrapper of the method below with void return
@@ -579,4 +570,14 @@ void Middleware::abort_status()
     status_thread_ = nullptr;
     is_status_thread_done_ = false; // reset
   }
+}
+
+/**
+ * \brief Validate if text is valid UTF-8.
+ * \param text String that needs to be validated
+ * \return true if valid UTF-8
+ */
+bool Middleware::validate_utf8(const Glib::ustring& text)
+{
+  return text.validate();
 }

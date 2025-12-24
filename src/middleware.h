@@ -81,12 +81,12 @@ private:
   void process_request(const std::string& path, bool is_parse_content);
   void fetch_from_ipfs(bool is_parse_content);
   void open_from_disk(bool is_parse_content);
-  bool validate_utf8(const Glib::ustring& text) const;
   void do_ipfs_status_update_once();
   bool do_ipfs_status_update();
   void process_ipfs_status();
   void abort_request();
   void abort_status();
+  static bool validate_utf8(const Glib::ustring& text);
 };
 
 #endif
