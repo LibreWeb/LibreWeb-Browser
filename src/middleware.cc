@@ -432,7 +432,6 @@ void Middleware::open_from_disk(bool isParseContent)
   }
 }
 
-
 /**
  * \brief Simple wrapper of the method below with void return
  */
