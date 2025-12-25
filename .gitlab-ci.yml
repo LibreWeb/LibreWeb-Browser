@@ -64,20 +64,20 @@ build:bookworm:
   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:bookworm
   <<: *build_definition
 
-# # Forky (debian)
-# build:forky:
-#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:forky
-#   <<: *build_definition
+# Forky (debian)
+build:forky:
+  image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:forky
+  <<: *build_definition
 
-# # Noble (ubuntu)
-# build:noble:
-#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:noble
-#   <<: *build_definition
+# Noble (ubuntu)
+build:noble:
+  image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:noble
+  <<: *build_definition
 
-# # Plucky (ubuntu)
-# build:plucky:
-#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:plucky
-# <<: *build_definition
+# Plucky (ubuntu)
+build:plucky:
+  image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:plucky
+<<: *build_definition
 
 static_code_analysis:
   stage: build
