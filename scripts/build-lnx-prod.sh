@@ -5,19 +5,17 @@
 #
 #  Installs into /usr prefix directory under Linux.
 
-
-# Required input parameter check (used for the CPack generators)
+# Required input parameter check (used for the defining the CPack generators)
 if [ "$1" == "" ]; then
     echo "Usage: $0 <generator_names>"
-    echo 
+    echo
     echo "Example: $0 \"TGZ;DEB;RPM\""
     exit 1
 fi
 
-# First build the application for Linux
 rm -rf build_prod
 cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DPACKAGE=ON -DCMAKE_BUILD_TYPE=Release -B build_prod
 cmake --build ./build_prod --config Release 
-# Build packages
 cd build_prod
+# Requires root
 cpack -C Release -G "$1"

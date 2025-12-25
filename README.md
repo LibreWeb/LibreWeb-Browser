@@ -141,23 +141,9 @@ Or if you cloned it already but forgot to use the `--recurse-submodules` flag, y
 git clone --recurse-submodules 
 ```
 
-Start the Linux build, which is using CMake and Ninja build system, using the wrapper script:
-
-```sh
-./scripts/build-lnx.sh "DEB;RPM"
-```
-
-Second parameter is required and should be a semicolon separated list of packages to build. Some valid options are: `TGZ`, `DEB`, `RPM`. See `cpack --help` for more information.
+Start the Linux build, which is using CMake and Ninja build system, using the wrapper script: `./scripts/build-lnx.sh`.
 
 Optionally, use the VSCode `CMake Tools` extension to start the build or build with debug targets.
-
-#### Linux Packaging
-
-_Note:_ Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
-
-To build a release target yourself including packaging under GNU/Linux, use: `./scripts/build-lnx-prod.sh`
-
-Root access is required when building Linux packages; add `/opt/mxe/usr/bin` to the secure_path using: `sudo visudo`.
 
 ### Unit testing (Linux)
 
@@ -211,11 +197,25 @@ Or to generate a memory usage plot in [massif format](https://valgrind.org/docs/
 ./scripts/valgrind-plot.sh
 ```
 
-## Other platforms
+## Production
+
+### GNU/Linux
+
+_Note:_ Linux packages are already [available under releases](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
+
+To build a release target including packaging under GNU/Linux, use: 
+
+```sh
+./scripts/build-lnx-prod.sh "TGZ;DEB;RPM"
+```
+
+First parameter is required and should be a semicolon separated list of packages to build. Some valid options are: `TGZ`, `DEB`, `RPM`. See `cpack --help` for more information.
+
+Root access is required for `cpack` to build Linux packages.
 
 ### Microsoft Windows
 
-We are [**cross-compiling**](https://en.wikipedia.org/wiki/Cross_compiler) towards **Windows** using GNU/Linux.
+We are [**cross-compiling**](https://en.wikipedia.org/wiki/Cross_compiler) towards **Microsoft Windows** using GNU/Linux.
 
 #### Windows Build Dependencies
 
@@ -241,6 +241,8 @@ Add the following line to the end of the `~/.bashrc` file:
 ```bash
 export PATH="/opt/mxe/usr/bin:$PATH"
 ```
+
+And add `/opt/mxe/usr/bin` to the `secure_path` using: `sudo visudo` command.
 
 #### Windows Cross-compile Build
 
