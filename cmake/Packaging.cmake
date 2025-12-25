@@ -45,18 +45,18 @@ endif()
 
 # RPM section
 if(${LINUX_DISTRO} MATCHES "openSUSE")
-  # OpenSuse/Leap
+  # OpenSuse (Leap, Tumbleweed)
   set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm3")
 else()
-  # Redhat/CentOS/Fedora/etc.
+  # Fedora/CentOS/Redhat/etc.
   set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm30")
 endif()
 # Optional RPM packages (non for now)
 set(CPACK_RPM_PACKAGE_SUGGESTS "")
 
-# Debian Jessie/Ubuntu Trusty/Mint Qiana (libgtkmm-3.0-1) or 
-# Debian Stretch, Buster or newer, Ubuntu Xenial, Artful, Bionic or newer, Linux Mint Sarah, Tessa, Tina or newer (libgtkmm-3.0-1v5)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtkmm-3.0-1 | libgtkmm-3.0-1v5")
+# Debian bookworm, Buster, Ubuntu Xenial, Artful, Bionic, Linux Mint Sarah, Tessa, Tina (libgtkmm-3.0-1v5)
+# Debian Sid, Ubuntu Noble, Linux Mint Wilma (libgtkmm-3.0-1t64)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtkmm-3.0-1v5 | libgtkmm-3.0-1t64")
 # Optional deb packages (non for now)
 set(CPACK_DEBIAN_PACKAGE_SUGGESTS "")
 
