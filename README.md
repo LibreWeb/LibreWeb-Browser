@@ -153,7 +153,7 @@ To execute the **unit tests** you can configure with `cmake -DUNITTEST:BOOL=TRUE
 Or just use script:
 
 ```sh
-./scripts/build-run-tests.sh
+./scripts/run-tests.sh
 ```
 
 ### C++ Coding Style Guidelines

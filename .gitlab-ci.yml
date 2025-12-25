@@ -1,16 +1,39 @@
 image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:trixie
 
 stages:
-  - build
   - test
+  - build
   - release
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/libreweb-browser/${CI_COMMIT_TAG}"
   RELEASE_LINKS_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
-  SAST_EXCLUDED_ANALYZERS: "bandit,brakeman,eslint,gosec,kubesec,nodejs-scan,phpcs-security-audit,pmd-apex,security-code-scan,sobelow,spotbugs"
-  SAST_EXCLUDED_PATHS: "lib"
+
+include:
+  - template: Security/SAST.gitlab-ci.yml
+
+# Linux build template (deb only)
+.build_template: &build_definition
+  stage: build
+  script:
+    - ./scripts/build-lnx-prod.sh "DEB"
+  artifacts:
+    name: Packages
+    expire_in: 4 weeks
+    paths:
+      - build_prod/libreweb-browser-*.deb
+
+unit_test:
+  stage: test
+  script: ./scripts/run-tests.sh
+
+sast:
+  stage: test
+  variables:
+    SAST_EXCLUDED_PATHS: "lib"
+    SAST_EXCLUDED_ANALYZERS: "bandit,brakeman,eslint,gosec,kubesec,nodejs-scan,phpcs-security-audit,pmd-apex,security-code-scan,sobelow,spotbugs"
+    SEARCH_MAX_DEPTH: 3
 
 doxygen:
   stage: build
@@ -21,7 +44,8 @@ doxygen:
     paths:
       - build_docs/docs/html/
 
-linux_build:
+# Build trixie (deb + rpm + source archive)
+build:trixie:
   stage: build
   script:
     - ./scripts/build-lnx-prod.sh "TGZ;DEB;RPM"
@@ -35,6 +59,26 @@ linux_build:
       - build_prod/libreweb-browser-*.tar.gz
       - build_prod/libreweb-browser-source-*.tar.gz
 
+# Bookworm (debian)
+build:bookworm:
+  image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:bookworm
+  <<: *build_definition
+
+# # Forky (debian)
+# build:forky:
+#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:forky
+#   <<: *build_definition
+
+# # Noble (ubuntu)
+# build:noble:
+#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:noble
+#   <<: *build_definition
+
+# # Plucky (ubuntu)
+# build:plucky:
+#   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:plucky
+# <<: *build_definition
+
 static_code_analysis:
   stage: build
   script: ./scripts/cpp-check.sh
@@ -42,18 +86,6 @@ static_code_analysis:
 code_style_guidelines:
   stage: build
   script: ./scripts/check-format.sh
-
-unit_test:
-  stage: test
-  script: ./scripts/build-run-tests.sh
-
-sast:
-  stage: test
-  variables:
-    SEARCH_MAX_DEPTH: 3
-
-include:
-  - template: Security/SAST.gitlab-ci.yml
 
 # Upload artifacts & Create new release
 upload_and_release:
@@ -96,14 +128,4 @@ upload_and_release:
       --data "{\"name\":\"LibreWeb Browser Source Code Archive (tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
 
-# Create new release
-#release:
-#  stage: release
-#  image: registry.gitlab.com/gitlab-org/release-cli:edge
-#  rules:
-#    - if: '$CI_PROJECT_NAMESPACE == "libreweb" && $CI_COMMIT_TAG'
-#  script:
-#    - release-cli --timeout 700s create --name "Release version $CI_COMMIT_TAG" --tag-name $CI_COMMIT_TAG \
-#        --assets-link "{\"name\":\"LibreWeb Browser (Debian/Ubuntu/Linux Mint)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.deb\"}" \
-#        --assets-link "{\"name\":\"LibreWeb Browser (Red-Hat/Fedora/openSUSE)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm\"}" \
-#        --assets-link "{\"name\":\"LibreWeb Browser (Compressed binary)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz\"}"
+# TODO: look into: https://docs.gitlab.com/cli/release/upload/
