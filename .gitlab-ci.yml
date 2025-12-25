@@ -77,7 +77,7 @@ build:noble:
 # Plucky (ubuntu)
 build:plucky:
   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:plucky
-<<: *build_definition
+  <<: *build_definition
 
 static_code_analysis:
   stage: build
