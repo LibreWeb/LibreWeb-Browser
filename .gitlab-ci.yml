@@ -143,21 +143,12 @@ upload_and_release:
       --header "Content-Type: application/json"
       --data "{\"name\":\"LibreWeb Browser - Fedora/openSUSE/CentOS (.rpm)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
+
     # Deb package links
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Ubuntu 25.04 (Plucky Puffin) (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-plucky.deb\",\"link_type\":\"package\"}"
-      ${RELEASE_LINKS_URL}'
-    - 'curl --request POST
-      --header "JOB-TOKEN: $CI_JOB_TOKEN"
-      --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Ubuntu 24.04 (Noble Numbat)/Linux Mint 22/Zorin OS 18/elementary OS 8 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-noble.deb\",\"link_type\":\"package\"}"
-      ${RELEASE_LINKS_URL}'
-    - 'curl --request POST
-      --header "JOB-TOKEN: $CI_JOB_TOKEN"
-      --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Debian 14 Forky/Kali Linux (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-forky.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Debian 12 Bookworm/MX Linux 23 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-bookworm.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
@@ -167,7 +158,17 @@ upload_and_release:
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Debian 12 Bookworm/MX Linux 23 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-bookworm.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Debian 14 Forky/Kali Linux (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-forky.deb\",\"link_type\":\"package\"}"
+      ${RELEASE_LINKS_URL}'
+    - 'curl --request POST
+      --header "JOB-TOKEN: $CI_JOB_TOKEN"
+      --header "Content-Type: application/json"
+      --data "{\"name\":\"LibreWeb Browser - Ubuntu 24.04 (Noble Numbat)/Linux Mint 22/Zorin OS 18/elementary OS 8 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-noble.deb\",\"link_type\":\"package\"}"
+      ${RELEASE_LINKS_URL}'
+    - 'curl --request POST
+      --header "JOB-TOKEN: $CI_JOB_TOKEN"
+      --header "Content-Type: application/json"
+      --data "{\"name\":\"LibreWeb Browser - Ubuntu 25.04 (Plucky Puffin) (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-plucky.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
 
 # TODO: look into: https://docs.gitlab.com/cli/release/upload/
