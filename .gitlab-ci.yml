@@ -30,6 +30,14 @@ unit_test:
   stage: test
   script: ./scripts/run-tests.sh
 
+static_code_analysis:
+  stage: test
+  script: ./scripts/cpp-check.sh
+
+code_style_guidelines:
+  stage: test
+  script: ./scripts/check-format.sh
+
 sast:
   stage: test
   variables:
@@ -80,14 +88,6 @@ build:noble:
 build:plucky:
   image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:plucky
   <<: *build_definition
-
-static_code_analysis:
-  stage: build
-  script: ./scripts/cpp-check.sh
-
-code_style_guidelines:
-  stage: build
-  script: ./scripts/check-format.sh
 
 # Upload artifacts & Create new release
 upload_and_release:
