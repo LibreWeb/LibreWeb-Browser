@@ -3,7 +3,7 @@ image: registry.melroy.org/melroy/docker-images/gtk-cmake-ninja:trixie
 stages:
   - test
   - build
-  - release
+  - deploy
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -91,7 +91,7 @@ build:plucky:
 
 # Upload artifacts & Create new release
 upload_and_release:
-  stage: release
+  stage: deploy
   image: curlimages/curl:latest
   rules:
     - if: $CI_PROJECT_NAMESPACE == "libreweb" && $CI_COMMIT_TAG
