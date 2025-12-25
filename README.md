@@ -18,7 +18,7 @@ LibreWeb is:
 - Free and open-source
 - Decentralized
 - Censorship resistant
-- Operating under Windows, Linux (macOS soon)
+- Available for Linux and Windows (macOS coming soon)
 
 ## For Users
 
@@ -49,7 +49,7 @@ You could help us with:
 - [Documentation](https://docs.libreweb.org)
 - Discussions on the [Telegram](https://t.me/libreweb) or [Matrix](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) groups
 - [Bugs & Feature requests](https://github.com/LibreWeb/LibreWeb-Browser/issues)
-- [Official GitLab project](https://gitlab.melroy.org/libreweb/) (contact me for acces)
+- [Official GitLab project](https://gitlab.melroy.org/libreweb/) (contact me for access)
 - [Sponsor us](https://docs.libreweb.org/project/sponsor/)
 
 [Read more how to contribute](https://docs.libreweb.org/project/contribute/) to the LibreWeb project.
