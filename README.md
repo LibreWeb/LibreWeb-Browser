@@ -10,7 +10,8 @@ With all the knowledge and new technologies available today. I was inspired by D
 [![Docs](https://img.shields.io/badge/Documentation-orange)](https://docs.libreweb.org/)
 [![Release](https://img.shields.io/badge/release-latest-orange)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases)
 
-_Note:_ This project is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
+> [!NOTE]  
+> LibreWeb Browser is still work in progress. However, we have a working [alpha version available](https://gitlab.melroy.org/libreweb/libreweb-browser/-/releases).
 
 LibreWeb is:
 
@@ -35,7 +36,7 @@ Visit the [dedicated documentation site](https://docs.libreweb.org) for _user_ d
 
 **Reporting**
 
-Create a new issue in [GitLab Issues](https://gitlab.melroy.org/libreweb/libreweb-browser/-/issues).
+Create a new issue in [GitHub Issues](https://github.com/LibreWeb/LibreWeb-Browser/issues).
 
 **Supporting**
 
@@ -47,8 +48,8 @@ You could help us with:
 
 - [Documentation](https://docs.libreweb.org)
 - Discussions on the [Telegram](https://t.me/libreweb) or [Matrix](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) groups
-- [Bugs & Feature requests](https://gitlab.melroy.org/libreweb/libreweb-browser/-/issues)
-- [Coding](https://gitlab.melroy.org/libreweb/)
+- [Bugs & Feature requests](https://github.com/LibreWeb/LibreWeb-Browser/issues)
+- [Official GitLab project](https://gitlab.melroy.org/libreweb/) (contact me for acces)
 - [Sponsor us](https://docs.libreweb.org/project/sponsor/)
 
 [Read more how to contribute](https://docs.libreweb.org/project/contribute/) to the LibreWeb project.
@@ -79,7 +80,7 @@ The current success criteria:
 - Content is King;
 - Fast and Extensible!
 
-_Note:_ Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, can still be used.
+_Note:_ Since HyperText (so is HTML) is not used, you can even ditch the HTTP protocol. However TLS, for encryption, could still be used.
 
 ---
 
