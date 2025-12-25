@@ -24,7 +24,7 @@ doxygen:
 linux_build:
   stage: build
   script:
-    - ./scripts/build-lnx-prod.sh
+    - ./scripts/build-lnx-prod.sh "TGZ;DEB;RPM"
     - ./scripts/create-source-archive.sh
   artifacts:
     name: Packages

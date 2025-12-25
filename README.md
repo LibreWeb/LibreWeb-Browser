@@ -144,8 +144,10 @@ git clone --recurse-submodules
 Start the Linux build, which is using CMake and Ninja build system, using the wrapper script:
 
 ```sh
-./scripts/build-lnx.sh
+./scripts/build-lnx.sh "DEB;RPM"
 ```
+
+Second parameter is required and should be a semicolon separated list of packages to build. Some valid options are: `TGZ`, `DEB`, `RPM`. See `cpack --help` for more information.
 
 Optionally, use the VSCode `CMake Tools` extension to start the build or build with debug targets.
 
