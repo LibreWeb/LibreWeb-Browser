@@ -130,43 +130,43 @@ upload_and_release:
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Debian 12 Bookworm/MX Linux 23\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-bookworm.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Debian 12 Bookworm/MX Linux 23 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-bookworm.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Debian 13 Trixie/MX Linux 25\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-trixie.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Debian 13 Trixie/MX Linux 25 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-trixie.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Debian 14 Forky/Kali Linux\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-forky.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Debian 14 Forky/Kali Linux (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-forky.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Ubuntu 24.04 (Noble Numbat)/Linux Mint 22/Zorin OS 18/elementary OS 8\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-noble.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Ubuntu 24.04 (Noble Numbat)/Linux Mint 22/Zorin OS 18/elementary OS 8 (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-noble.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Ubuntu 25.04 (Plucky Puffin)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-plucky.deb\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Ubuntu 25.04 (Plucky Puffin) (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}-plucky.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     # Remaining package links
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Compressed binary (Trixie, tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Fedora/openSUSE/CentOS (.rpm)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Fedora/openSUSE/CentOS\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.rpm\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Compressed Binary (.tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Source Code Archive (tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Source Code Archive (.tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
 
 # TODO: look into: https://docs.gitlab.com/cli/release/upload/
