@@ -28,18 +28,22 @@ include:
 
 unit_test:
   stage: test
+  interruptible: true
   script: ./scripts/run-tests.sh
 
 static_code_analysis:
   stage: test
+  interruptible: true
   script: ./scripts/cpp-check.sh
 
 code_style_guidelines:
   stage: test
+  interruptible: true
   script: ./scripts/check-format.sh
 
 sast:
   stage: test
+  interruptible: true
   variables:
     SAST_EXCLUDED_PATHS: "lib"
     SAST_EXCLUDED_ANALYZERS: "bandit,brakeman,eslint,gosec,kubesec,nodejs-scan,phpcs-security-audit,pmd-apex,security-code-scan,sobelow,spotbugs"
@@ -47,6 +51,7 @@ sast:
 
 doxygen:
   stage: build
+  interruptible: true
   script:
     - ./scripts/build-docs.sh
   artifacts:
