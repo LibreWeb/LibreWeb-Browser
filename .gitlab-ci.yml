@@ -136,7 +136,7 @@ upload_and_release:
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
       --header "Content-Type: application/json"
-      --data "{\"name\":\"LibreWeb Browser - Source Code Archive (.tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"package\"}"
+      --data "{\"name\":\"LibreWeb Browser - Source Code Archive (.tar.gz)\",\"url\":\"${PACKAGE_REGISTRY_URL}/libreweb-browser-source-v${CI_COMMIT_TAG}.tar.gz\",\"link_type\":\"other\"}"
       ${RELEASE_LINKS_URL}'
     - 'curl --request POST
       --header "JOB-TOKEN: $CI_JOB_TOKEN"
