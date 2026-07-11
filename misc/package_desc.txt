@@ -1,5 +1,5 @@
 LibreWeb Browser is a fully decentralized free software and open-source Web Browser. 
-Allowing users to easily browse and host new content on the decentralized web. Build on top of IPFS.
+Allowing users to easily browse and host new content on the decentralized web. Built on top of Freedom Names.
 
 Decentralization comes with many benefits like resilient to censorship and no single point of failure.
 

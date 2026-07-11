@@ -50,7 +50,15 @@ void FreedomNamesDaemon::spawn()
         // Bind the node's services to loopback only. The phase-1 node reads these
         // env vars (see freedom-names config.go); once it grows CLI flags we can
         // switch to --api-bind/--http-addr.
-        std::vector<std::string> envp = Glib::listenv();
+        // Note: Glib::listenv() only returns the variable *names*, so build the
+        // KEY=VALUE pairs ourselves. Skip any pre-existing FREEDOM_* entries so
+        // our loopback values are the only ones the child sees.
+        std::vector<std::string> envp;
+        for (const std::string& name : Glib::listenv())
+        {
+          if (name != "FREEDOM_HTTP_ADDR" && name != "FREEDOM_DNS_ADDR")
+            envp.push_back(name + "=" + Glib::getenv(name));
+        }
         envp.push_back("FREEDOM_HTTP_ADDR=127.0.0.1:8420");
         envp.push_back("FREEDOM_DNS_ADDR=127.0.0.1:8053");
 
@@ -128,6 +136,9 @@ std::string FreedomNamesDaemon::locate_binary()
   std::string current_executable_path;
 #if defined(_WIN32)
   binary_name += ".exe";
+#elif defined(__APPLE__)
+  // Matches the binary name installed by CMake on macOS (freedom-names-darwin)
+  binary_name += "-darwin";
 #endif
   // Use the current executable directory (bin folder) to locate the node binary.
   char* path = NULL;

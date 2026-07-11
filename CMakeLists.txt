@@ -95,20 +95,34 @@ if(UNITTEST)
 endif()
 
 # Additional install files
+# The Freedom Names node binary is expected in the freedom-names/ directory
+# (place a build of https://gitlab.melroy.org/freedom-names/freedom-names there).
+# The install is optional so source builds without the binary still work;
+# packaged releases should always bundle it, otherwise the node won't start.
 if(WIN32)
   # Microsoft Windows specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_win/ DESTINATION .)
-  install(PROGRAMS freedom-names/freedom-names.exe DESTINATION bin)
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names.exe)
+  set(FREEDOM_NAMES_DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
-  install(PROGRAMS freedom-names/freedom-names-darwin DESTINATION ${MACOSDIR})
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names-darwin)
+  set(FREEDOM_NAMES_DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
-  install(PROGRAMS freedom-names/freedom-names DESTINATION bin)
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names)
+  set(FREEDOM_NAMES_DESTINATION bin)
+endif()
+if(EXISTS ${FREEDOM_NAMES_BINARY})
+  install(PROGRAMS ${FREEDOM_NAMES_BINARY} DESTINATION ${FREEDOM_NAMES_DESTINATION})
+else()
+  message(WARNING "Freedom Names node binary not found at ${FREEDOM_NAMES_BINARY}; "
+                  "it will NOT be installed. The browser needs it at runtime — "
+                  "place the binary there before packaging.")
 endif()
 # General
 install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)

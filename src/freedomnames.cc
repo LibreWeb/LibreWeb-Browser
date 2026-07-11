@@ -17,13 +17,8 @@ size_t write_to_string(char* ptr, size_t size, size_t nmemb, void* userdata)
   return size * nmemb;
 }
 
-// libcurl write callback appending to a std::iostream.
-size_t write_to_stream(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  auto* out = static_cast<std::iostream*>(userdata);
-  out->write(ptr, static_cast<std::streamsize>(size * nmemb));
-  return size * nmemb;
-}
+// How long to wait for the TCP connect to the (local) node.
+constexpr long kConnectTimeoutSeconds = 30;
 
 // Progress callback: aborts the transfer when the shared abort flag is set.
 int progress_callback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
@@ -40,10 +35,8 @@ int progress_callback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_of
  * \param timeout time-out string like "6s" or "5m" (matched to the IPFS client contract)
  */
 FreedomNames::FreedomNames(const std::string& host, int port, const std::string& timeout)
-    : host_(host), port_(port), abort_(false)
+    : host_(host), port_(port), timeout_seconds_(parse_timeout_seconds(timeout)), abort_(false)
 {
-  long seconds = parse_timeout_seconds(timeout);
-  timeout_seconds_ = std::to_string(seconds);
 }
 
 FreedomNames::~FreedomNames()
@@ -96,7 +89,7 @@ std::vector<FreedomRecord> FreedomNames::resolve(const std::string& name, const 
 void FreedomNames::resolve_content(const std::string& name, std::iostream* contents)
 {
   const std::string url = base_url() + "/resolve-content?name=" + url_encode(name);
-  http_get_stream(url, contents);
+  *contents << http_get(url);
 }
 
 /**
@@ -147,6 +140,21 @@ void FreedomNames::reset()
  * Private helpers
  ************************************************/
 
+/**
+ * \brief Perform a GET request and return the response body.
+ *
+ * Time-out semantics: the configured time-out acts as an *idle* time-out (via
+ * CURLOPT_LOW_SPEED_*) rather than a cap on total transfer time, so a large
+ * page that is still making progress is never killed mid-download, while a node
+ * that silently hangs (e.g. a long DHT lookup) still errors after the time-out.
+ *
+ * Error contract (matched by the middleware):
+ *  - "Request was aborted"                          — abort() was called
+ *  - "Request timed out: ..."                       — idle/connect time-out
+ *  - "Couldn't connect to server: ..."              — node not (yet) reachable
+ *  - "Request failed: ..."                          — any other transport error
+ *  - "HTTP request failed with status code N: body" — non-2xx response
+ */
 std::string FreedomNames::http_get(const std::string& url)
 {
   std::string response;
@@ -158,7 +166,9 @@ std::string FreedomNames::http_get(const std::string& url)
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-  curl_easy_setopt(curl, CURLOPT_TIMEOUT, std::stol(timeout_seconds_));
+  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, kConnectTimeoutSeconds);
+  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_LIMIT, 1L);
+  curl_easy_setopt(curl, CURLOPT_LOW_SPEED_TIME, timeout_seconds_);
   curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
   curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
   curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &abort_);
@@ -167,41 +177,24 @@ std::string FreedomNames::http_get(const std::string& url)
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
   curl_easy_cleanup(curl);
 
-  if (res == CURLE_ABORTED_BY_CALLBACK)
+  switch (res)
+  {
+  case CURLE_OK:
+    break;
+  case CURLE_ABORTED_BY_CALLBACK:
     throw std::runtime_error("Request was aborted");
-  if (res != CURLE_OK)
+  case CURLE_OPERATION_TIMEDOUT:
+    throw std::runtime_error(std::string("Request timed out: ") + curl_easy_strerror(res));
+  case CURLE_COULDNT_CONNECT:
+  case CURLE_COULDNT_RESOLVE_HOST:
     throw std::runtime_error(std::string("Couldn't connect to server: ") + curl_easy_strerror(res));
+  default:
+    throw std::runtime_error(std::string("Request failed: ") + curl_easy_strerror(res));
+  }
   if (http_code < 200 || http_code >= 300)
-    throw std::runtime_error("HTTP request failed with status code: " + response);
+    throw std::runtime_error("HTTP request failed with status code " + std::to_string(http_code) + ": " + response);
 
   return response;
-}
-
-void FreedomNames::http_get_stream(const std::string& url, std::iostream* out)
-{
-  CURL* curl = curl_easy_init();
-  if (!curl)
-    throw std::runtime_error("Could not init curl");
-
-  long http_code = 0;
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_stream);
-  curl_easy_setopt(curl, CURLOPT_WRITEDATA, out);
-  curl_easy_setopt(curl, CURLOPT_TIMEOUT, std::stol(timeout_seconds_));
-  curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-  curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, progress_callback);
-  curl_easy_setopt(curl, CURLOPT_XFERINFODATA, &abort_);
-
-  CURLcode res = curl_easy_perform(curl);
-  curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
-  curl_easy_cleanup(curl);
-
-  if (res == CURLE_ABORTED_BY_CALLBACK)
-    throw std::runtime_error("Request was aborted");
-  if (res != CURLE_OK)
-    throw std::runtime_error(std::string("Couldn't connect to server: ") + curl_easy_strerror(res));
-  if (http_code < 200 || http_code >= 300)
-    throw std::runtime_error("HTTP request failed with status code: " + std::to_string(http_code));
 }
 
 /**

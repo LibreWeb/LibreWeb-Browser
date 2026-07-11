@@ -70,8 +70,8 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-# Allow ipfs.exe and the binaries in the packaging folder
-!go-ipfs/ipfs.exe
+# Allow the freedom-names node binary and the binaries in the packaging folder
+!freedom-names/freedom-names.exe
 !misc/packaging_win/bin/*
 
 # Build folders

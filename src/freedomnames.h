@@ -68,14 +68,12 @@ public:
 private:
   std::string host_;
   int port_;
-  std::string timeout_seconds_; /* parsed from the "6s"/"5m" style timeout string */
-  std::atomic<bool> abort_;     /* set by abort(); checked by the curl progress callback */
+  long timeout_seconds_;    /* parsed from the "6s"/"5m" style timeout string */
+  std::atomic<bool> abort_; /* set by abort(); checked by the curl progress callback */
 
   std::string base_url() const;
   // Performs a GET and returns the body; throws std::runtime_error on transport/HTTP error.
   std::string http_get(const std::string& url);
-  // Performs a GET streaming the body into out; throws on transport/HTTP error.
-  void http_get_stream(const std::string& url, std::iostream* out);
   static std::string url_encode(const std::string& value);
   static long parse_timeout_seconds(const std::string& timeout);
 };

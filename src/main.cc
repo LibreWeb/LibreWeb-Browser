@@ -3,6 +3,7 @@
 #include "option-group.h"
 #include "project_config.h"
 
+#include <curl/curl.h>
 #include <gtkmm/application.h>
 #include <iomanip>
 #include <iostream>
@@ -14,6 +15,9 @@
  */
 int main(int argc, char* argv[])
 {
+  // Init libcurl once before any threads exist; the implicit lazy init inside
+  // curl_easy_init() is not thread-safe on older libcurl builds.
+  curl_global_init(CURL_GLOBAL_DEFAULT);
   // Set the command-line parameters option settings
   Glib::OptionContext context("LibreWeb Browser - Decentralized Web Browser");
   OptionGroup group;
@@ -60,5 +64,7 @@ int main(int argc, char* argv[])
 
   // Run the GTK main window in the main thread
   MainWindow main_window(group.timeout);
-  return app->run(main_window);
+  int status = app->run(main_window);
+  curl_global_cleanup();
+  return status;
 }

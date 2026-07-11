@@ -62,7 +62,7 @@ private:
   std::string freedom_node_id_;
   std::string freedom_mode_;
   int freedom_network_size_;
-  std::mutex status_mutex_; /* Status mutex to protect class members */
+  mutable std::mutex status_mutex_; /* Protects the status members above; also locked by the const getters */
 
   // Request & Response:
   std::string request_path_;

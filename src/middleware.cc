@@ -159,6 +159,7 @@ void Middleware::reset_content_and_path()
  */
 std::size_t Middleware::get_freedom_number_of_peers() const
 {
+  std::lock_guard<std::mutex> guard(status_mutex_);
   return freedom_number_of_peers_;
 }
 
@@ -168,6 +169,7 @@ std::size_t Middleware::get_freedom_number_of_peers() const
  */
 std::string Middleware::get_freedom_node_id() const
 {
+  std::lock_guard<std::mutex> guard(status_mutex_);
   return freedom_node_id_;
 }
 
@@ -177,6 +179,7 @@ std::string Middleware::get_freedom_node_id() const
  */
 std::string Middleware::get_freedom_mode() const
 {
+  std::lock_guard<std::mutex> guard(status_mutex_);
   return freedom_mode_;
 }
 
@@ -186,6 +189,7 @@ std::string Middleware::get_freedom_mode() const
  */
 int Middleware::get_freedom_network_size() const
 {
+  std::lock_guard<std::mutex> guard(status_mutex_);
   return freedom_network_size_;
 }
 
@@ -308,25 +312,35 @@ void Middleware::fetch_from_freedomnames(bool isParseContent)
       std::cerr << "ERROR: Freedom Names request failed, with message: " << errorMessage << std::endl;
       if (errorMessage.starts_with("HTTP request failed with status code"))
       {
+        // Format: "HTTP request failed with status code <N>: <body>" (see FreedomNames::http_get).
         std::string message;
-        // Remove text until ':\n', leaving the response body (plain text or {"error":...}).
-        errorMessage.erase(0, errorMessage.find(':') + 2);
-        if (!errorMessage.empty())
+        std::string body = errorMessage.substr(errorMessage.find(':') + 2);
+        if (!body.empty())
         {
           // The node returns either a JSON {"error":"..."} body or a plain-text reason.
           try
           {
-            auto content = nlohmann::json::parse(errorMessage);
-            message = "Message: " + content.value("error", errorMessage) + ".\n\n";
+            auto content = nlohmann::json::parse(body);
+            message = "Message: " + content.value("error", body) + ".\n\n";
           }
           catch (const nlohmann::json::parse_error&)
           {
-            message = "Message: " + errorMessage + ".\n\n";
+            message = "Message: " + body + ".\n\n";
           }
+        }
+        else
+        {
+          message = "Message: " + errorMessage + ".\n\n";
         }
         Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message),
                                                     "🎂 We're having trouble finding this site.",
                                                     message + "You could try to reload the page or try increase the time-out (see --help)."));
+      }
+      else if (errorMessage.starts_with("Request timed out"))
+      {
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "⏰ Request timed out",
+                                                    "The lookup took too long. Time-out is set to: " + freedom_timeout_ +
+                                                        ".\n\nYou could try to reload the page or increase the time-out (see --help)."));
       }
       else if (errorMessage.starts_with("Couldn't connect to server"))
       {
@@ -428,15 +442,18 @@ bool Middleware::do_freedom_status_update()
  */
 void Middleware::process_freedom_status()
 {
-  std::lock_guard<std::mutex> guard(status_mutex_);
   try
   {
+    // Network I/O runs outside the lock, so GUI-thread getters never block on it
     FreedomInfo info = freedom_status_.get_info();
-    freedom_number_of_peers_ = info.peers;
-    freedom_mode_ = info.mode;
-    freedom_network_size_ = info.network_size;
-    if (freedom_node_id_.empty())
-      freedom_node_id_ = info.node_id;
+    {
+      std::lock_guard<std::mutex> guard(status_mutex_);
+      freedom_number_of_peers_ = info.peers;
+      freedom_mode_ = info.mode;
+      freedom_network_size_ = info.network_size;
+      if (freedom_node_id_.empty())
+        freedom_node_id_ = info.node_id;
+    }
 
     // Auto-refresh page if needed (when 'Please wait' page was shown) once the node is up.
     if (wait_page_visible_)
@@ -451,9 +468,12 @@ void Middleware::process_freedom_status()
     if (errorMessage != "Request was aborted")
     {
       // Assume no connection or connection lost; display disconnected
-      freedom_number_of_peers_ = 0;
-      freedom_mode_ = "";
-      freedom_network_size_ = -1;
+      {
+        std::lock_guard<std::mutex> guard(status_mutex_);
+        freedom_number_of_peers_ = 0;
+        freedom_mode_ = "";
+        freedom_network_size_ = -1;
+      }
       Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
     }
   }
