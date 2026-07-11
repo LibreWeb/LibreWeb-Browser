@@ -255,12 +255,14 @@ protected:
   Gtk::Label connectivity_status_label;
   Gtk::Label peers_label;
   Gtk::Label peers_status_label;
-  Gtk::Label repo_size_label;
-  Gtk::Label repo_size_status_label;
-  Gtk::Label repo_path_label;
-  Gtk::Label repo_path_status_label;
+  Gtk::Label mode_label;
+  Gtk::Label mode_status_label;
+  Gtk::Label node_id_label;
+  Gtk::Label node_id_status_label;
   Gtk::Label network_size_label;
   Gtk::Label network_size_status_label;
+  Gtk::Label node_version_label;
+  Gtk::Label node_version_status_label;
   Gtk::Label network_incoming_label;
   Gtk::Label network_incoming_status_label;
   Gtk::Label network_outgoing_label;

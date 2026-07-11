@@ -84,9 +84,10 @@ MainWindow::MainWindow(const std::string& timeout)
       network_rate_heading_label("Network rate"),
       connectivity_label("Status:"),
       peers_label("Connected peers:"),
-      repo_size_label("Mode:"),
-      repo_path_label("Node ID:"),
+      mode_label("Mode:"),
+      node_id_label("Node ID:"),
       network_size_label("Network size:"),
+      node_version_label("Node version:"),
       network_incoming_label("Incoming"),
       network_outgoing_label("Outgoing"),
       network_kilo_bytes_label("Kilobytes/s"),
@@ -345,12 +346,12 @@ void MainWindow::update_status_popover_and_icon()
   }
   connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
   peers_status_label.set_text(std::to_string(nrOfPeers));
-  // Repurposed rows: Mode / Node ID / Network size (see status popover init).
-  repo_size_status_label.set_text(middleware_.get_freedom_mode());
-  repo_path_status_label.set_text(middleware_.get_freedom_node_id());
+  mode_status_label.set_text(middleware_.get_freedom_mode());
+  node_id_status_label.set_text(middleware_.get_freedom_node_id());
   int networkSize = middleware_.get_freedom_network_size();
   network_size_status_label.set_text(networkSize >= 0 ? "~" + std::to_string(networkSize) : "unknown");
-  // Bandwidth rates are not exposed by the phase-1 node yet.
+  node_version_status_label.set_text(middleware_.get_freedom_version());
+  // Bandwidth rates are not exposed by the node (yet).
   network_incoming_status_label.set_text("n/a");
   network_outgoing_status_label.set_text("n/a");
 }
@@ -706,19 +707,22 @@ void MainWindow::init_status_popover()
 {
   connectivity_label.set_xalign(0.0);
   peers_label.set_xalign(0.0);
-  repo_size_label.set_xalign(0.0);
-  repo_path_label.set_xalign(0.0);
+  mode_label.set_xalign(0.0);
+  node_id_label.set_xalign(0.0);
   network_size_label.set_xalign(0.0);
+  node_version_label.set_xalign(0.0);
   connectivity_status_label.set_xalign(1.0);
   peers_status_label.set_xalign(1.0);
-  repo_size_status_label.set_xalign(1.0);
-  repo_path_status_label.set_xalign(1.0);
+  mode_status_label.set_xalign(1.0);
+  node_id_status_label.set_xalign(1.0);
   network_size_status_label.set_xalign(1.0);
+  node_version_status_label.set_xalign(1.0);
   connectivity_label.get_style_context()->add_class("dim-label");
   peers_label.get_style_context()->add_class("dim-label");
-  repo_size_label.get_style_context()->add_class("dim-label");
-  repo_path_label.get_style_context()->add_class("dim-label");
+  mode_label.get_style_context()->add_class("dim-label");
+  node_id_label.get_style_context()->add_class("dim-label");
   network_size_label.get_style_context()->add_class("dim-label");
+  node_version_label.get_style_context()->add_class("dim-label");
   // Status popover grid
   status_grid.set_column_homogeneous(true);
   status_grid.set_margin_start(6);
@@ -731,12 +735,14 @@ void MainWindow::init_status_popover()
   status_grid.attach(connectivity_status_label, 1, 0);
   status_grid.attach(peers_label, 0, 1);
   status_grid.attach(peers_status_label, 1, 1);
-  status_grid.attach(repo_size_label, 0, 2);
-  status_grid.attach(repo_size_status_label, 1, 2);
-  status_grid.attach(repo_path_label, 0, 3);
-  status_grid.attach(repo_path_status_label, 1, 3);
+  status_grid.attach(mode_label, 0, 2);
+  status_grid.attach(mode_status_label, 1, 2);
+  status_grid.attach(node_id_label, 0, 3);
+  status_grid.attach(node_id_status_label, 1, 3);
   status_grid.attach(network_size_label, 0, 4);
   status_grid.attach(network_size_status_label, 1, 4);
+  status_grid.attach(node_version_label, 0, 5);
+  status_grid.attach(node_version_status_label, 1, 5);
   // Network activity status grid
   network_kilo_bytes_label.get_style_context()->add_class("dim-label");
   activity_status_grid.set_column_homogeneous(true);

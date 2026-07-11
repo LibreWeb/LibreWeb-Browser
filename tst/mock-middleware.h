@@ -21,4 +21,5 @@ public:
   MOCK_METHOD(std::string, get_freedom_node_id, (), (const, override));
   MOCK_METHOD(std::string, get_freedom_mode, (), (const, override));
   MOCK_METHOD(int, get_freedom_network_size, (), (const, override));
+  MOCK_METHOD(std::string, get_freedom_version, (), (const, override));
 };

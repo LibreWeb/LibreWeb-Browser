@@ -91,18 +91,18 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
 /**
  * \brief Add current content to the Freedom Names content network.
  * \param path file path (currently unused; kept for interface compatibility)
- * \return Content hash
+ * \return Content hash (base36 sha2-256 multihash)
  *
- * NOTE: The phase-1 Freedom Names node resolves names but does not yet store/serve
- * content (that is a phase-3 node feature: POST /content). Until then this throws a
- * runtime_error so the caller can inform the user, instead of silently failing.
+ * Uses a dedicated client instance: freedom_fetch_/freedom_status_ are owned by
+ * the request/status threads, whose periodic abort()+reset() cycles would cancel
+ * an in-flight publish. A local client has no shared abort state.
+ * TODO: Run this within a separate thread, to avoid blocking the main thread.
  */
 std::string Middleware::do_add(const std::string& path)
 {
   (void)path;
-  // TODO(phase 3): call freedom_status_.add_content(get_content()) once the node
-  // exposes POST /content, and run it off the main thread.
-  throw std::runtime_error("Publishing content is not supported yet by the Freedom Names node (coming in a future release).");
+  FreedomNames freedom_publish(freedom_host_, freedom_port_, freedom_timeout_);
+  return freedom_publish.add_content(get_content());
 }
 
 /**
@@ -193,6 +193,16 @@ int Middleware::get_freedom_network_size() const
   return freedom_network_size_;
 }
 
+/**
+ * \brief Get Freedom Names node version
+ * \return version (string)
+ */
+std::string Middleware::get_freedom_version() const
+{
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_version_;
+}
+
 /************************************************
  * Private methods
  ************************************************/
@@ -273,7 +283,16 @@ void Middleware::fetch_from_freedomnames(bool isParseContent)
   try
   {
     std::stringstream contents;
-    freedom_fetch_.resolve_content(final_request_path_, &contents);
+    // A Freedom Names *name* ("label.<pubKeyID>.fn") always contains dots; a bare
+    // content hash (base36 multihash, e.g. from the publish dialog) never does.
+    if (final_request_path_.find('.') == std::string::npos)
+    {
+      freedom_fetch_.get_content(final_request_path_, &contents);
+    }
+    else
+    {
+      freedom_fetch_.resolve_content(final_request_path_, &contents);
+    }
     // If the thread stops, don't brother to parse the file/update the GTK window
     if (keep_request_thread_running_)
     {
@@ -446,6 +465,10 @@ void Middleware::process_freedom_status()
   {
     // Network I/O runs outside the lock, so GUI-thread getters never block on it
     FreedomInfo info = freedom_status_.get_info();
+    // Version never changes for a running node; fetch it only until we have it
+    std::string version;
+    if (get_freedom_version().empty())
+      version = freedom_status_.get_health().version;
     {
       std::lock_guard<std::mutex> guard(status_mutex_);
       freedom_number_of_peers_ = info.peers;
@@ -453,6 +476,8 @@ void Middleware::process_freedom_status()
       freedom_network_size_ = info.network_size;
       if (freedom_node_id_.empty())
         freedom_node_id_ = info.node_id;
+      if (!version.empty())
+        freedom_version_ = version;
     }
 
     // Auto-refresh page if needed (when 'Please wait' page was shown) once the node is up.

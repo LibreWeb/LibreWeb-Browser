@@ -39,6 +39,7 @@ public:
   std::string get_freedom_node_id() const override;
   std::string get_freedom_mode() const override;
   int get_freedom_network_size() const override;
+  std::string get_freedom_version() const override;
 
 private:
   MainWindow& main_window_;
@@ -62,6 +63,7 @@ private:
   std::string freedom_node_id_;
   std::string freedom_mode_;
   int freedom_network_size_;
+  std::string freedom_version_;
   mutable std::mutex status_mutex_; /* Protects the status members above; also locked by the const getters */
 
   // Request & Response:

@@ -80,16 +80,35 @@ std::vector<FreedomRecord> FreedomNames::resolve(const std::string& name, const 
 }
 
 /**
- * \brief Resolve a name and stream the raw page bytes into contents.
- *
- * Targets the node's GET /resolve-content?name=... endpoint (phase 3). Until the
- * node exposes it, this throws a runtime_error describing the missing capability,
- * which the middleware surfaces to the user like any other fetch error.
+ * \brief Resolve a name to its CONTENT record and stream the page bytes into
+ * contents, in one GET /resolve-content call.
  */
 void FreedomNames::resolve_content(const std::string& name, std::iostream* contents)
 {
   const std::string url = base_url() + "/resolve-content?name=" + url_encode(name);
   *contents << http_get(url);
+}
+
+/**
+ * \brief Fetch raw bytes by content hash; the node serves from its local store
+ * or fetches from network providers on a miss.
+ */
+void FreedomNames::get_content(const std::string& hash, std::iostream* contents)
+{
+  const std::string url = base_url() + "/content?hash=" + url_encode(hash);
+  *contents << http_get(url);
+}
+
+/**
+ * \brief Store bytes in the node's blobstore and start providing them.
+ * \return the content hash (base36 sha2-256 multihash)
+ * \throw std::runtime_error on transport/HTTP/parse error
+ */
+std::string FreedomNames::add_content(const std::string& data)
+{
+  const std::string body = http_post(base_url() + "/content", data);
+  auto json = nlohmann::json::parse(body);
+  return json.value("hash", "");
 }
 
 /**
@@ -108,6 +127,21 @@ FreedomInfo FreedomNames::get_info()
   info.peers = json.value("hostsConnected", 0);
   info.network_size = json.value("networkSize", -1);
   return info;
+}
+
+/**
+ * \brief Get the node's liveness + version handshake from GET /health.
+ * \throw std::runtime_error on transport/HTTP/parse error
+ */
+FreedomHealth FreedomNames::get_health()
+{
+  std::string body = http_get(base_url() + "/health");
+  auto json = nlohmann::json::parse(body);
+
+  FreedomHealth health;
+  health.version = json.value("version", "");
+  health.ready = json.value("ready", false);
+  return health;
 }
 
 std::size_t FreedomNames::get_nr_peers()
@@ -141,7 +175,8 @@ void FreedomNames::reset()
  ************************************************/
 
 /**
- * \brief Perform a GET request and return the response body.
+ * \brief Perform an already-initialized curl request and return the response body.
+ * Takes ownership of the handle (always cleans it up).
  *
  * Time-out semantics: the configured time-out acts as an *idle* time-out (via
  * CURLOPT_LOW_SPEED_*) rather than a cap on total transfer time, so a large
@@ -155,13 +190,10 @@ void FreedomNames::reset()
  *  - "Request failed: ..."                          — any other transport error
  *  - "HTTP request failed with status code N: body" — non-2xx response
  */
-std::string FreedomNames::http_get(const std::string& url)
+std::string FreedomNames::perform(void* curl_handle, const std::string& url)
 {
+  CURL* curl = static_cast<CURL*>(curl_handle);
   std::string response;
-  CURL* curl = curl_easy_init();
-  if (!curl)
-    throw std::runtime_error("Could not init curl");
-
   long http_code = 0;
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_to_string);
@@ -195,6 +227,31 @@ std::string FreedomNames::http_get(const std::string& url)
     throw std::runtime_error("HTTP request failed with status code " + std::to_string(http_code) + ": " + response);
 
   return response;
+}
+
+/**
+ * \brief Perform a GET request and return the response body.
+ */
+std::string FreedomNames::http_get(const std::string& url)
+{
+  CURL* curl = curl_easy_init();
+  if (!curl)
+    throw std::runtime_error("Could not init curl");
+  return perform(curl, url);
+}
+
+/**
+ * \brief Perform a POST request with a raw body and return the response body.
+ */
+std::string FreedomNames::http_post(const std::string& url, const std::string& body)
+{
+  CURL* curl = curl_easy_init();
+  if (!curl)
+    throw std::runtime_error("Could not init curl");
+  // body outlives perform(), so curl may reference it directly
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.data());
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
+  return perform(curl, url);
 }
 
 /**
