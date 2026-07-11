@@ -1,4 +1,4 @@
-#include "ipfs-daemon.h"
+#include "freedomnames-daemon.h"
 #include "main-window.h"
 #include "option-group.h"
 #include "project_config.h"
@@ -40,17 +40,17 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  // The default is to start the IPFS Daemon
-  if (group.disable_ipfs_daemon)
+  // The default is to start the Freedom Names node
+  if (group.disable_freedom_node)
   {
-    std::cout << "WARN: You disabled the IPFS Daemon from starting-up "
-                 "(you are using: -d/--disable-ipfs-daemon)."
+    std::cout << "WARN: You disabled the Freedom Names node from starting-up "
+                 "(you are using: -d/--disable-freedom-node)."
               << std::endl;
   }
   else
   {
-    IPFSDaemon ipfs_daemon;
-    ipfs_daemon.spawn();
+    FreedomNamesDaemon freedom_daemon;
+    freedom_daemon.spawn();
   }
 
   if (group.timeout.compare(default_timeout) != 0)

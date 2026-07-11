@@ -80,13 +80,13 @@ MainWindow::MainWindow(const std::string& timeout)
       numbered_list_button("Add a numbered list"),
       highlight_button("Add highlight text"),
       table_of_contents_label("Table of Contents"),
-      network_heading_label("IPFS Network"),
+      network_heading_label("Freedom Names Network"),
       network_rate_heading_label("Network rate"),
       connectivity_label("Status:"),
       peers_label("Connected peers:"),
-      repo_size_label("Repo size:"),
-      repo_path_label("Repo path:"),
-      ipfs_version_label("IPFS version:"),
+      repo_size_label("Mode:"),
+      repo_path_label("Node ID:"),
+      network_size_label("Network size:"),
       network_incoming_label("Incoming"),
       network_outgoing_label("Outgoing"),
       network_kilo_bytes_label("Kilobytes/s"),
@@ -190,7 +190,7 @@ MainWindow::MainWindow(const std::string& timeout)
 
 /**
  * \brief Called before the requests begins.
- * \param path File path (on disk or IPFS) that needs to be processed.
+ * \param path File path (on disk or Freedom Names) that needs to be processed.
  * \param title Application title
  * \param is_set_address_bar If true update the address bar with the file path
  * \param is_history_request Set to true if this is an history request call: back/forward
@@ -317,7 +317,7 @@ void MainWindow::set_message(const Glib::ustring& message, const Glib::ustring& 
 void MainWindow::update_status_popover_and_icon()
 {
   std::string networkStatus;
-  std::size_t nrOfPeers = middleware_.get_ipfs_number_of_peers();
+  std::size_t nrOfPeers = middleware_.get_freedom_number_of_peers();
   // Update status icon
   if (nrOfPeers > 0)
   {
@@ -345,11 +345,14 @@ void MainWindow::update_status_popover_and_icon()
   }
   connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
   peers_status_label.set_text(std::to_string(nrOfPeers));
-  repo_size_status_label.set_text(std::to_string(middleware_.get_ipfs_repo_size()) + " MB");
-  repo_path_status_label.set_text(middleware_.get_ipfs_repo_path());
-  network_incoming_status_label.set_text(middleware_.get_ipfs_incoming_rate());
-  network_outgoing_status_label.set_text(middleware_.get_ipfs_outgoing_rate());
-  ipfs_version_status_label.set_text(middleware_.get_ipfs_version());
+  // Repurposed rows: Mode / Node ID / Network size (see status popover init).
+  repo_size_status_label.set_text(middleware_.get_freedom_mode());
+  repo_path_status_label.set_text(middleware_.get_freedom_node_id());
+  int networkSize = middleware_.get_freedom_network_size();
+  network_size_status_label.set_text(networkSize >= 0 ? "~" + std::to_string(networkSize) : "unknown");
+  // Bandwidth rates are not exposed by the phase-1 node yet.
+  network_incoming_status_label.set_text("n/a");
+  network_outgoing_status_label.set_text("n/a");
 }
 
 /**
@@ -606,7 +609,7 @@ void MainWindow::init_toolbar_buttons()
   }
   // Add tooltips to the toolbar buttons
   search_button.set_tooltip_text("Find");
-  status_button.set_tooltip_text("IPFS Network Status");
+  status_button.set_tooltip_text("Freedom Names Network Status");
   settings_button.set_tooltip_text("Settings");
   // Disable back/forward buttons on start-up
   back_button.set_sensitive(false);
@@ -697,7 +700,7 @@ void MainWindow::init_search_popover()
 }
 
 /**
- * Init the IPFS status pop-over
+ * Init the Freedom Names status pop-over
  */
 void MainWindow::init_status_popover()
 {
@@ -705,17 +708,17 @@ void MainWindow::init_status_popover()
   peers_label.set_xalign(0.0);
   repo_size_label.set_xalign(0.0);
   repo_path_label.set_xalign(0.0);
-  ipfs_version_label.set_xalign(0.0);
+  network_size_label.set_xalign(0.0);
   connectivity_status_label.set_xalign(1.0);
   peers_status_label.set_xalign(1.0);
   repo_size_status_label.set_xalign(1.0);
   repo_path_status_label.set_xalign(1.0);
-  ipfs_version_status_label.set_xalign(1.0);
+  network_size_status_label.set_xalign(1.0);
   connectivity_label.get_style_context()->add_class("dim-label");
   peers_label.get_style_context()->add_class("dim-label");
   repo_size_label.get_style_context()->add_class("dim-label");
   repo_path_label.get_style_context()->add_class("dim-label");
-  ipfs_version_label.get_style_context()->add_class("dim-label");
+  network_size_label.get_style_context()->add_class("dim-label");
   // Status popover grid
   status_grid.set_column_homogeneous(true);
   status_grid.set_margin_start(6);
@@ -732,9 +735,9 @@ void MainWindow::init_status_popover()
   status_grid.attach(repo_size_status_label, 1, 2);
   status_grid.attach(repo_path_label, 0, 3);
   status_grid.attach(repo_path_status_label, 1, 3);
-  status_grid.attach(ipfs_version_label, 0, 4);
-  status_grid.attach(ipfs_version_status_label, 1, 4);
-  // IPFS Network activity status grid
+  status_grid.attach(network_size_label, 0, 4);
+  status_grid.attach(network_size_status_label, 1, 4);
+  // Network activity status grid
   network_kilo_bytes_label.get_style_context()->add_class("dim-label");
   activity_status_grid.set_column_homogeneous(true);
   activity_status_grid.set_margin_start(6);
@@ -751,13 +754,10 @@ void MainWindow::init_status_popover()
 
   network_heading_label.get_style_context()->add_class("dim-label");
   network_rate_heading_label.get_style_context()->add_class("dim-label");
-  // Copy ID & public key buttons
-  copy_id_button.set_label("Copy your ID");
-  copy_public_key_button.set_label("Copy Public Key");
+  // Copy node ID button
+  copy_id_button.set_label("Copy your node ID");
   copy_id_button.set_margin_start(6);
   copy_id_button.set_margin_end(6);
-  copy_public_key_button.set_margin_start(6);
-  copy_public_key_button.set_margin_end(6);
   // Add all items to status box & status popover
   vbox_status.set_margin_start(10);
   vbox_status.set_margin_end(10);
@@ -770,7 +770,6 @@ void MainWindow::init_status_popover()
   vbox_status.add(network_rate_heading_label);
   vbox_status.add(activity_status_grid);
   vbox_status.add(separator10);
-  vbox_status.add(copy_public_key_button);
   vbox_status.add(copy_id_button);
   status_popover.set_position(Gtk::POS_BOTTOM);
   status_popover.set_size_request(100, 250);
@@ -1039,7 +1038,6 @@ void MainWindow::init_signals()
   highlight_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_highlight));
   // Status pop-over buttons
   copy_id_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
-  copy_public_key_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_public_key));
   // Settings pop-over buttons
   zoom_out_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
   zoom_restore_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
@@ -1594,17 +1592,17 @@ void MainWindow::publish()
 
     try
     {
-      // Add content to IPFS
-      std::string cid = middleware_.do_add(path);
-      if (cid.empty())
+      // Add content to the Freedom Names content network
+      std::string hash = middleware_.do_add(path);
+      if (hash.empty())
       {
-        throw std::runtime_error("CID hash is empty.");
+        throw std::runtime_error("Content hash is empty.");
       }
       // Show dialog
-      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File is successfully added to IPFS!"));
+      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File is successfully published!"));
       content_published_dialog->set_secondary_text("The content is now available on the decentralized web, via:");
       // Add custom label
-      Gtk::Label* label = Gtk::manage(new Gtk::Label("ipfs://" + cid));
+      Gtk::Label* label = Gtk::manage(new Gtk::Label("fn://" + hash));
       label->set_selectable(true);
       Gtk::Box* box = content_published_dialog->get_content_area();
       box->pack_end(*label);
@@ -1616,7 +1614,7 @@ void MainWindow::publish()
     }
     catch (const std::runtime_error& error)
     {
-      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File could not be added to IPFS", false, Gtk::MESSAGE_ERROR));
+      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File could not be published", false, Gtk::MESSAGE_ERROR));
       content_published_dialog->set_secondary_text("Error message: " + std::string(error.what()));
       content_published_dialog->set_modal(true);
       // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
@@ -1646,34 +1644,18 @@ void MainWindow::show_toc()
 }
 
 /**
- * \brief Copy the IPFS Client ID to clipboard
+ * \brief Copy the Freedom Names node ID to clipboard
  */
 void MainWindow::copy_client_id()
 {
-  if (!middleware_.get_ipfs_client_id().empty())
+  if (!middleware_.get_freedom_node_id().empty())
   {
-    get_clipboard("CLIPBOARD")->set_text(middleware_.get_ipfs_client_id());
-    show_notification("Copied to clipboard", "Your client ID is now copied to your clipboard.");
+    get_clipboard("CLIPBOARD")->set_text(middleware_.get_freedom_node_id());
+    show_notification("Copied to clipboard", "Your node ID is now copied to your clipboard.");
   }
   else
   {
-    std::cerr << "WARNING: IPFS client ID has not been set yet. Skip clipboard action." << std::endl;
-  }
-}
-
-/**
- * \brief Copy IPFS Client public key to clipboard
- */
-void MainWindow::copy_client_public_key()
-{
-  if (!middleware_.get_ipfs_client_public_key().empty())
-  {
-    get_clipboard("CLIPBOARD")->set_text(middleware_.get_ipfs_client_public_key());
-    show_notification("Copied to clipboard", "Your client public key is now copied to your clipboard.");
-  }
-  else
-  {
-    std::cerr << "WARNING: IPFS client public key has not been set yet. Skip clipboard action." << std::endl;
+    std::cerr << "WARNING: Freedom Names node ID has not been set yet. Skip clipboard action." << std::endl;
   }
 }
 
@@ -2365,6 +2347,6 @@ void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow* row)
   }
   // Reload icons
   load_icons();
-  // Trigger IPFS status icon
+  // Trigger Freedom Names status icon
   update_status_popover_and_icon();
 }

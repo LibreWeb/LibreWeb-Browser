@@ -81,13 +81,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${WINDOWS_FLAGS} -O2 -DNDEBUG")
 
-# Disable CTest testcases & install in cpp-ipfs-http-client
+# Disable CTest testcases & install in bundled libraries
 set (BUILD_TESTING OFF CACHE BOOL "Disable CTest" FORCE)
 set (DISABLE_INSTALL ON CACHE BOOL "Disable Install" FORCE)
 
 add_subdirectory (lib/commonmarker/src)
 add_subdirectory (lib/commonmarker/extensions)
-add_subdirectory (lib/ipfs-http-client)
+add_subdirectory (lib/nlohmann)
 add_subdirectory (lib/whereami)
 add_subdirectory (src)
 if(UNITTEST)
@@ -99,16 +99,16 @@ if(WIN32)
   # Microsoft Windows specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_win/ DESTINATION .)
-  install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
+  install(PROGRAMS freedom-names/freedom-names.exe DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
-  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
+  install(PROGRAMS freedom-names/freedom-names-darwin DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
-  install(PROGRAMS go-ipfs/ipfs DESTINATION bin)
+  install(PROGRAMS freedom-names/freedom-names DESTINATION bin)
 endif()
 # General
 install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)
