@@ -70,8 +70,9 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-# Allow the freedom-names node binary and the binaries in the packaging folder
-!freedom-names/freedom-names.exe
+# Freedom Names node binaries are downloaded (scripts/get-freedom-names.sh), never committed
+freedom-names/
+# Allow the binaries in the packaging folder
 !misc/packaging_win/bin/*
 
 # Build folders
