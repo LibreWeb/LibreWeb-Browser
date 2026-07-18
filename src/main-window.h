@@ -90,7 +90,6 @@ protected:
   void go_home();
   void show_toc();
   void copy_client_id();
-  void copy_client_public_key();
   void address_bar_activate();
   void on_search();
   void on_replace();
@@ -247,7 +246,6 @@ protected:
   Gtk::Popover status_popover;
   Gtk::PopoverMenu settings_popover;
   Gtk::ModelButton copy_id_button;
-  Gtk::ModelButton copy_public_key_button;
   Gtk::Switch reader_view_switch;
   Gtk::Switch theme_switch;
   Gtk::Label table_of_contents_label;
@@ -257,12 +255,14 @@ protected:
   Gtk::Label connectivity_status_label;
   Gtk::Label peers_label;
   Gtk::Label peers_status_label;
-  Gtk::Label repo_size_label;
-  Gtk::Label repo_size_status_label;
-  Gtk::Label repo_path_label;
-  Gtk::Label repo_path_status_label;
-  Gtk::Label ipfs_version_label;
-  Gtk::Label ipfs_version_status_label;
+  Gtk::Label mode_label;
+  Gtk::Label mode_status_label;
+  Gtk::Label node_id_label;
+  Gtk::Label node_id_status_label;
+  Gtk::Label network_size_label;
+  Gtk::Label network_size_status_label;
+  Gtk::Label node_version_label;
+  Gtk::Label node_version_status_label;
   Gtk::Label network_incoming_label;
   Gtk::Label network_incoming_status_label;
   Gtk::Label network_outgoing_label;

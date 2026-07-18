@@ -3,6 +3,14 @@
 The additional files in `packaging_win` and `packaging_macos` are required for packaging 
 to respectively the Windows and macOS platforms (after the cross-compile went successfully).
 
+## Freedom Names node binary
+
+Every package bundles the [Freedom Names](https://gitlab.melroy.org/freedom-names/freedom-names) node binary,
+which the browser starts automatically at runtime. The `scripts/get-freedom-names.sh` script downloads the
+pinned release into the `freedom-names/` directory (the `build-*-prod.sh` scripts call it automatically), and
+CMake installs it next to the browser binary: `bin/freedom-names` (Linux), `bin\freedom-names.exe` (Windows NSIS)
+and `Contents/MacOS/freedom-names-darwin` (macOS app bundle).
+
 ## Native GTK Icon Themes
 
 GTK icons themes we include in the Windows & macOS packages:

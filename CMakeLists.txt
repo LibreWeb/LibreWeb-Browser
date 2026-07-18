@@ -81,13 +81,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} ${WINDOWS_FLAGS} -O2 -DNDEBUG")
 
-# Disable CTest testcases & install in cpp-ipfs-http-client
+# Disable CTest testcases & install in bundled libraries
 set (BUILD_TESTING OFF CACHE BOOL "Disable CTest" FORCE)
 set (DISABLE_INSTALL ON CACHE BOOL "Disable Install" FORCE)
 
 add_subdirectory (lib/commonmarker/src)
 add_subdirectory (lib/commonmarker/extensions)
-add_subdirectory (lib/ipfs-http-client)
+add_subdirectory (lib/nlohmann)
 add_subdirectory (lib/whereami)
 add_subdirectory (src)
 if(UNITTEST)
@@ -95,20 +95,37 @@ if(UNITTEST)
 endif()
 
 # Additional install files
+# The Freedom Names node binary is expected in the freedom-names/ directory
+# (place a build of https://gitlab.melroy.org/freedom-names/freedom-names there).
+# The install is optional so source builds without the binary still work;
+# packaged releases should always bundle it, otherwise the node won't start.
 if(WIN32)
   # Microsoft Windows specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_win/ DESTINATION .)
-  install(PROGRAMS go-ipfs/ipfs.exe DESTINATION bin)
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names.exe)
+  set(FREEDOM_NAMES_DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
-  install(PROGRAMS go-ipfs/ipfs-darwin DESTINATION ${MACOSDIR})
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names-darwin)
+  set(FREEDOM_NAMES_DESTINATION ${MACOSDIR})
 elseif(UNIX)
   # UNIX specific
   install(FILES misc/libreweb-browser.desktop DESTINATION ${DATADIR}/applications)
-  install(PROGRAMS go-ipfs/ipfs DESTINATION bin)
+  set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names)
+  set(FREEDOM_NAMES_DESTINATION bin)
+endif()
+if(EXISTS ${FREEDOM_NAMES_BINARY})
+  install(PROGRAMS ${FREEDOM_NAMES_BINARY} DESTINATION ${FREEDOM_NAMES_DESTINATION})
+elseif(PACKAGE)
+  message(FATAL_ERROR "Freedom Names node binary not found at ${FREEDOM_NAMES_BINARY}. "
+                      "Packaged builds must bundle it — run ./scripts/get-freedom-names.sh first.")
+else()
+  message(WARNING "Freedom Names node binary not found at ${FREEDOM_NAMES_BINARY}; "
+                  "it will NOT be installed. The browser needs it at runtime — "
+                  "run ./scripts/get-freedom-names.sh to fetch it.")
 endif()
 # General
 install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)

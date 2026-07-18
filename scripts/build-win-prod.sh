@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # By: Melroy van den Berg
 # Description: Build Windows 64-bit production release
+
+# Fetch the Freedom Names node binary for packaging (mingw cross-build, so pass the OS explicitly)
+"$(dirname "$0")/get-freedom-names.sh" windows
+
 rm -rf build_prod_win
 x86_64-w64-mingw32.static-cmake -GNinja -DDOXYGEN:BOOL=FALSE -DPACKAGE=ON -DCMAKE_BUILD_TYPE=Release -B build_prod_win
 x86_64-w64-mingw32.static-cmake --build ./build_prod_win --config Release 
