@@ -15,6 +15,9 @@ if [ "$1" == "" ]; then
     exit 1
 fi
 
+# Fetch the Freedom Names node binary for packaging
+"$(dirname "$0")/get-freedom-names.sh" linux
+
 rm -rf build_prod
 cmake -GNinja -DCMAKE_INSTALL_PREFIX:PATH=/usr -DDOXYGEN:BOOL=FALSE -DPACKAGE=ON -DCMAKE_BUILD_TYPE=Release -DGSETTINGS_COMPILE:BOOL=FALSE -B build_prod
 cmake --build ./build_prod --config Release 

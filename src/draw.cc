@@ -290,12 +290,12 @@ void Draw::show_homepage()
   this->insert_markup_text(
       "Welcome to the decentralized web (also known as web 3.0). Thanks for using LibreWeb!👍\n\n"
       "LibreWeb is a free &amp; open-source decentralized web browser. With LibreWeb can surf the world-wide-web as originally "
-      "intended, by leveraging IPFS as a decentralized file storage. LibreWeb is also the fastest browser in the world.\n\n"
+      "intended, by leveraging Freedom Names as a decentralized naming and file storage. LibreWeb is also the fastest browser in the world.\n\n"
       "The content can be fully written in <i>markdown format</i>, allowing you to easily publish your own site, blog article or "
       "e-book. And markdown makes surfing the web very safe.\n"
       "This browser has even a <b>built-in editor</b>. Check it out in the menu: <tt>File->New Document</tt>!");
-  this->insert_text("\n\nSee an example page hosted on IPFS: ");
-  this->insert_link_text("Click here for the example page", "ipfs://QmQQQyYm8GcLBEE7H3NMQWfkyfU5yHiT5i1J98gbfDGRuX");
+  this->insert_text("\n\nSee an example page hosted on Freedom Names: ");
+  this->insert_link_text("Click here for the example page", "fn://example.fn");
 }
 
 /**
@@ -708,17 +708,17 @@ void Draw::insert_link()
     int insert_offset = buffer->get_insert()->get_iter().get_offset();
     Glib::ustring text = buffer->get_text(start, end);
     buffer->erase_selection();
-    buffer->insert_at_cursor("[" + text + "](ipfs://url)");
-    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 10);
-    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 13);
+    buffer->insert_at_cursor("[" + text + "](fn://url)");
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 8);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + text.length() + 11);
     buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   else
   {
     int insert_offset = buffer->get_insert()->get_iter().get_offset();
-    buffer->insert_at_cursor("[link](ipfs://url)");
-    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 14);
-    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 17);
+    buffer->insert_at_cursor("[link](fn://url)");
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 12);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 15);
     buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   buffer->end_user_action();
@@ -738,9 +738,9 @@ void Draw::insert_image()
   else
   {
     int insert_offset = buffer->get_insert()->get_iter().get_offset();
-    buffer->insert_at_cursor("![](ipfs://image.jpg)");
-    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 11);
-    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 20);
+    buffer->insert_at_cursor("![](fn://image.jpg)");
+    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 9);
+    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 18);
     buffer->select_range(begin_cursor_pos, end_cursor_pos);
   }
   buffer->end_user_action();

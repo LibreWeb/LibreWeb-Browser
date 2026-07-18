@@ -1,6 +1,6 @@
 # LibreWeb Browser
 
-LibreWeb is an **open-source decentralized web browser**, leveraging IPFS. What would you do different; if you could **reinvent** The Internet in 21st century?  
+LibreWeb is an **open-source decentralized web browser**, leveraging [Freedom Names](https://gitlab.melroy.org/freedom-names/freedom-names) for decentralized naming (`fn://`) and content delivery. What would you do different; if you could **reinvent** The Internet in 21st century?  
 With all the knowledge and new technologies available today. I was inspired by Douglas Engelbart, Tim Berners-Lee and Ted Nelson as well as projects like IPFS, Jekyll, ARPANET and more.
 
 [![Pipeline](https://gitlab.melroy.org/libreweb/libreweb-browser/badges/main/pipeline.svg)](https://gitlab.melroy.org/libreweb/libreweb-browser/-/pipelines/latest)
@@ -69,7 +69,7 @@ The current success criteria:
 
 - Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
 - Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
-- **Decentralized** (no single-point of failure or censorship), like: P2P, DHT and IPFS;
+- **Decentralized** (no single-point of failure or censorship), using [Freedom Names](https://gitlab.melroy.org/freedom-names/freedom-names);
 - _No_ client-server approach (the client is also the server and visa versa) - think **mesh network**.
 - **Encrypted** transfers;
 - Data is stored **redundantly** within the network (no single-point of failure);
@@ -141,6 +141,8 @@ Or if you cloned it already but forgot to use the `--recurse-submodules` flag, y
 ```sh
 git clone --recurse-submodules 
 ```
+
+Fetch the [Freedom Names](https://gitlab.melroy.org/freedom-names/freedom-names) node binary once (the browser starts it automatically at runtime): `./scripts/get-freedom-names.sh`.
 
 Start the Linux build, which is using CMake and Ninja build system, using the wrapper script: `./scripts/build-lnx.sh`.
 

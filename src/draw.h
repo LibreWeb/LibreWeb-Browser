@@ -16,10 +16,10 @@ class MiddlewareInterface;
  */
 struct UndoRedoData
 {
-  bool is_insert;
+  bool is_insert = false;
   Glib::ustring text;
-  int begin_offset;
-  int end_offset;
+  int begin_offset = 0;
+  int end_offset = 0;
 };
 
 /**

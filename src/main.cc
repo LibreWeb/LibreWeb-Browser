@@ -1,8 +1,9 @@
-#include "ipfs-daemon.h"
+#include "freedomnames-daemon.h"
 #include "main-window.h"
 #include "option-group.h"
 #include "project_config.h"
 
+#include <curl/curl.h>
 #include <gtkmm/application.h>
 #include <iomanip>
 #include <iostream>
@@ -14,6 +15,9 @@
  */
 int main(int argc, char* argv[])
 {
+  // Init libcurl once before any threads exist; the implicit lazy init inside
+  // curl_easy_init() is not thread-safe on older libcurl builds.
+  curl_global_init(CURL_GLOBAL_DEFAULT);
   // Set the command-line parameters option settings
   Glib::OptionContext context("LibreWeb Browser - Decentralized Web Browser");
   OptionGroup group;
@@ -40,17 +44,17 @@ int main(int argc, char* argv[])
     exit(EXIT_FAILURE);
   }
 
-  // The default is to start the IPFS Daemon
-  if (group.disable_ipfs_daemon)
+  // The default is to start the Freedom Names node
+  if (group.disable_freedom_node)
   {
-    std::cout << "WARN: You disabled the IPFS Daemon from starting-up "
-                 "(you are using: -d/--disable-ipfs-daemon)."
+    std::cout << "WARN: You disabled the Freedom Names node from starting-up "
+                 "(you are using: -d/--disable-freedom-node)."
               << std::endl;
   }
   else
   {
-    IPFSDaemon ipfs_daemon;
-    ipfs_daemon.spawn();
+    FreedomNamesDaemon freedom_daemon;
+    freedom_daemon.spawn();
   }
 
   if (group.timeout.compare(default_timeout) != 0)
@@ -60,5 +64,7 @@ int main(int argc, char* argv[])
 
   // Run the GTK main window in the main thread
   MainWindow main_window(group.timeout);
-  return app->run(main_window);
+  int status = app->run(main_window);
+  curl_global_cleanup();
+  return status;
 }

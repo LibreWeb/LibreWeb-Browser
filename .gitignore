@@ -70,8 +70,11 @@ Thumbs.db
 # --------
 *.dll
 *.exe
-# Allow ipfs.exe and the binaries in the packaging folder
-!go-ipfs/ipfs.exe
+# Freedom Names node binaries are downloaded (scripts/get-freedom-names.sh), never committed
+freedom-names/
+# The Freedom Names node writes its libp2p identity key here on first startup; never commit it
+private.key
+# Allow the binaries in the packaging folder
 !misc/packaging_win/bin/*
 
 # Build folders

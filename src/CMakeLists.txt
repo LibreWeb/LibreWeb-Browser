@@ -6,6 +6,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 # Find required dependencies
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(CURL REQUIRED)
 pkg_check_modules(GTKMM REQUIRED gtkmm-3.0)
 # Only for macOS
 if(APPLE)
@@ -23,7 +24,7 @@ set(HEADERS
     about-dialog.h
     draw.h
     file.h
-    ipfs.h
+    freedomnames.h
     middleware-i.h
     middleware.h
     toolbar-button.h
@@ -31,7 +32,7 @@ set(HEADERS
     main-window.h
     md-parser.h
     menu.h
-    ipfs-daemon.h
+    freedomnames-daemon.h
     option-group.h
     source-code-dialog.h
 )
@@ -40,13 +41,13 @@ set(SOURCES
   about-dialog.cc
   draw.cc
   file.cc
-  ipfs.cc
+  freedomnames.cc
   middleware.cc
   toolbar-button.cc
   main-window.cc
   md-parser.cc
   menu.cc
-  ipfs-daemon.cc
+  freedomnames-daemon.cc
   option-group.cc
   source-code-dialog.cc
   ${HEADERS}
@@ -150,16 +151,17 @@ if(NOT UNITTEST)
         ${CMARK_BINARY_DIR}
         ${CMARK_EXTENSIONS_BINARY_DIR}
         ${GTKMM_INCLUDE_DIRS}
+        ${CURL_INCLUDE_DIRS}
     )
     target_link_directories(${PROJECT_TARGET} PRIVATE ${GTKMM_LIBRARY_DIRS})
     target_link_libraries(${PROJECT_TARGET} PRIVATE
         LibCommonMarker
         LibCommonMarkerExtensions
-        ipfs-http-client
         whereami
         Threads::Threads
         ${CXX_FILESYSTEM_LIBRARIES}
         ${GTKMM_LIBRARIES}
+        ${CURL_LIBRARIES}
         nlohmann_json::nlohmann_json
     )
     target_compile_options(${PROJECT_TARGET} PRIVATE ${GTKMM_CFLAGS_OTHER})

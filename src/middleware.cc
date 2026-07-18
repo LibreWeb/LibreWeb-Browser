@@ -6,6 +6,7 @@
 #include <cmark-gfm.h>
 #include <glibmm.h>
 #include <glibmm/main.h>
+#include <nlohmann/json.hpp>
 
 /**
  * Middleware constructor
@@ -18,16 +19,14 @@ Middleware::Middleware(MainWindow& main_window, const std::string& timeout)
       is_request_thread_done_(false),
       keep_request_thread_running_(true),
       is_status_thread_done_(false),
-      // IPFS:
-      ipfs_host_("localhost"),
-      ipfs_port_(5001),
-      ipfs_timeout_(timeout),
-      ipfs_fetch_(ipfs_host_, ipfs_port_, ipfs_timeout_),
-      ipfs_status_(ipfs_host_, ipfs_port_, ipfs_timeout_),
-      ipfs_number_of_peers_(0),
-      ipfs_repo_size_(0),
-      ipfs_incoming_rate_("0.0"),
-      ipfs_outgoing_rate_("0.0"),
+      // Freedom Names node:
+      freedom_host_("127.0.0.1"),
+      freedom_port_(8420),
+      freedom_timeout_(timeout),
+      freedom_fetch_(freedom_host_, freedom_port_, freedom_timeout_),
+      freedom_status_(freedom_host_, freedom_port_, freedom_timeout_),
+      freedom_number_of_peers_(0),
+      freedom_network_size_(-1),
       // Request & Response:
       wait_page_visible_(false)
 {
@@ -36,10 +35,10 @@ Middleware::Middleware(MainWindow& main_window, const std::string& timeout)
   request_finished_.connect(sigc::mem_fun(main_window, &MainWindow::finished_request));
 
   // First update status manually (with slight delay), after that the timer below will take care of updates
-  Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Middleware::do_ipfs_status_update_once), 550);
+  Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Middleware::do_freedom_status_update_once), 550);
 
   // Create a timer, triggers every 4 seconds
-  status_timer_handler_ = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Middleware::do_ipfs_status_update), 4);
+  status_timer_handler_ = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Middleware::do_freedom_status_update), 4);
 }
 
 /**
@@ -53,8 +52,8 @@ Middleware::~Middleware()
 }
 
 /**
- * Fetch document from disk or IPFS, using threading
- * \param path File path that needs to be opened (either from disk or IPFS network)
+ * Fetch document from disk or the Freedom Names network, using threading
+ * \param path File path that needs to be opened (either from disk or the Freedom Names network)
  * \param is_set_address_bar If true update the address bar with the file path (default: true)
  * \param is_history_request Set to true if this is an history request call: back/forward (default: false)
  * \param is_disable_editor If true the editor will be disabled if needed (default: true)
@@ -90,15 +89,20 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
 }
 
 /**
- * \brief Add current content to IPFS
- * \param path file path in IPFS
- * \return Content identifier (CID)
+ * \brief Add current content to the Freedom Names content network.
+ * \param path file path (currently unused; kept for interface compatibility)
+ * \return Content hash (base36 sha2-256 multihash)
+ *
+ * Uses a dedicated client instance: freedom_fetch_/freedom_status_ are owned by
+ * the request/status threads, whose periodic abort()+reset() cycles would cancel
+ * an in-flight publish. A local client has no shared abort state.
+ * TODO: Run this within a separate thread, to avoid blocking the main thread.
  */
 std::string Middleware::do_add(const std::string& path)
 {
-  // TODO: We should run this within a separate thread, to avoid blocking the main thread.
-  // See also the other status calls we are making, but maybe we should use ipfs_fetch_ anyway.
-  return ipfs_status_.add(path, get_content());
+  (void)path;
+  FreedomNames freedom_publish(freedom_host_, freedom_port_, freedom_timeout_);
+  return freedom_publish.add_content(get_content());
 }
 
 /**
@@ -150,75 +154,53 @@ void Middleware::reset_content_and_path()
 }
 
 /**
- * \brief Get IPFS number of peers
+ * \brief Get Freedom Names number of connected peers
  * \return number of peers (size_t)
  */
-std::size_t Middleware::get_ipfs_number_of_peers() const
+std::size_t Middleware::get_freedom_number_of_peers() const
 {
-  return ipfs_number_of_peers_;
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_number_of_peers_;
 }
 
 /**
- * \brief Get IPFS repository size
- * \return repo size (int)
+ * \brief Get Freedom Names node ID (libp2p peer ID)
+ * \return node ID (string)
  */
-int Middleware::get_ipfs_repo_size() const
+std::string Middleware::get_freedom_node_id() const
 {
-  return ipfs_repo_size_;
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_node_id_;
 }
 
 /**
- * \brief Get IPFS repository path
- * \return repo path (string)
+ * \brief Get Freedom Names DHT mode (Auto/Client/Server)
+ * \return mode (string)
  */
-std::string Middleware::get_ipfs_repo_path() const
+std::string Middleware::get_freedom_mode() const
 {
-  return ipfs_repo_path_;
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_mode_;
 }
 
 /**
- * \brief Get IPFS Incoming rate
- * \return incoming rate (string)
+ * \brief Get estimated Freedom Names network size
+ * \return network size (int, -1 if unknown)
  */
-std::string Middleware::get_ipfs_incoming_rate() const
+int Middleware::get_freedom_network_size() const
 {
-  return ipfs_incoming_rate_;
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_network_size_;
 }
 
 /**
- * \brief Get IPFS Outgoing rate
- * \return outgoing rate (string)
- */
-std::string Middleware::get_ipfs_outgoing_rate() const
-{
-  return ipfs_outgoing_rate_;
-}
-
-/**
- * \brief Get IPFS version
+ * \brief Get Freedom Names node version
  * \return version (string)
  */
-std::string Middleware::get_ipfs_version() const
+std::string Middleware::get_freedom_version() const
 {
-  return ipfs_version_;
-}
-
-/**
- * \brief Get IPFS Client ID
- * \return client ID (string)
- */
-std::string Middleware::get_ipfs_client_id() const
-{
-  return ipfs_client_id_;
-}
-
-/**
- * \brief Get IPFS Client Public key
- * \return public key (string)
- */
-std::string Middleware::get_ipfs_client_public_key() const
-{
-  return ipfs_client_public_key_;
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return freedom_version_;
 }
 
 /************************************************
@@ -226,12 +208,12 @@ std::string Middleware::get_ipfs_client_public_key() const
  ************************************************/
 
 /**
- * \brief Get the file from disk or IPFS network, from the provided path,
+ * \brief Get the file from disk or the Freedom Names network, from the provided path,
  * parse the content, and display the document.
  * Call this method with empty path, will use the previous request_path_ (thus refresh).
- * \param path File path that needs to be fetched (from disk or IPFS network)
- * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS
- * network), set to false if you want to edit the content
+ * \param path File path that needs to be fetched (from disk or the Freedom Names network)
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or the
+ * Freedom Names network), set to false if you want to edit the content
  */
 void Middleware::process_request(const std::string& path, bool isParseContent)
 {
@@ -256,21 +238,15 @@ void Middleware::process_request(const std::string& path, bool isParseContent)
   {
     Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::show_homepage));
   }
-  // Handle disk or IPFS file paths
+  // Handle disk or Freedom Names paths
   else
   {
-    // Check if CID
-    if (request_path_.starts_with("ipfs://"))
+    // Check for a Freedom Names URL
+    if (request_path_.starts_with("fn://"))
     {
       final_request_path_ = request_path_;
-      final_request_path_.erase(0, 7);
-      fetch_from_ipfs(isParseContent);
-    }
-    else if ((request_path_.length() == 46) && request_path_.starts_with("Qm"))
-    {
-      // CIDv0
-      final_request_path_ = request_path_;
-      fetch_from_ipfs(isParseContent);
+      final_request_path_.erase(0, 5);
+      fetch_from_freedomnames(isParseContent);
     }
     else if (request_path_.starts_with("file://"))
     {
@@ -278,11 +254,17 @@ void Middleware::process_request(const std::string& path, bool isParseContent)
       final_request_path_.erase(0, 7);
       open_from_disk(isParseContent);
     }
+    else if (request_path_.ends_with(".fn") || request_path_.find(".fn/") != std::string::npos)
+    {
+      // Bare Freedom Names name without the scheme prefix
+      final_request_path_ = request_path_;
+      fetch_from_freedomnames(isParseContent);
+    }
     else
     {
-      // IPFS as fallback / CIDv1
+      // Freedom Names as fallback
       final_request_path_ = request_path_;
-      fetch_from_ipfs(isParseContent);
+      fetch_from_freedomnames(isParseContent);
     }
   }
 
@@ -291,17 +273,26 @@ void Middleware::process_request(const std::string& path, bool isParseContent)
 }
 
 /**
- * \brief Helper method for process_request(), display markdown file from IPFS network.
+ * \brief Helper method for process_request(), display markdown page from the Freedom Names network.
  * Runs in a separate thread.
- * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS
- * network), set to false if you want to edit the content
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax,
+ * set to false if you want to edit the content
  */
-void Middleware::fetch_from_ipfs(bool isParseContent)
+void Middleware::fetch_from_freedomnames(bool isParseContent)
 {
   try
   {
     std::stringstream contents;
-    ipfs_fetch_.fetch(final_request_path_, &contents);
+    // A Freedom Names *name* ("label.<pubKeyID>.fn") always contains dots; a bare
+    // content hash (base36 multihash, e.g. from the publish dialog) never does.
+    if (final_request_path_.find('.') == std::string::npos)
+    {
+      freedom_fetch_.get_content(final_request_path_, &contents);
+    }
+    else
+    {
+      freedom_fetch_.resolve_content(final_request_path_, &contents);
+    }
     // If the thread stops, don't brother to parse the file/update the GTK window
     if (keep_request_thread_running_)
     {
@@ -337,37 +328,43 @@ void Middleware::fetch_from_ipfs(bool isParseContent)
     // Ignore error reporting when the request was aborted
     if (errorMessage != "Request was aborted")
     {
-      std::cerr << "ERROR: IPFS request failed, with message: " << errorMessage << std::endl;
+      std::cerr << "ERROR: Freedom Names request failed, with message: " << errorMessage << std::endl;
       if (errorMessage.starts_with("HTTP request failed with status code"))
       {
+        // Format: "HTTP request failed with status code <N>: <body>" (see FreedomNames::http_get).
         std::string message;
-        // Remove text until ':\n'
-        errorMessage.erase(0, errorMessage.find(':') + 2);
-        if (!errorMessage.empty() && errorMessage != "")
+        std::string body = errorMessage.substr(errorMessage.find(':') + 2);
+        if (!body.empty())
         {
+          // The node returns either a JSON {"error":"..."} body or a plain-text reason.
           try
           {
-            auto content = nlohmann::json::parse(errorMessage);
-            message = "Message: " + content.value("Message", "");
-            if (message.starts_with("context deadline exceeded"))
-            {
-              message += ". Time-out is set to: " + ipfs_timeout_;
-            }
-            message += ".\n\n";
+            auto content = nlohmann::json::parse(body);
+            message = "Message: " + content.value("error", body) + ".\n\n";
           }
-          catch (const nlohmann::json::parse_error& parseError)
+          catch (const nlohmann::json::parse_error&)
           {
-            std::cerr << "ERROR: Could not parse at byte: " << parseError.byte << std::endl;
+            message = "Message: " + body + ".\n\n";
           }
+        }
+        else
+        {
+          message = "Message: " + errorMessage + ".\n\n";
         }
         Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message),
                                                     "🎂 We're having trouble finding this site.",
                                                     message + "You could try to reload the page or try increase the time-out (see --help)."));
       }
-      else if (errorMessage.starts_with("Couldn't connect to server: Failed to connect to localhost"))
+      else if (errorMessage.starts_with("Request timed out"))
+      {
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "⏰ Request timed out",
+                                                    "The lookup took too long. Time-out is set to: " + freedom_timeout_ +
+                                                        ".\n\nYou could try to reload the page or increase the time-out (see --help)."));
+      }
+      else if (errorMessage.starts_with("Couldn't connect to server"))
       {
         Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "⌛ Please wait...",
-                                                    "IPFS daemon is still spinnng-up, page will automatically refresh..."));
+                                                    "The Freedom Names node is still spinning-up, page will automatically refresh..."));
         wait_page_visible_ = true; // Please wait page is shown (auto-refresh when network is up)
       }
       else
@@ -382,8 +379,8 @@ void Middleware::fetch_from_ipfs(bool isParseContent)
 /**
  * \brief Helper method for process_request(), display markdown file from disk.
  * Runs in a separate thread.
- * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or IPFS
- * network), set to false if you want to edit the content
+ * \param isParseContent Set to true if you want to parse and display the content as markdown syntax (from disk or the
+ * Freedom Names network), set to false if you want to edit the content
  */
 void Middleware::open_from_disk(bool isParseContent)
 {
@@ -435,68 +432,57 @@ void Middleware::open_from_disk(bool isParseContent)
 /**
  * \brief Simple wrapper of the method below with void return
  */
-void Middleware::do_ipfs_status_update_once()
+void Middleware::do_freedom_status_update_once()
 {
-  do_ipfs_status_update();
+  do_freedom_status_update();
 }
 
 /**
- * \brief Timeout slot: Update the IPFS connection status every x seconds.
+ * \brief Timeout slot: Update the Freedom Names node status every x seconds.
  * Process requests inside a separate thread, to avoid blocking the GUI thread.
  * \return always true, when running as a GTK timeout handler
  */
-bool Middleware::do_ipfs_status_update()
+bool Middleware::do_freedom_status_update()
 {
   // Stop any on-going status calls first, if applicable
   abort_status();
 
   if (status_thread_ == nullptr)
   {
-    status_thread_ = new std::thread(&Middleware::process_ipfs_status, this);
+    status_thread_ = new std::thread(&Middleware::process_freedom_status, this);
   }
   // Keep going (never disconnect the timer)
   return true;
 }
 
 /**
- * Process the IPFS status calls.
+ * Process the Freedom Names status calls.
  * Runs inside a thread.
  */
-void Middleware::process_ipfs_status()
+void Middleware::process_freedom_status()
 {
-  std::lock_guard<std::mutex> guard(status_mutex_);
   try
   {
-    ipfs_number_of_peers_ = ipfs_status_.get_nr_peers();
-    if (ipfs_number_of_peers_ > 0)
+    // Network I/O runs outside the lock, so GUI-thread getters never block on it
+    FreedomInfo info = freedom_status_.get_info();
+    // Version never changes for a running node; fetch it only until we have it
+    std::string version;
+    if (get_freedom_version().empty())
+      version = freedom_status_.get_health().version;
     {
-      // Auto-refresh page if needed (when 'Please wait' page was shown)
-      if (wait_page_visible_)
-        Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::refresh_request));
-
-      std::map<std::string, std::variant<int, std::string>> repoStats = ipfs_status_.get_repo_stats();
-      ipfs_repo_size_ = std::get<int>(repoStats.at("repo-size"));
-      ipfs_repo_path_ = std::get<std::string>(repoStats.at("path"));
-
-      std::map<std::string, float> rates = ipfs_status_.get_bandwidth_rates();
-      char buf[32];
-      ipfs_incoming_rate_ = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("in") / 1000.0));
-      ipfs_outgoing_rate_ = std::string(buf, std::snprintf(buf, sizeof buf, "%.1f", rates.at("out") / 1000.0));
-    }
-    else
-    {
-      ipfs_repo_size_ = 0;
-      ipfs_repo_path_ = "";
-      ipfs_incoming_rate_ = "0.0";
-      ipfs_outgoing_rate_ = "0.0";
+      std::lock_guard<std::mutex> guard(status_mutex_);
+      freedom_number_of_peers_ = info.peers;
+      freedom_mode_ = info.mode;
+      freedom_network_size_ = info.network_size;
+      if (freedom_node_id_.empty())
+        freedom_node_id_ = info.node_id;
+      if (!version.empty())
+        freedom_version_ = version;
     }
 
-    if (ipfs_client_id_.empty())
-      ipfs_client_id_ = ipfs_status_.get_client_id();
-    if (ipfs_client_public_key_.empty())
-      ipfs_client_public_key_ = ipfs_status_.get_client_public_key();
-    if (ipfs_version_.empty())
-      ipfs_version_ = ipfs_status_.get_version();
+    // Auto-refresh page if needed (when 'Please wait' page was shown) once the node is up.
+    if (wait_page_visible_)
+      Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::refresh_request));
 
     // Trigger update of all status fields, in a thread-safe manner
     Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
@@ -507,11 +493,12 @@ void Middleware::process_ipfs_status()
     if (errorMessage != "Request was aborted")
     {
       // Assume no connection or connection lost; display disconnected
-      ipfs_number_of_peers_ = 0;
-      ipfs_repo_size_ = 0;
-      ipfs_repo_path_ = "";
-      ipfs_incoming_rate_ = "0.0";
-      ipfs_outgoing_rate_ = "0.0";
+      {
+        std::lock_guard<std::mutex> guard(status_mutex_);
+        freedom_number_of_peers_ = 0;
+        freedom_mode_ = "";
+        freedom_network_size_ = -1;
+      }
       Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
     }
   }
@@ -531,12 +518,12 @@ void Middleware::abort_request()
     else
     {
       // Trigger the thread to stop now.
-      // We call the abort method of the IPFS client.
-      ipfs_fetch_.abort();
+      // We call the abort method of the Freedom Names client.
+      freedom_fetch_.abort();
       keep_request_thread_running_ = false;
       request_thread_->join();
       // Reset states, allowing new threads with new API requests/calls
-      ipfs_fetch_.reset();
+      freedom_fetch_.reset();
       keep_request_thread_running_ = true;
     }
     delete request_thread_;
@@ -559,11 +546,11 @@ void Middleware::abort_status()
     else
     {
       // Trigger the thread to stop now.
-      // We call the abort method of the IPFS client.
-      ipfs_status_.abort();
+      // We call the abort method of the Freedom Names client.
+      freedom_status_.abort();
       status_thread_->join();
       // Reset states, allowing new threads with new API status calls
-      ipfs_status_.reset();
+      freedom_status_.reset();
     }
     delete status_thread_;
     status_thread_ = nullptr;
