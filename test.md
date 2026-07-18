@@ -2,7 +2,7 @@
 
 We will show some of the features below.
 
-We can markup text as *italic* or **bold** without any issues! You can also inserts [links](ipfs://Qmbc8EFdUDPQmFuAAkKGQv4FgXrDJuUW2p96LQhzXimiDL).
+We can markup text as *italic* or **bold** without any issues! You can also inserts [links](fn://example.fn).
 
 You can watch the source-code via right mouse click -> "View Source", or in the View menu of LibreWeb Browser.
 
