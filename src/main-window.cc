@@ -530,6 +530,22 @@ void MainWindow::set_gtk_icons()
  */
 void MainWindow::load_icons()
 {
+  // Bookmark star icons in the address bar. Theme independent: always the yellow
+  // star of the flat theme when bookmarked, with a matching outline otherwise.
+  // Loaded separately, since a failure here shouldn't switch the app to GTK icons.
+  try
+  {
+    star_outline_icon =
+        Gdk::Pixbuf::create_from_file(get_bundled_image_path(Glib::build_filename("icons", "star_outline.png")), icon_size_, icon_size_);
+    star_filled_icon =
+        Gdk::Pixbuf::create_from_file(get_bundled_image_path(Glib::build_filename("icons", "flat", "basic", "star.png")), icon_size_, icon_size_);
+  }
+  catch (const Glib::Error& error)
+  {
+    std::cerr << "ERROR: Bookmark star icon could not be loaded: " << error.what() << ".\nContinue nevertheless, with GTK icons as fallback..."
+              << std::endl;
+  }
+
   try
   {
     // Editor buttons
@@ -691,9 +707,8 @@ void MainWindow::init_toolbar_buttons()
   hbox_browser_toolbar.pack_start(refresh_button, false, false, 0);
   hbox_browser_toolbar.pack_start(home_button, false, false, 0);
   // Star icon overlay at the right of the address bar, for quickly adding/removing a bookmark
-  address_bar.set_icon_from_icon_name("non-starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
-  address_bar.set_icon_tooltip_text("Bookmark this page", Gtk::ENTRY_ICON_SECONDARY);
   address_bar.set_icon_activatable(true, Gtk::ENTRY_ICON_SECONDARY);
+  update_bookmark_icon();
   hbox_browser_toolbar.pack_start(address_bar, true, true, 4);
   hbox_browser_toolbar.pack_start(search_button, false, false, 0);
   hbox_browser_toolbar.pack_start(status_button, false, false, 0);
@@ -1940,13 +1955,52 @@ void MainWindow::update_bookmark_icon()
 {
   if (bookmarks_.contains(address_bar.get_text()))
   {
-    address_bar.set_icon_from_icon_name("starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
+    if (star_filled_icon)
+      address_bar.set_icon_from_pixbuf(star_filled_icon, Gtk::ENTRY_ICON_SECONDARY);
+    else
+      address_bar.set_icon_from_icon_name("starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
     address_bar.set_icon_tooltip_text("Remove bookmark", Gtk::ENTRY_ICON_SECONDARY);
   }
   else
   {
-    address_bar.set_icon_from_icon_name("non-starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
+    if (star_outline_icon)
+      address_bar.set_icon_from_pixbuf(star_outline_icon, Gtk::ENTRY_ICON_SECONDARY);
+    else
+      address_bar.set_icon_from_icon_name("non-starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
     address_bar.set_icon_tooltip_text("Bookmark this page", Gtk::ENTRY_ICON_SECONDARY);
+  }
+}
+
+/**
+ * \brief Retrieve the full path of a bundled image, from the installed data
+ * directory or the local repository as fallback
+ * \param relative_image_path Path relative to the images directory (eg. icons/star_outline.png)
+ * \return Full image path, or empty string when the image is not found
+ */
+std::string MainWindow::get_bundled_image_path(const std::string& relative_image_path)
+{
+  // Use data directory first, used when LibreWeb is installed (Linux or Windows)
+  for (const std::string& data_dir : Glib::get_system_data_dirs())
+  {
+    std::vector<std::string> path_builder{data_dir, "libreweb", "images", relative_image_path};
+    std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
+    if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+    {
+      return file_path;
+    }
+  }
+
+  // Try local path if the images are not (yet) installed
+  // When working directory is in the build/bin folder (relative path)
+  std::vector<std::string> path_builder{"..", "..", "images", relative_image_path};
+  std::string file_path = Glib::build_path(G_DIR_SEPARATOR_S, path_builder);
+  if (Glib::file_test(file_path, Glib::FileTest::FILE_TEST_IS_REGULAR))
+  {
+    return file_path;
+  }
+  else
+  {
+    return "";
   }
 }
 

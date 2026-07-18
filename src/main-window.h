@@ -243,6 +243,8 @@ protected:
   Gtk::Image status_icon;
   Glib::RefPtr<Gdk::Pixbuf> status_offline_icon;
   Glib::RefPtr<Gdk::Pixbuf> status_online_icon;
+  Glib::RefPtr<Gdk::Pixbuf> star_outline_icon;
+  Glib::RefPtr<Gdk::Pixbuf> star_filled_icon;
   Gtk::Image settings_icon;
   Gtk::Image open_icon;
   Gtk::Image save_icon;
@@ -364,6 +366,7 @@ private:
   void disable_edit(Tab* tab);
   bool is_editor_enabled();
   std::string get_icon_image_from_theme(const std::string& icon_name, const std::string& typeof_icon);
+  std::string get_bundled_image_path(const std::string& relative_image_path);
   void update_margins(Tab& tab);
   void update_margins_all_tabs();
   void update_css();
