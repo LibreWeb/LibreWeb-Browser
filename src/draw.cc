@@ -264,6 +264,14 @@ void Draw::populate_popup(Gtk::Menu* menu)
       item->hide();
     }
   }
+  // Add the 'open link in new tab' menu item, when right-clicking on a link
+  if (!hovered_link_url_.empty() && !get_editable())
+  {
+    Gtk::MenuItem* openLinkNewTabMenuItem = Gtk::manage(new Gtk::MenuItem("Open Link in New _Tab", true));
+    openLinkNewTabMenuItem->signal_activate().connect(sigc::bind(open_link_new_tab, hovered_link_url_));
+    openLinkNewTabMenuItem->show();
+    menu->prepend(*openLinkNewTabMenuItem);
+  }
   if (add_view_source_menu_item_)
   {
     Gtk::MenuItem* sourceCodeMenuItem = Gtk::manage(new Gtk::MenuItem("View Source", true));
@@ -1747,9 +1755,13 @@ void Draw::change_cursor(int x, int y)
     {
       // Link
       hovering = true;
+      // Remember the hovered URL, used by the right-click menu (open link in new tab)
+      hovered_link_url_ = url;
       break;
     }
   }
+  if (!hovering)
+    hovered_link_url_ = "";
 
   if (hovering != hoving_over_link_)
   {

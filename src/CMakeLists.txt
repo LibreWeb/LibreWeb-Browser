@@ -25,8 +25,10 @@ set(HEADERS
     draw.h
     file.h
     freedomnames.h
+    freedomnames-status.h
     middleware-i.h
     middleware.h
+    tab.h
     toolbar-button.h
     toc-model-cols.h
     main-window.h
@@ -36,13 +38,15 @@ set(HEADERS
     option-group.h
     source-code-dialog.h
 )
-set(SOURCES 
+set(SOURCES
   main.cc
   about-dialog.cc
   draw.cc
   file.cc
   freedomnames.cc
+  freedomnames-status.cc
   middleware.cc
+  tab.cc
   toolbar-button.cc
   main-window.cc
   md-parser.cc

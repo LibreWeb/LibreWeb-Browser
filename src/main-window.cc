@@ -3,6 +3,7 @@
 #include "file.h"
 #include "menu.h"
 #include "project_config.h"
+#include <cmark-gfm.h>
 #include <cstdint>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <giomm/file.h>
@@ -39,8 +40,6 @@ MainWindow::MainWindow(const std::string& timeout)
       indent_adjustment(Gtk::Adjustment::create(0, 0, 1000, 5, 10)),
       draw_css_provider(Gtk::CssProvider::create()),
       menu(accel_group),
-      draw_primary(middleware_),
-      draw_secondary(middleware_),
       about(*this),
       vbox_main(Gtk::ORIENTATION_VERTICAL, 0),
       vbox_toc(Gtk::ORIENTATION_VERTICAL),
@@ -102,7 +101,8 @@ MainWindow::MainWindow(const std::string& timeout)
       reader_view_label("Reader View"),
       icon_theme_label("Active Theme"),
       // Private members
-      middleware_(*this, timeout),
+      timeout_(timeout),
+      status_(*this, timeout),
       app_name_("LibreWeb Browser"),
       use_current_gtk_icon_theme_(false), // Use LibreWeb icon theme or the GTK icons
       icon_theme_flat_("flat"),
@@ -121,8 +121,7 @@ MainWindow::MainWindow(const std::string& timeout)
       wrap_mode_(Gtk::WRAP_WORD_CHAR),
       brightness_scale_(1.0),
       use_dark_theme_(false),
-      is_reader_view_enabled_(true),
-      current_history_index_(0)
+      is_reader_view_enabled_(true)
 {
   set_title(app_name_);
   set_default_size(1000, 800);
@@ -140,27 +139,23 @@ MainWindow::MainWindow(const std::string& timeout)
   init_signals();
   init_mac_os();
 
-  // Add custom CSS Provider to draw textviews
-  auto stylePrimary = draw_primary.get_style_context();
-  auto styleSecondary = draw_secondary.get_style_context();
-  stylePrimary->add_provider(draw_css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
-  styleSecondary->add_provider(draw_css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
   // Load the default font family and font size
   update_css();
 
-  // Primary drawing area
-  scrolled_window_primary.add(draw_primary);
-  scrolled_window_primary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  // Secondary drawing area
-  draw_secondary.set_view_source_menu_item(false);
-  scrolled_window_secondary.add(draw_secondary);
-  scrolled_window_secondary.set_policy(Gtk::POLICY_AUTOMATIC, Gtk::POLICY_AUTOMATIC);
-  paned_draw.pack1(scrolled_window_primary, true, false);
-  paned_draw.pack2(scrolled_window_secondary, true, true);
+  // Notebook containing the browser tabs
+  notebook.set_scrollable(true);
+  notebook.popup_disable();
+  new_tab_icon.set_from_icon_name("list-add-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
+  new_tab_button.add(new_tab_icon);
+  new_tab_button.set_relief(Gtk::RELIEF_NONE);
+  new_tab_button.set_focus_on_click(false);
+  new_tab_button.set_tooltip_text("Open a new tab (Ctrl+T)");
+  new_tab_button.show_all();
+  notebook.set_action_widget(&new_tab_button, Gtk::PACK_END);
   // Left the vbox for the table of contents,
-  // right the drawing paned windows (primary/secondary).
+  // right the notebook with the tabs (each tab contains the primary/secondary drawing panes).
   paned_root.pack1(vbox_toc, true, false);
-  paned_root.pack2(paned_draw, true, false);
+  paned_root.pack2(notebook, true, false);
   // Main virtual box
   vbox_main.pack_start(menu, false, false, 0);
   vbox_main.pack_start(hbox_browser_toolbar, false, false, 6);
@@ -170,9 +165,8 @@ MainWindow::MainWindow(const std::string& timeout)
   add(vbox_main);
   show_all_children();
 
-  // Hide by default the table of contents, secondary textview, replace entry and editor toolbars
+  // Hide by default the table of contents, replace entry and editor toolbars
   vbox_toc.hide();
-  scrolled_window_secondary.hide();
   search_replace_entry.hide();
   hbox_standard_editor_toolbar.hide();
   hbox_formatting_editor_toolbar.hide();
@@ -180,18 +174,19 @@ MainWindow::MainWindow(const std::string& timeout)
   // Grap focus to input field by default
   address_bar.grab_focus();
 
-// Show homepage if debugging is disabled
+// Open the first tab with the homepage if debugging is disabled
 #ifdef NDEBUG
-  go_home();
+  new_tab();
 #else
   std::cout << "INFO: Running as Debug mode, opening test.md." << std::endl;
   // Load test file during development
-  middleware_.do_request("file://../../test.md");
+  new_tab("file://../../test.md");
 #endif
 }
 
 /**
  * \brief Called before the requests begins.
+ * \param tab Tab that is making the request
  * \param path File path (on disk or Freedom Names) that needs to be processed.
  * \param title Application title
  * \param is_set_address_bar If true update the address bar with the file path
@@ -199,69 +194,102 @@ MainWindow::MainWindow(const std::string& timeout)
  * \param is_disable_editor If true the editor will be disabled if needed
  */
 void MainWindow::pre_request(
-    const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor)
+    Tab* tab, const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor)
 {
+  if (!is_valid_tab(tab))
+    return;
+  bool isCurrentTab = (tab == current_tab());
   if (is_set_address_bar)
-    address_bar.set_text(path);
-  if (!title.empty())
-    set_title(title + " - " + app_name_);
-  else
-    set_title(app_name_);
-  if (is_disable_editor && is_editor_enabled())
-    disable_edit();
+  {
+    tab->address = path;
+    if (isCurrentTab)
+      address_bar.set_text(path);
+  }
+  tab->title = title;
+  if (isCurrentTab)
+  {
+    if (!title.empty())
+      set_title(title + " - " + app_name_);
+    else
+      set_title(app_name_);
+  }
+  update_tab_label(tab, path);
+  if (is_disable_editor && tab->is_editor_active)
+    disable_edit(tab);
 
   // Do not insert history back/forward calls into the history (again)
   if (!is_history_request && !path.empty())
   {
-    if (history_.empty())
+    if (tab->history.empty())
     {
-      history_.push_back(path);
-      current_history_index_ = history_.size() - 1;
+      tab->history.push_back(path);
+      tab->current_history_index = tab->history.size() - 1;
     }
-    else if (history_.back().compare(path) != 0)
+    else if (tab->history.back().compare(path) != 0)
     {
-      history_.push_back(path);
-      current_history_index_ = history_.size() - 1;
+      tab->history.push_back(path);
+      tab->current_history_index = tab->history.size() - 1;
     }
   }
   // Enable back/forward buttons when possible
-  back_button.set_sensitive(current_history_index_ > 0);
-  menu.set_back_menu_sensitive(current_history_index_ > 0);
-  forward_button.set_sensitive(current_history_index_ < history_.size() - 1);
-  menu.set_forward_menu_sensitive(current_history_index_ < history_.size() - 1);
+  if (isCurrentTab)
+  {
+    back_button.set_sensitive(tab->current_history_index > 0);
+    menu.set_back_menu_sensitive(tab->current_history_index > 0);
+    forward_button.set_sensitive(tab->current_history_index < tab->history.size() - 1);
+    menu.set_forward_menu_sensitive(tab->current_history_index < tab->history.size() - 1);
 
-  // Clear table of contents (ToC)
-  toc_tree_model->clear();
+    // Clear table of contents (ToC)
+    toc_tree_model->clear();
+  }
 }
 
 /**
  * \brief Called after file is written to disk.
  */
-void MainWindow::post_write(const std::string& path, const std::string& title, bool is_set_address_and_title)
+void MainWindow::post_write(Tab* tab, const std::string& path, const std::string& title, bool is_set_address_and_title)
 {
+  if (!is_valid_tab(tab))
+    return;
   if (is_set_address_and_title)
   {
-    address_bar.set_text(path);
-    set_title(title + " - " + app_name_);
+    tab->address = path;
+    tab->title = title;
+    update_tab_label(tab, path);
+    if (tab == current_tab())
+    {
+      address_bar.set_text(path);
+      set_title(title + " - " + app_name_);
+    }
   }
 }
 
 /**
  * \brief Called when request started (from thread).
+ * \param tab Tab that started the request
  */
-void MainWindow::started_request()
+void MainWindow::started_request(Tab* tab)
 {
+  if (!is_valid_tab(tab))
+    return;
+  tab->is_loading = true;
   // Start spinning icon
-  refresh_icon.get_style_context()->add_class("spinning");
+  if (tab == current_tab())
+    refresh_icon.get_style_context()->add_class("spinning");
 }
 
 /**
  * \brief Called when request is finished (from thread).
+ * \param tab Tab that finished the request
  */
-void MainWindow::finished_request()
+void MainWindow::finished_request(Tab* tab)
 {
+  if (!is_valid_tab(tab))
+    return;
+  tab->is_loading = false;
   // Stop spinning icon
-  refresh_icon.get_style_context()->remove_class("spinning");
+  if (tab == current_tab())
+    refresh_icon.get_style_context()->remove_class("spinning");
 }
 
 /**
@@ -272,45 +300,75 @@ void MainWindow::refresh_request()
   // Only allow refresh if editor is disabled (doesn't make sense otherwise to refresh)
   if (!is_editor_enabled())
     // Reload existing file, don't need to update the address bar, don't disable the editor
-    middleware_.do_request("", false, false, false);
+    middleware().do_request("", false, false, false);
+}
+
+/**
+ * \brief Refresh all tabs that are showing the 'Please wait' page,
+ * called once the Freedom Names node is up & running.
+ */
+void MainWindow::refresh_waiting_tabs()
+{
+  for (Tab* tab : get_tabs())
+  {
+    if (!tab->is_editor_active && tab->middleware.is_wait_page_visible())
+      tab->middleware.do_request("", false, false, false);
+  }
 }
 
 /**
  * \brief Show home page
+ * \param tab Tab in which the homepage will be displayed
  */
-void MainWindow::show_homepage()
+void MainWindow::show_homepage(Tab* tab)
 {
-  draw_primary.show_homepage();
+  if (!is_valid_tab(tab))
+    return;
+  tab->draw_primary.show_homepage();
 }
 
 /**
  * \brief Set plain text
+ * \param tab Tab in which the text will be displayed
  * \param content content string
  */
-void MainWindow::set_text(const Glib::ustring& content)
+void MainWindow::set_text(Tab* tab, const Glib::ustring& content)
 {
-  draw_primary.set_text(content);
+  if (!is_valid_tab(tab))
+    return;
+  tab->draw_primary.set_text(content);
 }
 
 /**
  * \brief Set markdown document (common mark) on primary window. cmark_node pointer will be freed automatically.
  * And set the ToC.
+ * \param tab Tab in which the document will be displayed
  * \param root_node cmark root data struct
  */
-void MainWindow::set_document(cmark_node* root_node)
+void MainWindow::set_document(Tab* tab, cmark_node* root_node)
 {
-  draw_primary.set_document(root_node);
-  set_table_of_contents(draw_primary.get_headings());
+  if (!is_valid_tab(tab))
+  {
+    // Tab is already closed; free the document and move on
+    cmark_node_free(root_node);
+    return;
+  }
+  tab->draw_primary.set_document(root_node);
+  if (tab == current_tab())
+    set_table_of_contents(tab->draw_primary.get_headings());
 }
 
 /**
  * \brief Set message with optionally additional details
+ * \param tab Tab in which the message will be displayed
  * \param message Message string
  * \param details Details string
  */
-void MainWindow::set_message(const Glib::ustring& message, const Glib::ustring& details)
+void MainWindow::set_message(Tab* tab, const Glib::ustring& message, const Glib::ustring& details)
 {
-  draw_primary.set_message(message, details);
+  if (!is_valid_tab(tab))
+    return;
+  tab->draw_primary.set_message(message, details);
 }
 
 /**
@@ -319,7 +377,7 @@ void MainWindow::set_message(const Glib::ustring& message, const Glib::ustring& 
 void MainWindow::update_status_popover_and_icon()
 {
   std::string networkStatus;
-  std::size_t nrOfPeers = middleware_.get_freedom_number_of_peers();
+  std::size_t nrOfPeers = status_.get_number_of_peers();
   // Update status icon
   if (nrOfPeers > 0)
   {
@@ -347,13 +405,13 @@ void MainWindow::update_status_popover_and_icon()
   }
   connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
   peers_status_label.set_text(std::to_string(nrOfPeers));
-  mode_status_label.set_text(middleware_.get_freedom_mode());
-  const std::string nodeId = middleware_.get_freedom_node_id();
+  mode_status_label.set_text(status_.get_mode());
+  const std::string nodeId = status_.get_node_id();
   node_id_status_label.set_text(nodeId);
   node_id_status_label.set_tooltip_text(nodeId);
-  int networkSize = middleware_.get_freedom_network_size();
+  int networkSize = status_.get_network_size();
   network_size_status_label.set_text(networkSize >= 0 ? "~" + std::to_string(networkSize) : "unknown");
-  node_version_status_label.set_text(middleware_.get_freedom_version());
+  node_version_status_label.set_text(status_.get_version());
   // Bandwidth rates are not exposed by the node (yet).
   network_incoming_status_label.set_text("n/a");
   network_outgoing_status_label.set_text("n/a");
@@ -385,7 +443,6 @@ void MainWindow::load_stored_settings()
     if (settings->get_boolean("maximized"))
       maximize();
     position_divider_draw_ = settings->get_int("position-divider-draw");
-    paned_draw.set_position(position_divider_draw_);
     font_family_ = settings->get_string("font-family");
     current_font_size_ = default_font_size_ = settings->get_int("font-size");
     font_button.set_font_name(font_family_ + " " + std::to_string(current_font_size_));
@@ -399,7 +456,6 @@ void MainWindow::load_stored_settings()
     spacing_adjustment->set_value(font_spacing_);
     margins_adjustment->set_value(content_margin_);
     indent_adjustment->set_value(indent_);
-    draw_primary.set_indent(indent_);
     int tocDividerPosition = settings->get_int("position-divider-toc");
     paned_root.set_position(tocDividerPosition);
     current_icon_theme_ = settings->get_string("icon-theme");
@@ -438,11 +494,9 @@ void MainWindow::load_stored_settings()
     // Fallback ToC paned divider
     paned_root.set_position(300);
   }
-  // Apply settings that needs to be applied now
-  // Note: margins are getting automatically applied (on resize),
+  // Note: indent & wrap mode settings are applied on each tab when it is created (see new_tab),
+  // margins are getting automatically applied (on resize),
   // and some other attributes are part of CSS.
-  draw_primary.set_indent(indent_);
-  draw_primary.set_wrap_mode(wrap_mode_);
 }
 
 /**
@@ -986,12 +1040,19 @@ void MainWindow::init_signals()
 {
   // Window signals
   signal_delete_event().connect(sigc::mem_fun(this, &MainWindow::delete_window));
-  draw_primary.signal_size_allocate().connect(sigc::mem_fun(this, &MainWindow::on_size_alloc));
+
+  // Notebook (tabs) signals
+  notebook.signal_switch_page().connect(sigc::mem_fun(this, &MainWindow::on_tab_switched));
+  new_tab_button.signal_clicked().connect([this] { new_tab(); });
 
   // Table of contents
   close_toc_window_button.signal_clicked().connect(sigc::mem_fun(vbox_toc, &Gtk::Widget::hide));
   toc_tree_view.signal_row_activated().connect(sigc::mem_fun(this, &MainWindow::on_toc_row_activated));
   // Menu & toolbar signals
+  menu.new_tab.connect([this] { new_tab(); });                                           /*!< Menu item for new tab */
+  menu.close_tab.connect(sigc::mem_fun(this, &MainWindow::close_current_tab));           /*!< Menu item for closing the current tab */
+  menu.next_tab.connect(sigc::mem_fun(this, &MainWindow::switch_to_next_tab));           /*!< Menu item for next tab */
+  menu.prev_tab.connect(sigc::mem_fun(this, &MainWindow::switch_to_previous_tab));       /*!< Menu item for previous tab */
   menu.new_doc.connect(sigc::mem_fun(this, &MainWindow::new_doc));                       /*!< Menu item for new document */
   menu.open.connect(sigc::mem_fun(this, &MainWindow::open));                             /*!< Menu item for opening existing document */
   menu.open_edit.connect(sigc::mem_fun(this, &MainWindow::open_and_edit));               /*!< Menu item for opening & editing existing document */
@@ -1000,8 +1061,8 @@ void MainWindow::init_signals()
   menu.save_as.connect(sigc::mem_fun(this, &MainWindow::save_as));                       /*!< Menu item for save document as */
   menu.publish.connect(sigc::mem_fun(this, &MainWindow::publish));                       /*!< Menu item for publishing */
   menu.quit.connect(sigc::mem_fun(this, &MainWindow::close));                            /*!< close main window and therefore closes the app */
-  menu.undo.connect(sigc::mem_fun(draw_primary, &Draw::undo));                           /*!< Menu item for undo text */
-  menu.redo.connect(sigc::mem_fun(draw_primary, &Draw::redo));                           /*!< Menu item for redo text */
+  menu.undo.connect([this] { current_tab()->draw_primary.undo(); });                     /*!< Menu item for undo text */
+  menu.redo.connect([this] { current_tab()->draw_primary.redo(); });                     /*!< Menu item for redo text */
   menu.cut.connect(sigc::mem_fun(this, &MainWindow::cut));                               /*!< Menu item for cut text */
   menu.copy.connect(sigc::mem_fun(this, &MainWindow::copy));                             /*!< Menu item for copy text */
   menu.paste.connect(sigc::mem_fun(this, &MainWindow::paste));                           /*!< Menu item for paste text */
@@ -1017,7 +1078,6 @@ void MainWindow::init_signals()
   menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
   source_code_dialog.signal_response().connect(sigc::mem_fun(source_code_dialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                    /*!< Display about dialog */
-  draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));                     /*!< Open source code dialog */
   about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                       /*!< Close about dialog */
   address_bar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
   open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));          /*!< Button for showing Table of Contents */
@@ -1034,22 +1094,22 @@ void MainWindow::init_signals()
   cut_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::cut));
   copy_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy));
   paste_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::paste));
-  undo_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::undo));
-  redo_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::redo));
+  undo_button.signal_clicked().connect([this] { current_tab()->draw_primary.undo(); });
+  redo_button.signal_clicked().connect([this] { current_tab()->draw_primary.redo(); });
   headings_combo_box.signal_changed().connect(sigc::mem_fun(this, &MainWindow::get_heading));
-  bold_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_bold));
-  italic_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_italic));
-  strikethrough_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_strikethrough));
-  super_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_super));
-  sub_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_sub));
-  link_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_link));
+  bold_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_bold(); });
+  italic_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_italic(); });
+  strikethrough_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_strikethrough(); });
+  super_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_super(); });
+  sub_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_sub(); });
+  link_button.signal_clicked().connect([this] { current_tab()->draw_primary.insert_link(); });
   image_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_image));
   emoji_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
-  quote_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_quote));
-  code_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_code));
-  bullet_list_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_bullet_list));
-  numbered_list_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_numbered_list));
-  highlight_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_highlight));
+  quote_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_quote(); });
+  code_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_code(); });
+  bullet_list_button.signal_clicked().connect([this] { current_tab()->draw_primary.insert_bullet_list(); });
+  numbered_list_button.signal_clicked().connect([this] { current_tab()->draw_primary.insert_numbered_list(); });
+  highlight_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_highlight(); });
   // Status pop-over buttons
   copy_id_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
   // Settings pop-over buttons
@@ -1093,6 +1153,25 @@ void MainWindow::init_mac_os()
 }
 
 /**
+ * \brief Handle key events before the default window handling,
+ * the Tab key can't be used reliably within menu accelerators, so handle the tab switching shortcuts here.
+ */
+bool MainWindow::on_key_press_event(GdkEventKey* key_event)
+{
+  if ((key_event->state & GDK_CONTROL_MASK) &&
+      (key_event->keyval == GDK_KEY_Tab || key_event->keyval == GDK_KEY_KP_Tab || key_event->keyval == GDK_KEY_ISO_Left_Tab))
+  {
+    // Ctrl+Shift+Tab (or Ctrl+ISO Left Tab) switches to the previous tab, Ctrl+Tab to the next tab
+    if ((key_event->state & GDK_SHIFT_MASK) || (key_event->keyval == GDK_KEY_ISO_Left_Tab))
+      switch_to_previous_tab();
+    else
+      switch_to_next_tab();
+    return true;
+  }
+  return Gtk::Window::on_key_press_event(key_event);
+}
+
+/**
  * \brief Called when Window is closed/exited
  */
 bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
@@ -1107,8 +1186,8 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
       settings->set_int("position-divider-toc", paned_root.get_position());
     // Only store a divider value bigger than zero,
     // because the secondary draw window is hidden by default, resulting into a zero value.
-    if (paned_draw.get_position() > 0)
-      settings->set_int("position-divider-draw", paned_draw.get_position());
+    if (current_tab() && current_tab()->get_position() > 0)
+      settings->set_int("position-divider-draw", current_tab()->get_position());
     // Fullscreen will be available with gtkmm-4.0
     // settings->set_boolean("fullscreen", is_fullscreen());
     settings->set_string("font-family", font_family_);
@@ -1132,13 +1211,13 @@ bool MainWindow::delete_window(GdkEventAny* any_event __attribute__((unused)))
  */
 void MainWindow::cut()
 {
-  if (draw_primary.has_focus())
+  if (current_tab()->draw_primary.has_focus())
   {
-    draw_primary.cut();
+    current_tab()->draw_primary.cut();
   }
-  else if (draw_secondary.has_focus())
+  else if (current_tab()->draw_secondary.has_focus())
   {
-    draw_secondary.cut();
+    current_tab()->draw_secondary.cut();
   }
   else if (address_bar.has_focus())
   {
@@ -1156,13 +1235,13 @@ void MainWindow::cut()
 
 void MainWindow::copy()
 {
-  if (draw_primary.has_focus())
+  if (current_tab()->draw_primary.has_focus())
   {
-    draw_primary.copy();
+    current_tab()->draw_primary.copy();
   }
-  else if (draw_secondary.has_focus())
+  else if (current_tab()->draw_secondary.has_focus())
   {
-    draw_secondary.copy();
+    current_tab()->draw_secondary.copy();
   }
   else if (address_bar.has_focus())
   {
@@ -1180,13 +1259,13 @@ void MainWindow::copy()
 
 void MainWindow::paste()
 {
-  if (draw_primary.has_focus())
+  if (current_tab()->draw_primary.has_focus())
   {
-    draw_primary.paste();
+    current_tab()->draw_primary.paste();
   }
-  else if (draw_secondary.has_focus())
+  else if (current_tab()->draw_secondary.has_focus())
   {
-    draw_secondary.paste();
+    current_tab()->draw_secondary.paste();
   }
   else if (address_bar.has_focus())
   {
@@ -1204,13 +1283,13 @@ void MainWindow::paste()
 
 void MainWindow::del()
 {
-  if (draw_primary.has_focus())
+  if (current_tab()->draw_primary.has_focus())
   {
-    draw_primary.del();
+    current_tab()->draw_primary.del();
   }
-  else if (draw_secondary.has_focus())
+  else if (current_tab()->draw_secondary.has_focus())
   {
-    draw_secondary.del();
+    current_tab()->draw_secondary.del();
   }
   else if (address_bar.has_focus())
   {
@@ -1255,13 +1334,13 @@ void MainWindow::del()
 
 void MainWindow::selectAll()
 {
-  if (draw_primary.has_focus())
+  if (current_tab()->draw_primary.has_focus())
   {
-    draw_primary.select_all();
+    current_tab()->draw_primary.select_all();
   }
-  else if (draw_secondary.has_focus())
+  else if (current_tab()->draw_secondary.has_focus())
   {
-    draw_secondary.select_all();
+    current_tab()->draw_secondary.select_all();
   }
   else if (address_bar.has_focus())
   {
@@ -1279,11 +1358,12 @@ void MainWindow::selectAll()
 
 /**
  * \brief Triggers when the textview widget changes size
+ * \param tab Tab the resized textview belongs to
  */
-void MainWindow::on_size_alloc(__attribute__((unused)) const Gdk::Rectangle& allocation)
+void MainWindow::on_size_alloc(__attribute__((unused)) const Gdk::Rectangle& allocation, Tab* tab)
 {
-  if (!is_editor_enabled())
-    update_margins();
+  if (!tab->is_editor_active)
+    update_margins(*tab);
 }
 
 /**
@@ -1300,9 +1380,9 @@ void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attrib
       Gtk::TextIter textIter = row[toc_columns.col_iter];
       // Scroll to to mark iterator
       if (is_editor_enabled())
-        draw_secondary.scroll_to(textIter);
+        current_tab()->draw_secondary.scroll_to(textIter);
       else
-        draw_primary.scroll_to(textIter);
+        current_tab()->draw_primary.scroll_to(textIter);
     }
   }
 }
@@ -1312,13 +1392,17 @@ void MainWindow::on_toc_row_activated(const Gtk::TreeModel::Path& path, __attrib
  */
 void MainWindow::new_doc()
 {
+  Tab* tab = current_tab();
   // Clear content & path
-  middleware_.reset_content_and_path();
+  tab->middleware.reset_content_and_path();
   // Enable editing mode
   enable_edit();
   // Change address bar
+  tab->address = "file://unsaved";
   address_bar.set_text("file://unsaved");
   // Set new title
+  tab->title = "Untitled *";
+  tab->set_tab_label("Untitled *");
   set_title("Untitled * - " + app_name_);
 }
 
@@ -1399,7 +1483,7 @@ void MainWindow::on_open_dialog_response(int response_id, Gtk::FileChooserDialog
   {
     auto filePath = dialog->get_file()->get_path();
     // Open file, set address bar & disable editor if needed
-    middleware_.do_request("file://" + filePath);
+    middleware().do_request("file://" + filePath);
     break;
   }
   case Gtk::ResponseType::RESPONSE_CANCEL:
@@ -1431,9 +1515,9 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
     auto filePath = dialog->get_file()->get_path();
     std::string path = "file://" + filePath;
     // Open file and set address bar, but do not parse the content or the disable editor
-    middleware_.do_request(path, true, false, false, false);
+    middleware().do_request(path, true, false, false, false);
     // Set current file path for the 'save' feature
-    current_file_saved_path_ = filePath;
+    current_tab()->current_file_saved_path = filePath;
     break;
   }
   case Gtk::ResponseType::RESPONSE_CANCEL:
@@ -1454,11 +1538,14 @@ void MainWindow::on_open_edit_dialog_response(int response_id, Gtk::FileChooserD
  */
 void MainWindow::edit()
 {
+  Tab* tab = current_tab();
   if (!is_editor_enabled())
     enable_edit();
 
-  draw_primary.set_text(middleware_.get_content());
+  tab->draw_primary.set_text(tab->middleware.get_content());
   // Set title
+  tab->title = "Untitled *";
+  tab->set_tab_label("Untitled *");
   set_title("Untitled * - " + app_name_);
 }
 
@@ -1467,7 +1554,8 @@ void MainWindow::edit()
  */
 void MainWindow::save()
 {
-  if (current_file_saved_path_.empty())
+  Tab* tab = current_tab();
+  if (tab->current_file_saved_path.empty())
   {
     save_as();
   }
@@ -1477,12 +1565,12 @@ void MainWindow::save()
     {
       try
       {
-        middleware_.do_write(current_file_saved_path_);
+        tab->middleware.do_write(tab->current_file_saved_path);
       }
       catch (std::ios_base::failure& error)
       {
-        std::cerr << "ERROR: Could not write file: " << current_file_saved_path_ << ". Message: " << error.what() << ".\nError code: " << error.code()
-                  << std::endl;
+        std::cerr << "ERROR: Could not write file: " << tab->current_file_saved_path << ". Message: " << error.what()
+                  << ".\nError code: " << error.code() << std::endl;
       }
     }
     else
@@ -1518,11 +1606,11 @@ void MainWindow::save_as()
   filterAny->add_pattern("*");
   dialog->add_filter(filterAny);
   // If user is saving as an existing file, set the current uri path
-  if (!current_file_saved_path_.empty())
+  if (!current_tab()->current_file_saved_path.empty())
   {
     try
     {
-      dialog->set_uri(Glib::filename_to_uri(current_file_saved_path_));
+      dialog->set_uri(Glib::filename_to_uri(current_tab()->current_file_saved_path));
     }
     catch (Glib::Error& error)
     {
@@ -1548,12 +1636,12 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
     // Save current content to file path
     try
     {
-      middleware_.do_write(filePath, is_editor_enabled()); // Only update address & title, when editor mode is enabled
+      middleware().do_write(filePath, is_editor_enabled()); // Only update address & title, when editor mode is enabled
       // Only if editor mode is enabled
       if (is_editor_enabled())
       {
         // Set/update the current file saved path variable (used for the 'save' feature)
-        current_file_saved_path_ = filePath;
+        current_tab()->current_file_saved_path = filePath;
       }
     }
     catch (std::ios_base::failure& error)
@@ -1627,13 +1715,13 @@ void MainWindow::on_insert_image_dialog_response(int response_id, Gtk::FileChoos
     {
       // Add image content to the Freedom Names content network
       // TODO: Run the upload within a separate thread, to avoid blocking the main thread on big files
-      std::string hash = middleware_.do_add_file(filePath);
+      std::string hash = middleware().do_add_file(filePath);
       if (hash.empty())
       {
         throw std::runtime_error("Content hash is empty.");
       }
       // Insert the markdown at the cursor position (a text selection becomes the alt text)
-      draw_primary.insert_image(File::get_filename(filePath), hash);
+      current_tab()->draw_primary.insert_image(File::get_filename(filePath), hash);
     }
     catch (const std::runtime_error& error)
     {
@@ -1663,7 +1751,7 @@ void MainWindow::on_insert_image_dialog_response(int response_id, Gtk::FileChoos
 void MainWindow::publish()
 {
   int result = Gtk::RESPONSE_YES; // By default continue
-  if (middleware_.get_content().empty())
+  if (middleware().get_content().empty())
   {
     Gtk::MessageDialog dialog(*this, "Are you sure you want to publish <b>empty</b> content?", true, Gtk::MESSAGE_QUESTION, Gtk::BUTTONS_YES_NO);
     dialog.set_title("Are you sure?");
@@ -1676,9 +1764,9 @@ void MainWindow::publish()
   {
     std::string path = "new_file.md";
     // Retrieve filename from saved file (if present)
-    if (!current_file_saved_path_.empty())
+    if (!current_tab()->current_file_saved_path.empty())
     {
-      path = current_file_saved_path_;
+      path = current_tab()->current_file_saved_path;
     }
     else
     {
@@ -1689,7 +1777,7 @@ void MainWindow::publish()
     try
     {
       // Add content to the Freedom Names content network
-      std::string hash = middleware_.do_add(path);
+      std::string hash = middleware().do_add(path);
       if (hash.empty())
       {
         throw std::runtime_error("Content hash is empty.");
@@ -1725,7 +1813,7 @@ void MainWindow::publish()
  */
 void MainWindow::go_home()
 {
-  middleware_.do_request("about:home", true, false, true);
+  middleware().do_request("about:home", true, false, true);
 }
 
 /**
@@ -1744,9 +1832,9 @@ void MainWindow::show_toc()
  */
 void MainWindow::copy_client_id()
 {
-  if (!middleware_.get_freedom_node_id().empty())
+  if (!status_.get_node_id().empty())
   {
-    get_clipboard("CLIPBOARD")->set_text(middleware_.get_freedom_node_id());
+    get_clipboard("CLIPBOARD")->set_text(status_.get_node_id());
     show_notification("Copied to clipboard", "Your node ID is now copied to your clipboard.");
   }
   else
@@ -1761,6 +1849,7 @@ void MainWindow::copy_client_id()
 void MainWindow::on_search()
 {
   // Forward search, find and select
+  Draw& draw_primary = current_tab()->draw_primary;
   std::string text = search_entry.get_text();
   auto buffer = draw_primary.get_buffer();
   Gtk::TextBuffer::iterator iter = buffer->get_iter_at_mark(buffer->get_mark("insert"));
@@ -1794,6 +1883,7 @@ void MainWindow::on_search()
  */
 void MainWindow::on_replace()
 {
+  Draw& draw_primary = current_tab()->draw_primary;
   if (draw_primary.get_editable())
   {
     auto buffer = draw_primary.get_buffer();
@@ -1817,9 +1907,9 @@ void MainWindow::on_replace()
  */
 void MainWindow::address_bar_activate()
 {
-  middleware_.do_request(address_bar.get_text(), false);
+  middleware().do_request(address_bar.get_text(), false);
   // When user actually entered the address bar, focus on the primary draw
-  draw_primary.grab_focus();
+  current_tab()->draw_primary.grab_focus();
 }
 
 /**
@@ -1871,19 +1961,21 @@ void MainWindow::show_search(bool replace)
 
 void MainWindow::back()
 {
-  if (current_history_index_ > 0)
+  Tab* tab = current_tab();
+  if (tab->current_history_index > 0)
   {
-    current_history_index_--;
-    middleware_.do_request(history_.at(current_history_index_), true, true);
+    tab->current_history_index--;
+    tab->middleware.do_request(tab->history.at(tab->current_history_index), true, true);
   }
 }
 
 void MainWindow::forward()
 {
-  if (current_history_index_ < history_.size() - 1)
+  Tab* tab = current_tab();
+  if (tab->current_history_index < tab->history.size() - 1)
   {
-    current_history_index_++;
-    middleware_.do_request(history_.at(current_history_index_), true, true);
+    tab->current_history_index++;
+    tab->middleware.do_request(tab->history.at(tab->current_history_index), true, true);
   }
 }
 
@@ -2071,87 +2163,95 @@ bool MainWindow::is_installed()
 }
 
 /**
- * \brief Enable editor mode. Allowing to create or edit existing documents
+ * \brief Enable editor mode on the current tab. Allowing to create or edit existing documents
  */
 void MainWindow::enable_edit()
 {
+  Tab* tab = current_tab();
   // Inform the Draw class that we are creating a new document,
   // will apply change some textview setting changes
-  draw_primary.new_document();
+  tab->draw_primary.new_document();
   // Show editor toolbars
   hbox_standard_editor_toolbar.show();
   hbox_formatting_editor_toolbar.show();
   // Enable monospace in editor
-  draw_primary.set_monospace(true);
+  tab->draw_primary.set_monospace(true);
   // Apply some settings from primary to secondary window
-  draw_secondary.set_indent(indent_);
-  draw_secondary.set_wrap_mode(wrap_mode_);
-  draw_secondary.set_left_margin(content_margin_);
-  draw_secondary.set_right_margin(content_margin_);
+  tab->draw_secondary.set_indent(indent_);
+  tab->draw_secondary.set_wrap_mode(wrap_mode_);
+  tab->draw_secondary.set_left_margin(content_margin_);
+  tab->draw_secondary.set_right_margin(content_margin_);
   // Determine position of divider between the primary and secondary windows
   int currentWidth = get_width();
   int maxWidth = currentWidth - 40;
   // Recalculate the position divider if it's too big,
   // or position_divider_draw_ is still on default value
-  if ((paned_draw.get_position() >= maxWidth) || position_divider_draw_ == -1)
+  if ((tab->get_position() >= maxWidth) || position_divider_draw_ == -1)
   {
     int proposedPosition = position_divider_draw_; // Try to first use the gsettings
     if ((proposedPosition == -1) || (proposedPosition >= maxWidth))
     {
       proposedPosition = static_cast<int>(currentWidth / 2.0);
     }
-    paned_draw.set_position(proposedPosition);
+    tab->set_position(proposedPosition);
   }
   // Enabled secondary text view (on the right)
-  scrolled_window_secondary.show();
+  tab->scrolled_window_secondary.show();
   // Disable "view source" menu item
-  draw_primary.set_view_source_menu_item(false);
+  tab->draw_primary.set_view_source_menu_item(false);
   // Connect changed signal
-  text_changed_signal_handler_ = draw_primary.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
+  tab->text_changed_signal_handler = tab->draw_primary.get_buffer()->signal_changed().connect(sigc::mem_fun(this, &MainWindow::editor_changed_text));
   // Enable publish menu item
   menu.set_publish_menu_sensitive(true);
   // Disable edit menu item (you are already editing)
   menu.set_edit_menu_sensitive(false);
   // Just to be sure, disable the spinning animation
   refresh_icon.get_style_context()->remove_class("spinning");
+  tab->is_editor_active = true;
 }
 
 /**
  * \brief Disable editor mode
+ * \param tab Tab for which the editor will be disabled
  */
-void MainWindow::disable_edit()
+void MainWindow::disable_edit(Tab* tab)
 {
-  if (is_editor_enabled())
+  if (tab->is_editor_active)
   {
-    hbox_standard_editor_toolbar.hide();
-    hbox_formatting_editor_toolbar.hide();
-    scrolled_window_secondary.hide();
+    if (tab == current_tab())
+    {
+      hbox_standard_editor_toolbar.hide();
+      hbox_formatting_editor_toolbar.hide();
+      // Disable publish menu item
+      menu.set_publish_menu_sensitive(false);
+      // Enable edit menu item
+      menu.set_edit_menu_sensitive(true);
+    }
+    tab->scrolled_window_secondary.hide();
     // Disconnect text changed signal
-    text_changed_signal_handler_.disconnect();
+    tab->text_changed_signal_handler.disconnect();
     // Disable monospace
-    draw_primary.set_monospace(false);
+    tab->draw_primary.set_monospace(false);
     // Re-apply settings on primary window
-    draw_primary.set_indent(indent_);
-    draw_primary.set_wrap_mode(wrap_mode_);
+    tab->draw_primary.set_indent(indent_);
+    tab->draw_primary.set_wrap_mode(wrap_mode_);
     // Show "view source" menu item again
-    draw_primary.set_view_source_menu_item(true);
-    draw_secondary.clear();
-    // Disable publish menu item
-    menu.set_publish_menu_sensitive(false);
-    // Enable edit menu item
-    menu.set_edit_menu_sensitive(true);
+    tab->draw_primary.set_view_source_menu_item(true);
+    tab->draw_secondary.clear();
     // Empty current file saved path
-    current_file_saved_path_ = "";
+    tab->current_file_saved_path = "";
+    tab->is_editor_active = false;
   }
 }
 
 /**
- * \brief Check if editor is enabled
+ * \brief Check if editor is enabled on the current tab
  * \return true if enabled, otherwise false
  */
 bool MainWindow::is_editor_enabled()
 {
-  return hbox_standard_editor_toolbar.is_visible();
+  const Tab* tab = current_tab();
+  return tab ? tab->is_editor_active : false;
 }
 
 /**
@@ -2189,38 +2289,48 @@ std::string MainWindow::get_icon_image_from_theme(const std::string& icon_name, 
 
 /**
  * \brief Calculate & update margins on primary draw
+ * \param tab Tab on which the margins will be updated
  */
-void MainWindow::update_margins()
+void MainWindow::update_margins(Tab& tab)
 {
-  if (is_editor_enabled())
+  if (tab.is_editor_active)
   {
-    draw_secondary.set_left_margin(content_margin_);
-    draw_secondary.set_right_margin(content_margin_);
+    tab.draw_secondary.set_left_margin(content_margin_);
+    tab.draw_secondary.set_right_margin(content_margin_);
   }
   else
   {
     if (is_reader_view_enabled_)
     {
-      int width = draw_primary.get_width();
+      int width = tab.draw_primary.get_width();
       if (width > (content_max_width_ + (2 * content_margin_)))
       {
         // Calculate margins on the fly
         int margin = (width - content_max_width_) / 2;
-        draw_primary.set_left_margin(margin);
-        draw_primary.set_right_margin(margin);
+        tab.draw_primary.set_left_margin(margin);
+        tab.draw_primary.set_right_margin(margin);
       }
       else
       {
-        draw_primary.set_left_margin(content_margin_);
-        draw_primary.set_right_margin(content_margin_);
+        tab.draw_primary.set_left_margin(content_margin_);
+        tab.draw_primary.set_right_margin(content_margin_);
       }
     }
     else
     {
-      draw_primary.set_left_margin(content_margin_);
-      draw_primary.set_right_margin(content_margin_);
+      tab.draw_primary.set_left_margin(content_margin_);
+      tab.draw_primary.set_right_margin(content_margin_);
     }
   }
+}
+
+/**
+ * \brief Update the margins on all open tabs
+ */
+void MainWindow::update_margins_all_tabs()
+{
+  for (Tab* tab : get_tabs())
+    update_margins(*tab);
 }
 
 /**
@@ -2287,17 +2397,18 @@ void MainWindow::editor_changed_text()
   // TODO: Just execute the code below in a signal_idle call?
   // So it will never block the GUI thread. Or is this already running in another context
 
+  Tab* tab = current_tab();
   // Clear table of contents (ToC)
   toc_tree_model->clear();
   // Retrieve text from editor and parse the markdown contents
-  middleware_.set_content(draw_primary.get_text());
-  cmark_node* doc = middleware_.parse_content();
+  tab->middleware.set_content(tab->draw_primary.get_text());
+  cmark_node* doc = tab->middleware.parse_content();
   /* // Can be enabled to show the markdown format in terminal:
   std::string md = Parser::render_markdown(doc);
   std::cout << "Markdown:\n" << md << std::endl;*/
   // Show the document as a preview on the right side text-view panel
-  draw_secondary.set_document(doc);
-  set_table_of_contents(draw_secondary.get_headings());
+  tab->draw_secondary.set_document(doc);
+  set_table_of_contents(tab->draw_secondary.get_headings());
 }
 
 /**
@@ -2305,7 +2416,7 @@ void MainWindow::editor_changed_text()
  */
 void MainWindow::show_source_code_dialog()
 {
-  source_code_dialog.set_text(middleware_.get_content());
+  source_code_dialog.set_text(middleware().get_content());
   source_code_dialog.run();
 }
 
@@ -2323,7 +2434,7 @@ void MainWindow::get_heading()
     try
     {
       int headingLevel = std::stoi(active, &sz, 10);
-      draw_primary.make_heading(headingLevel);
+      current_tab()->draw_primary.make_heading(headingLevel);
     }
     catch (const std::invalid_argument&)
     {
@@ -2340,7 +2451,7 @@ void MainWindow::get_heading()
 void MainWindow::insert_emoji()
 {
   // Note: The "insert-emoji" signal is not exposed in Gtkmm library (at least not in gtk3)
-  g_signal_emit_by_name(draw_primary.gobj(), "insert-emoji");
+  g_signal_emit_by_name(current_tab()->draw_primary.gobj(), "insert-emoji");
 }
 
 void MainWindow::on_zoom_out()
@@ -2375,8 +2486,7 @@ void MainWindow::on_font_set()
 void MainWindow::on_max_content_width_changed()
 {
   content_max_width_ = max_content_width_spin_button.get_value_as_int();
-  if (!is_editor_enabled())
-    update_margins();
+  update_margins_all_tabs();
 }
 
 void MainWindow::on_spacing_changed()
@@ -2388,25 +2498,31 @@ void MainWindow::on_spacing_changed()
 void MainWindow::on_margins_changed()
 {
   content_margin_ = margins_spin_button.get_value_as_int();
-  update_margins();
+  update_margins_all_tabs();
 }
 
 void MainWindow::on_indent_changed()
 {
   indent_ = indent_spin_button.get_value_as_int();
-  if (is_editor_enabled())
-    draw_secondary.set_indent(indent_);
-  else
-    draw_primary.set_indent(indent_);
+  for (Tab* tab : get_tabs())
+  {
+    if (tab->is_editor_active)
+      tab->draw_secondary.set_indent(indent_);
+    else
+      tab->draw_primary.set_indent(indent_);
+  }
 }
 
 void MainWindow::on_wrap_toggled(Gtk::WrapMode mode)
 {
   wrap_mode_ = mode;
-  if (is_editor_enabled())
-    draw_secondary.set_wrap_mode(wrap_mode_);
-  else
-    draw_primary.set_wrap_mode(wrap_mode_);
+  for (Tab* tab : get_tabs())
+  {
+    if (tab->is_editor_active)
+      tab->draw_secondary.set_wrap_mode(wrap_mode_);
+    else
+      tab->draw_primary.set_wrap_mode(wrap_mode_);
+  }
 }
 
 void MainWindow::on_brightness_changed()
@@ -2425,8 +2541,7 @@ void MainWindow::on_theme_changed()
 void MainWindow::on_reader_view_changed()
 {
   is_reader_view_enabled_ = reader_view_switch.get_active();
-  if (!is_editor_enabled())
-    update_margins();
+  update_margins_all_tabs();
 }
 
 void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow* row)
@@ -2445,4 +2560,209 @@ void MainWindow::on_icon_theme_activated(Gtk::ListBoxRow* row)
   load_icons();
   // Trigger Freedom Names status icon
   update_status_popover_and_icon();
+}
+
+/**
+ * \brief Triggered when the user switched to another tab,
+ * restore all the window widgets from the tab state (address bar, title, ToC, editor toolbars, etc.)
+ * \param page Notebook page widget (the tab) that is now active
+ * \param page_num Page number of the tab
+ */
+void MainWindow::on_tab_switched(Gtk::Widget* page, guint page_num __attribute__((unused)))
+{
+  Tab* tab = dynamic_cast<Tab*>(page);
+  if (tab == nullptr)
+    return;
+  // Restore address bar & title
+  address_bar.set_text(tab->address);
+  if (!tab->title.empty())
+    set_title(tab->title + " - " + app_name_);
+  else
+    set_title(app_name_);
+  // Restore back/forward sensitivity
+  back_button.set_sensitive(tab->current_history_index > 0);
+  menu.set_back_menu_sensitive(tab->current_history_index > 0);
+  bool canGoForward = !tab->history.empty() && (tab->current_history_index < tab->history.size() - 1);
+  forward_button.set_sensitive(canGoForward);
+  menu.set_forward_menu_sensitive(canGoForward);
+  // Restore table of contents (ToC)
+  toc_tree_model->clear();
+  set_table_of_contents(tab->is_editor_active ? tab->draw_secondary.get_headings() : tab->draw_primary.get_headings());
+  // Restore editor toolbars & menu items
+  if (tab->is_editor_active)
+  {
+    hbox_standard_editor_toolbar.show();
+    hbox_formatting_editor_toolbar.show();
+  }
+  else
+  {
+    hbox_standard_editor_toolbar.hide();
+    hbox_formatting_editor_toolbar.hide();
+  }
+  menu.set_publish_menu_sensitive(tab->is_editor_active);
+  menu.set_edit_menu_sensitive(!tab->is_editor_active);
+  // Restore spinning animation state
+  if (tab->is_loading)
+    refresh_icon.get_style_context()->add_class("spinning");
+  else
+    refresh_icon.get_style_context()->remove_class("spinning");
+}
+
+/**
+ * \brief Open a new tab and load the provided path
+ * \param path Path that will be loaded in the new tab (default: the homepage)
+ * \param switch_to_tab If true switch to the newly created tab (default), set to false to open a background tab
+ * \return Pointer to the newly created tab
+ */
+Tab* MainWindow::new_tab(const std::string& path, bool switch_to_tab)
+{
+  Tab* tab = Gtk::manage(new Tab(*this, timeout_));
+  // Add custom CSS Provider to draw textviews
+  tab->draw_primary.get_style_context()->add_provider(draw_css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+  tab->draw_secondary.get_style_context()->add_provider(draw_css_provider, GTK_STYLE_PROVIDER_PRIORITY_USER);
+  // Apply current settings on the new tab
+  tab->draw_primary.set_indent(indent_);
+  tab->draw_primary.set_wrap_mode(wrap_mode_);
+  // Connect tab signals
+  tab->draw_primary.signal_size_allocate().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_size_alloc), tab));
+  tab->draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog)); /*!< Open source code dialog */
+  tab->draw_primary.open_link_new_tab.connect(sigc::mem_fun(this, &MainWindow::open_link_in_new_tab));
+  tab->draw_secondary.open_link_new_tab.connect(sigc::mem_fun(this, &MainWindow::open_link_in_new_tab));
+  tab->tab_close_button.signal_clicked().connect([this, tab] { close_tab(tab); });
+  // Add the tab to the notebook and switch to it
+  int pageNum = notebook.append_page(*tab, tab->tab_label_hbox);
+  notebook.set_tab_reorderable(*tab, true);
+  tab->show_all();
+  // Hide the secondary text view by default (only used by the editor)
+  tab->scrolled_window_secondary.hide();
+  if (switch_to_tab)
+    notebook.set_current_page(pageNum);
+  // Load the page
+  if (!path.empty())
+    tab->middleware.do_request(path);
+  return tab;
+}
+
+/**
+ * \brief Open the provided link in a new background tab,
+ * triggered via the right-click context menu of a link
+ * \param url Link URL that will be loaded in the new tab
+ */
+void MainWindow::open_link_in_new_tab(Glib::ustring url)
+{
+  new_tab(url, false);
+}
+
+/**
+ * \brief Close the provided tab. Closing the last tab will close the application window.
+ * \param tab Tab that will be closed
+ */
+void MainWindow::close_tab(Tab* tab)
+{
+  if (!is_valid_tab(tab))
+    return;
+  // Closing the last tab closes the browser (just like other browsers do)
+  if (notebook.get_n_pages() <= 1)
+  {
+    close();
+    return;
+  }
+  // Removing the (managed) page will destroy the tab widget,
+  // which in turn aborts any on-going request of the tab middleware
+  notebook.remove_page(*tab);
+}
+
+/**
+ * \brief Close the currently active tab
+ */
+void MainWindow::close_current_tab()
+{
+  close_tab(current_tab());
+}
+
+/**
+ * \brief Switch to the next tab (wraps around)
+ */
+void MainWindow::switch_to_next_tab()
+{
+  int pages = notebook.get_n_pages();
+  if (pages > 1)
+    notebook.set_current_page((notebook.get_current_page() + 1) % pages);
+}
+
+/**
+ * \brief Switch to the previous tab (wraps around)
+ */
+void MainWindow::switch_to_previous_tab()
+{
+  int pages = notebook.get_n_pages();
+  if (pages > 1)
+    notebook.set_current_page((notebook.get_current_page() + pages - 1) % pages);
+}
+
+/**
+ * \brief Get the currently active tab
+ * \return Pointer to the current tab (or nullptr when there are no tabs at all)
+ */
+Tab* MainWindow::current_tab()
+{
+  return dynamic_cast<Tab*>(notebook.get_nth_page(notebook.get_current_page()));
+}
+
+/**
+ * \brief Check if the provided tab still exists (it could be closed in the meantime,
+ * while a request thread was still running for example)
+ * \param tab Tab pointer that will be validated
+ * \return true when the tab is still open
+ */
+bool MainWindow::is_valid_tab(Tab* tab)
+{
+  if (tab == nullptr)
+    return false;
+  for (int i = 0; i < notebook.get_n_pages(); ++i)
+  {
+    if (notebook.get_nth_page(i) == tab)
+      return true;
+  }
+  return false;
+}
+
+/**
+ * \brief Get all open tabs
+ * \return List of tab pointers
+ */
+std::vector<Tab*> MainWindow::get_tabs()
+{
+  std::vector<Tab*> tabs;
+  for (int i = 0; i < notebook.get_n_pages(); ++i)
+  {
+    if (Tab* tab = dynamic_cast<Tab*>(notebook.get_nth_page(i)))
+      tabs.push_back(tab);
+  }
+  return tabs;
+}
+
+/**
+ * \brief Get the middleware of the currently active tab
+ * \return Reference to the middleware of the current tab
+ */
+Middleware& MainWindow::middleware()
+{
+  return current_tab()->middleware;
+}
+
+/**
+ * \brief Update the notebook tab header text, based on the page title or path
+ * \param tab Tab that will be updated
+ * \param path Requested path, used as fallback when there is no title
+ */
+void MainWindow::update_tab_label(Tab* tab, const std::string& path)
+{
+  if (!tab->title.empty())
+    tab->set_tab_label(tab->title);
+  else if (path.compare("about:home") == 0)
+    tab->set_tab_label("Home");
+  else if (!path.empty())
+    tab->set_tab_label(path);
+  // Keep the previous tab label on an empty path (used during refresh)
 }

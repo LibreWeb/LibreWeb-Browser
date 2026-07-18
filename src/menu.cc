@@ -7,6 +7,12 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
       help_menu_item("_Help", true)
 {
   // File dropdown menu
+  auto new_tab_menu_item = create_menu_item("New _Tab");
+  new_tab_menu_item->add_accelerator("activate", accel_group, GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+  new_tab_menu_item->signal_activate().connect(new_tab);
+  auto close_tab_menu_item = create_menu_item("_Close Tab");
+  close_tab_menu_item->add_accelerator("activate", accel_group, GDK_KEY_W, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+  close_tab_menu_item->signal_activate().connect(close_tab);
   auto new_document_menu_item = create_menu_item("_New Document");
   new_document_menu_item->add_accelerator("activate", accel_group, GDK_KEY_N, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
   new_document_menu_item->signal_activate().connect(new_doc);
@@ -78,6 +84,13 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   auto home_page_menu_item = create_menu_item("_Homepage");
   home_page_menu_item->add_accelerator("activate", accel_group, GDK_KEY_Home, Gdk::ModifierType::MOD1_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
   home_page_menu_item->signal_activate().connect(home);
+  auto next_tab_menu_item = create_menu_item("Next Ta_b");
+  next_tab_menu_item->add_accelerator("activate", accel_group, GDK_KEY_Tab, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+  next_tab_menu_item->signal_activate().connect(next_tab);
+  auto prev_tab_menu_item = create_menu_item("Pre_vious Tab");
+  prev_tab_menu_item->add_accelerator("activate", accel_group, GDK_KEY_ISO_Left_Tab, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK,
+                                      Gtk::AccelFlags::ACCEL_VISIBLE);
+  prev_tab_menu_item->signal_activate().connect(prev_tab);
   auto toc_menu_item = create_menu_item("_Table of Contents");
   toc_menu_item->add_accelerator("activate", accel_group, GDK_KEY_T, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK,
                                  Gtk::AccelFlags::ACCEL_VISIBLE);
@@ -90,6 +103,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   about_menu_item->signal_activate().connect(about);
 
   // Add items to sub-menus
+  file_menu.append(*new_tab_menu_item);
+  file_menu.append(*close_tab_menu_item);
+  file_menu.append(separator9);
   file_menu.append(*new_document_menu_item);
   file_menu.append(*open_menu_item);
   file_menu.append(*open_edit_menu_item);
@@ -117,6 +133,9 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   view_menu.append(*forward_menu_item_);
   view_menu.append(*reload_menu_item);
   view_menu.append(*home_page_menu_item);
+  view_menu.append(separator10);
+  view_menu.append(*next_tab_menu_item);
+  view_menu.append(*prev_tab_menu_item);
   view_menu.append(separator7);
   view_menu.append(*toc_menu_item);
   view_menu.append(separator8);

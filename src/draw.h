@@ -32,6 +32,7 @@ class Draw : public Gtk::TextView
 {
 public:
   sigc::signal<void> source_code;
+  sigc::signal<void, Glib::ustring> open_link_new_tab; /*!< Emitted when the user wants to open a link in a new tab */
   enum CodeTypeEnum
   {
     CODE_TYPE_NONE = 0,
@@ -114,6 +115,7 @@ private:
   Glib::RefPtr<Gdk::Cursor> link_cursor_;
   Glib::RefPtr<Gdk::Cursor> text_cursor_;
   bool hoving_over_link_;
+  Glib::ustring hovered_link_url_; /*!< URL under the mouse pointer (empty when not hovering over a link) */
   bool is_user_action_;
   std::vector<Glib::RefPtr<Gtk::TextMark>> headings_toc_;
 
