@@ -1,5 +1,6 @@
 #include "main-window.h"
 
+#include "file.h"
 #include "menu.h"
 #include "project_config.h"
 #include <cstdint>
@@ -1042,7 +1043,7 @@ void MainWindow::init_signals()
   super_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_super));
   sub_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_sub));
   link_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_link));
-  image_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::insert_image));
+  image_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_image));
   emoji_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::insert_emoji));
   quote_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_quote));
   code_button.signal_clicked().connect(sigc::mem_fun(draw_primary, &Draw::make_code));
@@ -1568,6 +1569,88 @@ void MainWindow::on_save_as_dialog_response(int response_id, Gtk::FileChooserDia
   default:
   {
     std::cerr << "ERROR: Unexpected button clicked." << std::endl;
+    break;
+  }
+  }
+  delete dialog;
+}
+
+/**
+ * \brief Triggered when user clicked the image button in the editor toolbar.
+ * Browse for an image file, which will be uploaded to the Freedom Names content
+ * network and inserted as image markdown at the cursor position.
+ */
+void MainWindow::insert_image()
+{
+  auto dialog = new Gtk::FileChooserDialog("Insert image", Gtk::FILE_CHOOSER_ACTION_OPEN);
+  dialog->set_transient_for(*this);
+  dialog->set_modal(true);
+  dialog->signal_response().connect(sigc::bind(sigc::mem_fun(*this, &MainWindow::on_insert_image_dialog_response), dialog));
+  dialog->add_button("_Cancel", Gtk::ResponseType::RESPONSE_CANCEL);
+  dialog->add_button("_Insert", Gtk::ResponseType::RESPONSE_OK);
+  // Add filters, so that only certain file types can be selected:
+#ifdef __linux__
+  auto filterImages = Gtk::FileFilter::create();
+  filterImages->set_name("All images");
+  filterImages->add_mime_type("image/*");
+  dialog->add_filter(filterImages);
+#endif
+  auto filterImagesExt = Gtk::FileFilter::create();
+  filterImagesExt->set_name("All image files extension (*.png, *.jpg, *.jpeg, *.gif, *.webp, *.bmp)");
+  filterImagesExt->add_pattern("*.png");
+  filterImagesExt->add_pattern("*.jpg");
+  filterImagesExt->add_pattern("*.jpeg");
+  filterImagesExt->add_pattern("*.gif");
+  filterImagesExt->add_pattern("*.webp");
+  filterImagesExt->add_pattern("*.bmp");
+  dialog->add_filter(filterImagesExt);
+  auto filterAny = Gtk::FileFilter::create();
+  filterAny->set_name("Any files");
+  filterAny->add_pattern("*");
+  dialog->add_filter(filterAny);
+  dialog->show(); // Finally, show the insert image dialog
+}
+
+/**
+ * \brief Signal response when 'insert image' dialog is closed.
+ * Uploads the selected image to the Freedom Names content network and inserts
+ * the image markdown (![filename](hash)) at the cursor position in the editor.
+ */
+void MainWindow::on_insert_image_dialog_response(int response_id, Gtk::FileChooserDialog* dialog)
+{
+  switch (response_id)
+  {
+  case Gtk::ResponseType::RESPONSE_OK:
+  {
+    auto filePath = dialog->get_file()->get_path();
+    try
+    {
+      // Add image content to the Freedom Names content network
+      // TODO: Run the upload within a separate thread, to avoid blocking the main thread on big files
+      std::string hash = middleware_.do_add_file(filePath);
+      if (hash.empty())
+      {
+        throw std::runtime_error("Content hash is empty.");
+      }
+      // Insert the markdown at the cursor position (a text selection becomes the alt text)
+      draw_primary.insert_image(File::get_filename(filePath), hash);
+    }
+    catch (const std::runtime_error& error)
+    {
+      Gtk::MessageDialog errorDialog(*this, "Image could not be uploaded", false, Gtk::MESSAGE_ERROR);
+      errorDialog.set_secondary_text("Error message: " + std::string(error.what()));
+      errorDialog.set_modal(true);
+      errorDialog.run();
+    }
+    break;
+  }
+  case Gtk::ResponseType::RESPONSE_CANCEL:
+  {
+    break;
+  }
+  default:
+  {
+    std::cerr << "WARN: Unexpected button clicked." << std::endl;
     break;
   }
   }

@@ -67,7 +67,7 @@ public:
   void make_sub();
   void make_quote();
   void insert_link();
-  void insert_image();
+  void insert_image(const Glib::ustring& alt_text, const Glib::ustring& url);
   void make_code();
   void insert_bullet_list();
   void insert_numbered_list();
