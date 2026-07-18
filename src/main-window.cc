@@ -103,6 +103,7 @@ MainWindow::MainWindow(const std::string& timeout)
       // Private members
       timeout_(timeout),
       status_(*this, timeout),
+      bookmarks_dialog_(bookmarks_),
       app_name_("LibreWeb Browser"),
       use_current_gtk_icon_theme_(false), // Use LibreWeb icon theme or the GTK icons
       icon_theme_flat_("flat"),
@@ -127,6 +128,7 @@ MainWindow::MainWindow(const std::string& timeout)
   set_default_size(1000, 800);
   set_position(Gtk::WIN_POS_CENTER);
   add_accel_group(accel_group);
+  bookmarks_dialog_.set_transient_for(*this);
 
   load_stored_settings();
   load_icons();
@@ -170,6 +172,9 @@ MainWindow::MainWindow(const std::string& timeout)
   search_replace_entry.hide();
   hbox_standard_editor_toolbar.hide();
   hbox_formatting_editor_toolbar.hide();
+
+  // Fill the bookmarks menu with the stored bookmarks
+  update_bookmarks_menu();
 
   // Grap focus to input field by default
   address_bar.grab_focus();
@@ -1076,6 +1081,11 @@ void MainWindow::init_signals()
   menu.home.connect(sigc::mem_fun(this, &MainWindow::go_home));                          /*!< Menu item for home page */
   menu.toc.connect(sigc::mem_fun(this, &MainWindow::show_toc));                          /*!< Menu item for table of contents */
   menu.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog));   /*!< Source code dialog */
+  menu.add_bookmark.connect(sigc::mem_fun(this, &MainWindow::add_bookmark));             /*!< Menu item for bookmarking the current page */
+  menu.show_bookmarks.connect(sigc::mem_fun(this, &MainWindow::show_bookmarks_dialog));  /*!< Menu item for managing the bookmarks */
+  menu.bookmark_clicked.connect(sigc::mem_fun(this, &MainWindow::on_bookmark_clicked));  /*!< Open a bookmark from the bookmarks menu */
+  bookmarks_dialog_.bookmarks_updated.connect(sigc::mem_fun(this, &MainWindow::update_bookmarks_menu)); /*!< Refresh menu after bookmark changes */
+  bookmarks_dialog_.open_bookmark.connect(sigc::mem_fun(this, &MainWindow::on_bookmark_clicked));       /*!< Open a bookmark from the dialog */
   source_code_dialog.signal_response().connect(sigc::mem_fun(source_code_dialog, &SourceCodeDialog::hide_dialog)); /*!< Close source code dialog */
   menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                    /*!< Display about dialog */
   about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                       /*!< Close about dialog */
@@ -1814,6 +1824,75 @@ void MainWindow::publish()
 void MainWindow::go_home()
 {
   middleware().do_request("about:home", true, false, true);
+}
+
+/**
+ * \brief Bookmark the currently opened page, asking the user for an user-friendly bookmark name
+ */
+void MainWindow::add_bookmark()
+{
+  std::string address = address_bar.get_text();
+  if (address.empty() || address.compare("file://unsaved") == 0)
+  {
+    show_notification("Add bookmark", "There is no valid address to bookmark. Open a page first.");
+    return;
+  }
+
+  Gtk::Dialog dialog("Add Bookmark", *this, true);
+  dialog.set_default_size(400, -1);
+  dialog.add_button("_Cancel", Gtk::RESPONSE_CANCEL);
+  dialog.add_button("_Save", Gtk::RESPONSE_OK);
+  dialog.set_default_response(Gtk::RESPONSE_OK);
+  Gtk::Box hbox_name(Gtk::ORIENTATION_HORIZONTAL, 8);
+  Gtk::Label name_label("Name:");
+  Gtk::Entry name_entry;
+  Glib::ustring page_title = (current_tab() != nullptr) ? current_tab()->title : Glib::ustring();
+  name_entry.set_text(page_title.empty() ? Glib::ustring(address) : page_title);
+  name_entry.select_region(0, -1);
+  name_entry.set_activates_default(true);
+  hbox_name.set_margin_left(10);
+  hbox_name.set_margin_right(10);
+  hbox_name.set_margin_top(10);
+  hbox_name.set_margin_bottom(10);
+  hbox_name.pack_start(name_label, false, false, 0);
+  hbox_name.pack_start(name_entry, true, true, 0);
+  dialog.get_content_area()->pack_start(hbox_name, false, false, 0);
+  dialog.show_all_children();
+
+  if (dialog.run() == Gtk::RESPONSE_OK)
+  {
+    bool is_added = bookmarks_.add(name_entry.get_text(), address);
+    update_bookmarks_menu();
+    if (is_added)
+      show_notification("Bookmark added", "Added bookmark for: " + address);
+    else
+      show_notification("Bookmark updated", "Updated the existing bookmark for: " + address);
+  }
+}
+
+/**
+ * \brief Show the bookmarks management dialog
+ */
+void MainWindow::show_bookmarks_dialog()
+{
+  bookmarks_dialog_.show_dialog();
+}
+
+/**
+ * \brief Open a bookmarked address
+ * \param address Bookmark address to browse to
+ */
+void MainWindow::on_bookmark_clicked(const std::string& address)
+{
+  middleware().do_request(address);
+}
+
+/**
+ * \brief Rebuild the bookmarks menu items from the stored bookmarks
+ */
+void MainWindow::update_bookmarks_menu()
+{
+  menu.populate_bookmarks(bookmarks_.get_bookmarks());
 }
 
 /**

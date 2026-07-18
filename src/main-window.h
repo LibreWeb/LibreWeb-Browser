@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include "about-dialog.h"
+#include "bookmarks-dialog.h"
+#include "bookmarks-storage.h"
 #include "draw.h"
 #include "freedomnames-status.h"
 #include "menu.h"
@@ -96,6 +98,10 @@ protected:
   void on_insert_image_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
   void go_home();
+  void add_bookmark();
+  void show_bookmarks_dialog();
+  void on_bookmark_clicked(const std::string& address);
+  void update_bookmarks_menu();
   void show_toc();
   void copy_client_id();
   void address_bar_activate();
@@ -312,6 +318,8 @@ protected:
 private:
   std::string timeout_; /*!< Freedom Names time-out setting, used when creating new tabs */
   FreedomNamesStatus status_;
+  BookmarksStorage bookmarks_;
+  BookmarksDialog bookmarks_dialog_;
   std::string app_name_;
   bool use_current_gtk_icon_theme_;
   std::string icon_theme_flat_;

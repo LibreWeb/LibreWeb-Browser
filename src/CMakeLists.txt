@@ -22,6 +22,8 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Source code
 set(HEADERS
     about-dialog.h
+    bookmarks-dialog.h
+    bookmarks-storage.h
     draw.h
     file.h
     freedomnames.h
@@ -41,6 +43,8 @@ set(HEADERS
 set(SOURCES
   main.cc
   about-dialog.cc
+  bookmarks-dialog.cc
+  bookmarks-storage.cc
   draw.cc
   file.cc
   freedomnames.cc

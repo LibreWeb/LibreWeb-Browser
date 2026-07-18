@@ -4,6 +4,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
     : file_menu_item("_File", true),
       edit_menu_item("_Edit", true),
       view_menu_item("_View", true),
+      bookmarks_menu_item("_Bookmarks", true),
       help_menu_item("_Help", true)
 {
   // File dropdown menu
@@ -98,6 +99,15 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   auto source_code_menu_item = create_menu_item("View _Source");
   source_code_menu_item->signal_activate().connect(source_code);
 
+  // Bookmarks dropdown menu
+  auto add_bookmark_menu_item = create_menu_item("_Add Bookmark");
+  add_bookmark_menu_item->add_accelerator("activate", accel_group, GDK_KEY_B, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
+  add_bookmark_menu_item->signal_activate().connect(add_bookmark);
+  auto show_bookmarks_menu_item = create_menu_item("_Edit Bookmarks...");
+  show_bookmarks_menu_item->add_accelerator("activate", accel_group, GDK_KEY_B, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK,
+                                            Gtk::AccelFlags::ACCEL_VISIBLE);
+  show_bookmarks_menu_item->signal_activate().connect(show_bookmarks);
+
   // Help dropdown menu
   auto about_menu_item = create_menu_item("_About");
   about_menu_item->signal_activate().connect(about);
@@ -140,17 +150,22 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   view_menu.append(*toc_menu_item);
   view_menu.append(separator8);
   view_menu.append(*source_code_menu_item);
+  bookmarks_menu.append(*add_bookmark_menu_item);
+  bookmarks_menu.append(*show_bookmarks_menu_item);
+  bookmarks_menu.append(bookmarks_separator);
   help_menu.append(*about_menu_item);
 
   // Add sub-menus to menus
   file_menu_item.set_submenu(file_menu);
   edit_menu_item.set_submenu(edit_menu);
   view_menu_item.set_submenu(view_menu);
+  bookmarks_menu_item.set_submenu(bookmarks_menu);
   help_menu_item.set_submenu(help_menu);
   // Add menus to menu bar
   append(file_menu_item);
   append(edit_menu_item);
   append(view_menu_item);
+  append(bookmarks_menu_item);
   append(help_menu_item);
 }
 
@@ -176,6 +191,37 @@ void Menu::set_publish_menu_sensitive(bool sensitive)
 void Menu::set_edit_menu_sensitive(bool sensitive)
 {
   edit_menu_item_->set_sensitive(sensitive);
+}
+
+/**
+ * \brief (Re)build the bookmark items in the bookmarks menu
+ * \param bookmarks Current list of bookmarks
+ */
+void Menu::populate_bookmarks(const std::vector<Bookmark>& bookmarks)
+{
+  for (Gtk::MenuItem* item : bookmark_menu_items_)
+    bookmarks_menu.remove(*item);
+  bookmark_menu_items_.clear();
+
+  // Only show the separator when there is at least a single bookmark
+  if (bookmarks.empty())
+    bookmarks_separator.hide();
+  else
+    bookmarks_separator.show();
+
+  for (const Bookmark& bookmark : bookmarks)
+  {
+    Glib::ustring label = bookmark.name.empty() ? bookmark.address : bookmark.name;
+    if (label.length() > 60)
+      label = label.substr(0, 60) + "…";
+    // No mnemonic; underscores within bookmark names should be displayed as-is
+    Gtk::MenuItem* item = Gtk::manage(new Gtk::MenuItem(label));
+    item->set_tooltip_text(bookmark.address);
+    item->signal_activate().connect(sigc::bind(bookmark_clicked.make_slot(), bookmark.address));
+    bookmarks_menu.append(*item);
+    item->show();
+    bookmark_menu_items_.push_back(item);
+  }
 }
 
 /**
