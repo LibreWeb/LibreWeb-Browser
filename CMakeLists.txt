@@ -55,7 +55,7 @@ endif()
 if(WIN32)
   set(DATADIR share                               CACHE PATH "datadir")
 elseif(APPLE)
-  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents/)
+  set(BUNDLEDIR ${PROJECT_NAME}.app/Contents)
   set(RESOURCESDIR ${BUNDLEDIR}/Resources)
   set(MACOSDIR ${BUNDLEDIR}/MacOS                 CACHE PATH "macosdir")
   set(DATADIR ${RESOURCESDIR}/share               CACHE PATH "datadir")
@@ -107,6 +107,9 @@ if(WIN32)
   set(FREEDOM_NAMES_DESTINATION bin)
 elseif(APPLE)
   # Apple macOS specific
+  # Note: these install rules run *after* the fixup_bundle() call in src/,
+  # on purpose: the pre-built helper binaries below and the Freedom Names
+  # node binary should not be scanned/rewritten by BundleUtilities.
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
   install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
   set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names-darwin)

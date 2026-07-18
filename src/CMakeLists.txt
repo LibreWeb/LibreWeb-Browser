@@ -92,9 +92,9 @@ if(NOT UNITTEST)
             MACOSX_BUNDLE_INFO_PLIST "${CMAKE_BINARY_DIR}/Info.plist"
             MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${PROJECT_VERSION}"
             MACOSX_BUNDLE_ICON_FILE libreweb-browser.icns
-            MACOSX_BUNDLE_GUI_IDENTIFIER "${PROJECT_NAME}"
+            MACOSX_BUNDLE_GUI_IDENTIFIER "org.libreweb.browser"
             MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_VERSION}"
-            MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
             MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
             XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "${CODE_SIGN_IDENTITY}"
             XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${DEVELOPMENT_TEAM_ID}"
@@ -178,28 +178,19 @@ if(NOT UNITTEST)
             RUNTIME DESTINATION . COMPONENT Runtime
             BUNDLE DESTINATION . COMPONENT Runtime)
 
-        # Maybe try to use: find_library()
-        # Hack solution to get the dylib.
-        # Also add other libs, like gtk-3 and libgtk-quartz?
-        set(MAC_INTEGRATION_DYNLIB "/usr/local/Cellar/gtk-mac-integration/3.0.1_1/lib/libgtkmacintegration-gtk3.dylib")
-        install(FILES ${MAC_INTEGRATION_DYNLIB} DESTINATION ${LIBDIR})
-        # TODO: Also copy GTK/GTKMM to the app dmg image
-
-        # Fix-up bundle & verify if app is standalone
+        # Fix-up the *installed* bundle, so it also runs on the CPack staging
+        # directory and the DMG ships a standalone app: copy every non-system
+        # dylib the app links against (gtkmm stack incl. gtk-mac-integration,
+        # found via the pkg-config library dirs, which works for both the
+        # Intel /usr/local and Apple Silicon /opt/homebrew Homebrew prefixes)
+        # into the bundle and rewrite the install names.
         # https://cmake.org/cmake/help/latest/module/BundleUtilities.html
-        set(APPS "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.app")
-        # APPS might be a symbolic link which does not work with fixup_bundle
-        # expand APPS to a real path
-        get_filename_component(APPS_EXPANDED ${APPS} REALPATH)
-        # Directories to look for dependencies (libs)
-        list(APPEND DIRS "${LIBDIR}")
-        message(STATUS "APPS: ${APPS_EXPANDED}")
-        message(STATUS "DIRS: ${DIRS}")
         install(CODE "
-            file(GLOB_RECURSE BUNDLELIBS \"${LIBDIR}/*.dylib\")
             include(BundleUtilities)
-            fixup_bundle(\"${APPS_EXPANDED}\" \"${BUNDLELIBS}\" \"${DIRS}\")
-            verify_app(${APPS_EXPANDED})")
+            set(BU_CHMOD_BUNDLE_ITEMS ON)
+            fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app\" \"\" \"${GTKMM_LIBRARY_DIRS};${MAC_INTEGRATION_LIBRARY_DIRS}\")
+            verify_app(\"\${CMAKE_INSTALL_PREFIX}/${PROJECT_NAME}.app\")"
+            COMPONENT Runtime)
     else()
         # Install browser binary
         install(TARGETS ${PROJECT_TARGET} RUNTIME DESTINATION bin COMPONENT Runtime)

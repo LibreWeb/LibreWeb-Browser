@@ -5,6 +5,12 @@
     <key>CFBundleExecutable</key>
     <string>libreweb-browser</string>
 
+    <key>CFBundleIdentifier</key>
+    <string>org.libreweb.browser</string>
+
+    <key>CFBundleName</key>
+    <string>LibreWeb</string>
+
     <key>CFBundleIconFile</key>
     <string>libreweb-browser.icns</string>
 
@@ -22,5 +28,11 @@
 
     <key>CFBundleShortVersionString</key>
     <string>@PROJECT_VERSION@</string>
+
+    <key>LSMinimumSystemVersion</key>
+    <string>@CMAKE_OSX_DEPLOYMENT_TARGET@</string>
+
+    <key>NSHighResolutionCapable</key>
+    <true/>
   </dict>
 </plist>

@@ -6,7 +6,18 @@ on:
 
 jobs:
   build:
-    runs-on: macos-12
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Apple Silicon
+          - runner: macos-15
+            arch: arm64
+          # Intel (available until Aug 2027, the last x86_64 GitHub-hosted runner)
+          - runner: macos-15-intel
+            arch: x86_64
+
+    runs-on: ${{ matrix.runner }}
 
     steps:
       - uses: actions/checkout@v4
@@ -19,7 +30,8 @@ jobs:
           brew install \
             gtkmm3 \
             gtk-mac-integration \
-            ninja
+            ninja \
+            pkgconf
 
       # Workaround for now, we create our own features.h file (macos image either is missing this file, or some include folder is missing during the build)
       - name: Add `features.h`
@@ -32,10 +44,10 @@ jobs:
           #include <sys/cdefs.h>
           EOF
 
-      - name: Build
+      - name: Build & package (DMG)
         run: ./scripts/build-macos-prod.sh
 
       - uses: actions/upload-artifact@v4
         with:
-          name: macOS-dmg-package
+          name: macOS-dmg-package-${{ matrix.arch }}
           path: build_prod_macos/libreweb-browser-v*.dmg

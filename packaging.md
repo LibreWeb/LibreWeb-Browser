@@ -23,6 +23,22 @@ Those all the icon themes are stored in the `share/icons` directory during cmake
 *Important:* We **clean-up unnecessary icons** to reduce the package size. 
 Do not forget to run the script: `./scripts/clean-up-icons.sh` to remove all unwanted files.
 
+## macOS platform
+
+Run `./scripts/build-macos-prod.sh` on a macOS machine (or let the GitHub Actions "MacOS build" workflow do it,
+which builds both an Apple Silicon and an Intel DMG). The script builds the `libreweb-browser.app` bundle and
+packages it into a drag & drop DMG image via CPack (`cpack -G DragNDrop`), named
+`libreweb-browser-v<version>-macos-<arch>.dmg`.
+
+During `cmake --install`/`cpack`, the [BundleUtilities](https://cmake.org/cmake/help/latest/module/BundleUtilities.html)
+`fixup_bundle()` call copies all non-system dylibs the browser links against (the gtkmm stack and
+gtk-mac-integration, resolved from the Homebrew prefix via pkg-config) into the app bundle and rewrites the
+install names, so the shipped app is standalone.
+
+The pre-built helper binaries in `misc/packaging_macos` (dbus/gdbus, x86_64) are copied into `Contents/MacOS`
+as-is, deliberately *after* the bundle fix-up. Code signing / notarization is not done yet (see the TODO in
+`scripts/build-macos-prod.sh`).
+
 ## Windows platform
 
 ### GTK Windows 10 Theme

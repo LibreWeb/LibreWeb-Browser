@@ -8,7 +8,7 @@ set(CPACK_PACKAGE_HOMEPAGE_URL "https://libreweb.org")
 set(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/misc/package_desc.txt")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
-set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_TARGET}-${CPACK_PACKAGE_VERSION}")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${PROJECT_NAME}-${CPACK_PACKAGE_VERSION}")
 set(CPACK_DEBIAN_PACKAGE_SECTION "web")
 set(CPACK_RPM_PACKAGE_GROUP "Applications/Internet")
 set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${CPACK_PACKAGE_VERSION}") # Without '-Linux', '-Windows' or -Darwin suffix
@@ -29,36 +29,50 @@ set(CPACK_NSIS_MUI_ICON "${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.ico")
 set(CPACK_NSIS_MUI_UNIICON "${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.ico")
 set(CPACK_NSIS_MODIFY_PATH ON)
 
-# Detect Linux Distro for RPM files
-if (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND EXISTS "/etc/os-release")
-    execute_process (
-        COMMAND grep "^NAME=" /etc/os-release
-        COMMAND sed -e "s/NAME=//g"
-        COMMAND sed -e "s/\"//g"
-        RESULT_VARIABLE DIFINE_LINUX_DISTRO_RESULT
-        OUTPUT_VARIABLE LINUX_DISTRO
-    )
-    if (NOT ${DIFINE_LINUX_DISTRO_RESULT} EQUAL 0)
-        message (FATAL_ERROR "Linux distro identification error")
+# macOS section: Drag & Drop DMG installer
+if(APPLE)
+  set(CPACK_GENERATOR "DragNDrop")
+  set(CPACK_DMG_VOLUME_NAME "LibreWeb Browser")
+  set(CPACK_DMG_FORMAT "UDZO")
+  # The DMG volume icon needs to be an icns file (instead of the bmp above)
+  set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/images/icons/libreweb-browser.icns")
+  # Add the architecture, we ship both Intel (x86_64) and Apple Silicon (arm64) images
+  set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${CPACK_PACKAGE_VERSION}-macos-${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+# Linux section: Debian & RPM packages
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    # Detect Linux Distro for RPM files
+    if (EXISTS "/etc/os-release")
+        execute_process (
+            COMMAND grep "^NAME=" /etc/os-release
+            COMMAND sed -e "s/NAME=//g"
+            COMMAND sed -e "s/\"//g"
+            RESULT_VARIABLE DIFINE_LINUX_DISTRO_RESULT
+            OUTPUT_VARIABLE LINUX_DISTRO
+        )
+        if (NOT ${DIFINE_LINUX_DISTRO_RESULT} EQUAL 0)
+            message (FATAL_ERROR "Linux distro identification error")
+        endif()
     endif()
-endif()
 
-# RPM section
-if(${LINUX_DISTRO} MATCHES "openSUSE")
-  # OpenSuse (Leap, Tumbleweed)
-  set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm3")
-else()
-  # Fedora/CentOS/Redhat/etc.
-  set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm30")
-endif()
-# Optional RPM packages (non for now)
-set(CPACK_RPM_PACKAGE_SUGGESTS "")
+    # RPM section
+    if("${LINUX_DISTRO}" MATCHES "openSUSE")
+      # OpenSuse (Leap, Tumbleweed)
+      set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm3")
+    else()
+      # Fedora/CentOS/Redhat/etc.
+      set(CPACK_RPM_PACKAGE_REQUIRES "gtkmm30")
+    endif()
+    # Optional RPM packages (non for now)
+    set(CPACK_RPM_PACKAGE_SUGGESTS "")
 
-# Debian bookworm, Buster, Ubuntu Xenial, Artful, Bionic, Linux Mint Sarah, Tessa, Tina (libgtkmm-3.0-1v5)
-# Debian Sid, Ubuntu Noble, Linux Mint Wilma (libgtkmm-3.0-1t64)
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtkmm-3.0-1v5 | libgtkmm-3.0-1t64")
-# Optional deb packages (non for now)
-set(CPACK_DEBIAN_PACKAGE_SUGGESTS "")
+    # Debian bookworm, Buster, Ubuntu Xenial, Artful, Bionic, Linux Mint Sarah, Tessa, Tina (libgtkmm-3.0-1v5)
+    # Debian Sid, Ubuntu Noble, Linux Mint Wilma (libgtkmm-3.0-1t64)
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libgtkmm-3.0-1v5 | libgtkmm-3.0-1t64")
+    # Optional deb packages (non for now)
+    set(CPACK_DEBIAN_PACKAGE_SUGGESTS "")
+endif()
 
 # include CPack model once all variables are set
 include(CPack)

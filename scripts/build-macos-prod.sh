@@ -2,6 +2,8 @@
 # By: Melroy van den Berg
 # Description: Build macOS 64-bit production release using Drag & Drop installer
 
+set -e
+
 # Fetch the Freedom Names node binary for packaging.
 # Note: once codesigning is added (TODO below), freedom-names-darwin must be signed too.
 "$(dirname "$0")/get-freedom-names.sh" darwin
