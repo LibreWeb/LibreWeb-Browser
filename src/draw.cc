@@ -2,14 +2,22 @@
 #include "middleware-i.h"
 #include "node.h"
 #include "syntax_extension.h"
+#include <algorithm>
 #include <cmark-gfm.h>
 #include <cstdint>
+#include <gdkmm/pixbufloader.h>
 #include <gdkmm/window.h>
 #include <glibmm.h>
 #include <gtkmm/textiter.h>
 #include <iostream>
 #include <regex>
 #include <stdexcept>
+
+namespace
+{
+  // Inline images wider than this are scaled down (keeping aspect ratio) to keep the page readable
+  constexpr int MAX_INLINE_IMAGE_WIDTH = 800;
+} // namespace
 
 Draw::Draw(MiddlewareInterface& middleware)
     : middleware_(middleware),
@@ -27,6 +35,8 @@ Draw::Draw(MiddlewareInterface& middleware)
       ordered_list_level_(0),
       is_ordered_list_(false),
       is_link(false),
+      is_image_(false),
+      image_generation_(std::make_shared<std::atomic<unsigned int>>(0)),
       hoving_over_link_(false),
       is_user_action_(false)
 {
@@ -58,6 +68,13 @@ Draw::Draw(MiddlewareInterface& middleware)
   signal_motion_notify_event().connect(sigc::mem_fun(this, &Draw::motion_notify_event));
   signal_query_tooltip().connect(sigc::mem_fun(this, &Draw::query_tooltip));
   signal_populate_popup().connect(sigc::mem_fun(this, &Draw::populate_popup));
+}
+
+Draw::~Draw()
+{
+  // Invalidate pending async image insertions; their idle callbacks check the
+  // (shared) generation counter before touching this widget again
+  ++(*image_generation_);
 }
 
 /**
@@ -369,6 +386,7 @@ Glib::ustring Draw::get_text() const
  */
 void Draw::set_text(const Glib::ustring& text)
 {
+  invalidate_pending_images();
   get_buffer()->set_text(text);
 }
 
@@ -377,6 +395,7 @@ void Draw::set_text(const Glib::ustring& text)
  */
 void Draw::clear()
 {
+  invalidate_pending_images();
   auto buffer = get_buffer();
   buffer->erase(buffer->begin(), buffer->end());
   for (const Glib::RefPtr<Gtk::TextMark>& mark : headings_toc_)
@@ -1319,8 +1338,13 @@ void Draw::process_node(cmark_node* node, cmark_event_type ev_type)
   case CMARK_NODE_TEXT:
   {
     Glib::ustring text = cmark_node_get_literal(node);
+    // Alt text of an image; collected and shown as placeholder while the image loads
+    if (is_image_)
+    {
+      image_alt_text_ += text;
+    }
     // URL
-    if (is_link)
+    else if (is_link)
     {
       this->insert_text(text, link_url_);
       link_url_ = "";
@@ -1373,6 +1397,18 @@ void Draw::process_node(cmark_node* node, cmark_event_type ev_type)
     break;
 
   case CMARK_NODE_IMAGE:
+    is_image_ = entering;
+    if (entering)
+    {
+      image_url_ = cmark_node_get_url(node);
+      image_alt_text_ = "";
+    }
+    else
+    {
+      this->insert_inline_image(image_url_, image_alt_text_);
+      image_url_ = "";
+      image_alt_text_ = "";
+    }
     break;
 
   case CMARK_NODE_FOOTNOTE_REFERENCE:
@@ -1578,6 +1614,107 @@ void Draw::insert_link_text(const Glib::ustring& text, const Glib::ustring& url)
   tag->property_underline() = Pango::Underline::UNDERLINE_SINGLE;
   tag->set_data("url", g_strdup(url.c_str()));
   buffer->insert_with_tag(end_iter, text, tag);
+}
+
+/**
+ * Insert an inline image from the markdown (![alt](url)). A placeholder with the
+ * alt text is inserted right away; the image bytes are fetched asynchronously via
+ * the middleware (Freedom Names network or disk) and decoded off the GTK main
+ * thread. Once retrieved, the placeholder is replaced by the actual image.
+ */
+void Draw::insert_inline_image(const Glib::ustring& url, const Glib::ustring& alt_text)
+{
+  auto buffer = get_buffer();
+  Glib::ustring label = alt_text.empty() ? url : alt_text;
+  if (url.empty())
+  {
+    insert_tag_text("\U0001F5BC " + label, "italic");
+    return;
+  }
+
+  // Placeholder between two marks, so the async insertion below knows where to
+  // put the image once it arrives - even when more text got inserted after it
+  auto start_mark = buffer->create_mark(buffer->end(), true); // left gravity
+  insert_tag_text("⌛ " + label, "italic");
+  auto end_mark = buffer->create_mark(buffer->end(), false); // right gravity
+  image_marks_.push_back(start_mark);
+  image_marks_.push_back(end_mark);
+
+  // Generation guard: when the buffer gets reset the marks are deleted and this
+  // pending insertion must not touch the buffer (or this widget) anymore
+  std::shared_ptr<std::atomic<unsigned int>> generation = image_generation_;
+  const unsigned int my_generation = *generation;
+
+  middleware_.fetch_image(url,
+                          [this, generation, my_generation, start_mark, end_mark, label](const std::string& data)
+                          {
+                            // Runs on the fetch thread: decode & scale here, touch GTK widgets only in the idle callback below
+                            Glib::RefPtr<Gdk::Pixbuf> pixbuf;
+                            if (!data.empty())
+                            {
+                              try
+                              {
+                                auto loader = Gdk::PixbufLoader::create();
+                                loader->write(reinterpret_cast<const guint8*>(data.data()), data.size());
+                                loader->close();
+                                pixbuf = loader->get_pixbuf();
+                              }
+                              catch (const Glib::Error& error)
+                              {
+                                std::cerr << "ERROR: Could not decode image, with message: " << error.what() << std::endl;
+                              }
+                            }
+                            if (pixbuf && (pixbuf->get_width() > MAX_INLINE_IMAGE_WIDTH))
+                            {
+                              int height = pixbuf->get_height() * MAX_INLINE_IMAGE_WIDTH / pixbuf->get_width();
+                              pixbuf = pixbuf->scale_simple(MAX_INLINE_IMAGE_WIDTH, height, Gdk::INTERP_BILINEAR);
+                            }
+
+                            Glib::signal_idle().connect_once(
+                                [this, generation, my_generation, start_mark, end_mark, label, pixbuf]()
+                                {
+                                  if (*generation != my_generation)
+                                    return; // Buffer was reset in the meantime; placeholder & marks are already gone
+                                  auto buffer = get_buffer();
+                                  Gtk::TextBuffer::iterator iter = buffer->erase(start_mark->get_iter(), end_mark->get_iter());
+                                  if (pixbuf)
+                                  {
+                                    buffer->insert_pixbuf(iter, pixbuf);
+                                  }
+                                  else
+                                  {
+                                    // Image could not be fetched or decoded; show the alt text instead
+                                    buffer->insert_with_tag(iter, "\U0001F5BC " + label, "italic");
+                                  }
+                                  remove_image_mark(start_mark);
+                                  remove_image_mark(end_mark);
+                                });
+                          });
+}
+
+/**
+ * Delete an image placeholder mark from the buffer & stop tracking it
+ */
+void Draw::remove_image_mark(const Glib::RefPtr<Gtk::TextMark>& mark)
+{
+  get_buffer()->delete_mark(mark);
+  image_marks_.erase(std::remove(image_marks_.begin(), image_marks_.end(), mark), image_marks_.end());
+}
+
+/**
+ * Invalidate pending inline image insertions, called whenever the text buffer is
+ * reset (new page, editor mode, clear). The marks are deleted here; the bumped
+ * generation makes the still-running fetch callbacks bail out.
+ */
+void Draw::invalidate_pending_images()
+{
+  ++(*image_generation_);
+  auto buffer = get_buffer();
+  for (const Glib::RefPtr<Gtk::TextMark>& mark : image_marks_)
+  {
+    buffer->delete_mark(mark);
+  }
+  image_marks_.clear();
 }
 
 /**

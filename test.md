@@ -37,6 +37,10 @@ Some basic math:
 
 a^2^ + b^2^ = c^2^
 
+We can even show images inline, like our logo below:
+
+![LibreWeb logo](images/browser_logo_small.png)
+
 ----------
 
 > I could either watch it happen or be a part of it. 🤓
