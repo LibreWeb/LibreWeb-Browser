@@ -14,6 +14,8 @@
 class Menu : public Gtk::MenuBar
 {
 public:
+  sigc::signal<void> new_tab;
+  sigc::signal<void> close_tab;
   sigc::signal<void> new_doc;
   sigc::signal<void> open;
   sigc::signal<void> open_edit;
@@ -35,6 +37,8 @@ public:
   sigc::signal<void> forward;
   sigc::signal<void> reload;
   sigc::signal<void> home;
+  sigc::signal<void> next_tab;
+  sigc::signal<void> prev_tab;
   sigc::signal<void> toc;
   sigc::signal<void> source_code;
   sigc::signal<void> about;
@@ -64,6 +68,8 @@ protected:
   Gtk::SeparatorMenuItem separator6;
   Gtk::SeparatorMenuItem separator7;
   Gtk::SeparatorMenuItem separator8;
+  Gtk::SeparatorMenuItem separator9;
+  Gtk::SeparatorMenuItem separator10;
 
 private:
   Gtk::MenuItem* back_menu_item_;

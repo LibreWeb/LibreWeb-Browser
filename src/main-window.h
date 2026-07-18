@@ -3,9 +3,11 @@
 
 #include "about-dialog.h"
 #include "draw.h"
+#include "freedomnames-status.h"
 #include "menu.h"
 #include "middleware.h"
 #include "source-code-dialog.h"
+#include "tab.h"
 #include "toc-model-cols.h"
 #include "toolbar-button.h"
 
@@ -23,6 +25,7 @@
 #include <gtkmm/menubutton.h>
 #include <gtkmm/messagedialog.h>
 #include <gtkmm/modelbutton.h>
+#include <gtkmm/notebook.h>
 #include <gtkmm/paned.h>
 #include <gtkmm/popover.h>
 #include <gtkmm/popovermenu.h>
@@ -56,26 +59,29 @@ class MainWindow : public Gtk::Window
 public:
   static const int DefaultFontSize = 10;
   explicit MainWindow(const std::string& timeout);
-  void pre_request(const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor);
-  void post_write(const std::string& path, const std::string& title, bool is_set_address_and_title);
-  void started_request();
-  void finished_request();
+  void
+  pre_request(Tab* tab, const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor);
+  void post_write(Tab* tab, const std::string& path, const std::string& title, bool is_set_address_and_title);
+  void started_request(Tab* tab);
+  void finished_request(Tab* tab);
   void refresh_request();
-  void show_homepage();
-  void set_text(const Glib::ustring& content);
-  void set_document(cmark_node* root_node);
-  void set_message(const Glib::ustring& message, const Glib::ustring& details = "");
+  void refresh_waiting_tabs();
+  void show_homepage(Tab* tab);
+  void set_text(Tab* tab, const Glib::ustring& content);
+  void set_document(Tab* tab, cmark_node* root_node);
+  void set_message(Tab* tab, const Glib::ustring& message, const Glib::ustring& details = "");
   void update_status_popover_and_icon();
 
 protected:
   // Signal handlers
+  bool on_key_press_event(GdkEventKey* key_event) override;
   bool delete_window(GdkEventAny* any_event);
   void cut();
   void copy();
   void paste();
   void del();
   void selectAll();
-  void on_size_alloc(const Gdk::Rectangle& allocation);
+  void on_size_alloc(const Gdk::Rectangle& allocation, Tab* tab);
   void on_toc_row_activated(const Gtk::TreeModel::Path& path, Gtk::TreeViewColumn* column);
   void new_doc();
   void open();
@@ -116,6 +122,12 @@ protected:
   void on_theme_changed();
   void on_reader_view_changed();
   void on_icon_theme_activated(Gtk::ListBoxRow* row);
+  void on_tab_switched(Gtk::Widget* page, guint page_num);
+  Tab* new_tab(const std::string& path = "about:home");
+  void close_tab(Tab* tab);
+  void close_current_tab();
+  void switch_to_next_tab();
+  void switch_to_previous_tab();
 
   Glib::RefPtr<Gtk::AccelGroup> accel_group;                  /*!< Accelerator group, used for keyboard shortcut bindings */
   Glib::RefPtr<Gio::Settings> settings;                       /*!< Settings to store our preferences, even during restarts */
@@ -128,14 +140,14 @@ protected:
 
   // Child widgets
   Menu menu;
-  Draw draw_primary;
-  Draw draw_secondary;
   SourceCodeDialog source_code_dialog;
   About about;
+  Gtk::Notebook notebook;
+  Gtk::Button new_tab_button;
+  Gtk::Image new_tab_icon;
   Gtk::TreeView toc_tree_view;
   Glib::RefPtr<Gtk::TreeStore> toc_tree_model;
   Gtk::HPaned paned_root;
-  Gtk::HPaned paned_draw;
   Gtk::SearchBar search;
   Gtk::SearchBar search_replace;
   Gtk::SearchEntry search_entry;
@@ -279,8 +291,6 @@ protected:
   Gtk::Label icon_theme_label;
   std::unique_ptr<Gtk::MessageDialog> content_published_dialog;
   Gtk::ScrolledWindow scrolled_toc;
-  Gtk::ScrolledWindow scrolled_window_primary;
-  Gtk::ScrolledWindow scrolled_window_secondary;
   Gtk::SeparatorMenuItem separator1;
   Gtk::SeparatorMenuItem separator2;
   Gtk::SeparatorMenuItem separator3;
@@ -297,7 +307,8 @@ protected:
 #endif
 
 private:
-  Middleware middleware_;
+  std::string timeout_; /*!< Freedom Names time-out setting, used when creating new tabs */
+  FreedomNamesStatus status_;
   std::string app_name_;
   bool use_current_gtk_icon_theme_;
   std::string icon_theme_flat_;
@@ -317,10 +328,6 @@ private:
   double brightness_scale_;
   bool use_dark_theme_;
   bool is_reader_view_enabled_;
-  std::string current_file_saved_path_;
-  std::size_t current_history_index_;
-  std::vector<std::string> history_;
-  sigc::connection text_changed_signal_handler_;
 
   void load_stored_settings();
   void set_gtk_icons();
@@ -335,11 +342,17 @@ private:
   void init_mac_os();
   bool is_installed();
   void set_table_of_contents(const std::vector<Glib::RefPtr<Gtk::TextMark>>& headings);
+  Tab* current_tab();
+  bool is_valid_tab(Tab* tab);
+  std::vector<Tab*> get_tabs();
+  Middleware& middleware();
+  void update_tab_label(Tab* tab, const std::string& path);
   void enable_edit();
-  void disable_edit();
+  void disable_edit(Tab* tab);
   bool is_editor_enabled();
   std::string get_icon_image_from_theme(const std::string& icon_name, const std::string& typeof_icon);
-  void update_margins();
+  void update_margins(Tab& tab);
+  void update_margins_all_tabs();
   void update_css();
   void show_notification(const Glib::ustring& title, const Glib::ustring& message = "");
 };

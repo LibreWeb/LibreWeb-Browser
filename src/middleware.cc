@@ -3,6 +3,7 @@
 #include "file.h"
 #include "main-window.h"
 #include "md-parser.h"
+#include "tab.h"
 #include <cmark-gfm.h>
 #include <glibmm.h>
 #include <glibmm/main.h>
@@ -10,35 +11,28 @@
 
 /**
  * Middleware constructor
+ * \param main_window Reference to the main window, receives the GUI callbacks
+ * \param tab Reference to the tab this middleware belongs to
+ * \param timeout Freedom Names request time-out setting
  */
-Middleware::Middleware(MainWindow& main_window, const std::string& timeout)
+Middleware::Middleware(MainWindow& main_window, Tab& tab, const std::string& timeout)
     : main_window_(main_window),
+      tab_(tab),
       // Threading:
       request_thread_(nullptr),
-      status_thread_(nullptr),
       is_request_thread_done_(false),
       keep_request_thread_running_(true),
-      is_status_thread_done_(false),
       // Freedom Names node:
       freedom_host_("127.0.0.1"),
       freedom_port_(8420),
       freedom_timeout_(timeout),
       freedom_fetch_(freedom_host_, freedom_port_, freedom_timeout_),
-      freedom_status_(freedom_host_, freedom_port_, freedom_timeout_),
-      freedom_number_of_peers_(0),
-      freedom_network_size_(-1),
       // Request & Response:
       wait_page_visible_(false)
 {
-  // Hook up signals to Main Window methods
-  request_started_.connect(sigc::mem_fun(main_window, &MainWindow::started_request));
-  request_finished_.connect(sigc::mem_fun(main_window, &MainWindow::finished_request));
-
-  // First update status manually (with slight delay), after that the timer below will take care of updates
-  Glib::signal_timeout().connect_once(sigc::mem_fun(this, &Middleware::do_freedom_status_update_once), 550);
-
-  // Create a timer, triggers every 4 seconds
-  status_timer_handler_ = Glib::signal_timeout().connect_seconds(sigc::mem_fun(this, &Middleware::do_freedom_status_update), 4);
+  // Hook up signals to Main Window methods, for the tab this middleware belongs to
+  request_started_.connect(sigc::bind(sigc::mem_fun(main_window, &MainWindow::started_request), &tab_));
+  request_finished_.connect(sigc::bind(sigc::mem_fun(main_window, &MainWindow::finished_request), &tab_));
 }
 
 /**
@@ -46,9 +40,7 @@ Middleware::Middleware(MainWindow& main_window, const std::string& timeout)
  */
 Middleware::~Middleware()
 {
-  status_timer_handler_.disconnect();
   abort_request();
-  abort_status();
   abort_image_fetches(true);
 }
 
@@ -80,7 +72,7 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
       title = File::get_filename(path);
     }
     // Update main window widgets
-    main_window_.pre_request(path, title, is_set_address_bar, is_history_request, is_disable_editor);
+    main_window_.pre_request(&tab_, path, title, is_set_address_bar, is_history_request, is_disable_editor);
 
     // Start thread
     request_thread_ = new std::thread(&Middleware::process_request, this, path, is_parse_content);
@@ -96,9 +88,9 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
  * \param path file path (currently unused; kept for interface compatibility)
  * \return Content hash (base36 sha2-256 multihash)
  *
- * Uses a dedicated client instance: freedom_fetch_/freedom_status_ are owned by
- * the request/status threads, whose periodic abort()+reset() cycles would cancel
- * an in-flight publish. A local client has no shared abort state.
+ * Uses a dedicated client instance: freedom_fetch_ is owned by the request
+ * thread, whose periodic abort()+reset() cycles would cancel an in-flight
+ * publish. A local client has no shared abort state.
  * TODO: Run this within a separate thread, to avoid blocking the main thread.
  */
 std::string Middleware::do_add(const std::string& path)
@@ -205,7 +197,7 @@ void Middleware::fetch_image(const std::string& path, const std::function<void(c
 void Middleware::do_write(const std::string& path, bool is_set_address_and_title)
 {
   File::write(path, get_content());
-  main_window_.post_write("file://" + path, File::get_filename(path), is_set_address_and_title);
+  main_window_.post_write(&tab_, "file://" + path, File::get_filename(path), is_set_address_and_title);
 }
 
 /**
@@ -246,53 +238,12 @@ void Middleware::reset_content_and_path()
 }
 
 /**
- * \brief Get Freedom Names number of connected peers
- * \return number of peers (size_t)
+ * \brief Check if the 'Please wait' page is currently shown (node still spinning-up)
+ * \return true when the wait page is visible, meaning the page should be auto-refreshed once the node is up
  */
-std::size_t Middleware::get_freedom_number_of_peers() const
+bool Middleware::is_wait_page_visible() const
 {
-  std::lock_guard<std::mutex> guard(status_mutex_);
-  return freedom_number_of_peers_;
-}
-
-/**
- * \brief Get Freedom Names node ID (libp2p peer ID)
- * \return node ID (string)
- */
-std::string Middleware::get_freedom_node_id() const
-{
-  std::lock_guard<std::mutex> guard(status_mutex_);
-  return freedom_node_id_;
-}
-
-/**
- * \brief Get Freedom Names DHT mode (Auto/Client/Server)
- * \return mode (string)
- */
-std::string Middleware::get_freedom_mode() const
-{
-  std::lock_guard<std::mutex> guard(status_mutex_);
-  return freedom_mode_;
-}
-
-/**
- * \brief Get estimated Freedom Names network size
- * \return network size (int, -1 if unknown)
- */
-int Middleware::get_freedom_network_size() const
-{
-  std::lock_guard<std::mutex> guard(status_mutex_);
-  return freedom_network_size_;
-}
-
-/**
- * \brief Get Freedom Names node version
- * \return version (string)
- */
-std::string Middleware::get_freedom_version() const
-{
-  std::lock_guard<std::mutex> guard(status_mutex_);
-  return freedom_version_;
+  return wait_page_visible_;
 }
 
 /************************************************
@@ -328,7 +279,7 @@ void Middleware::process_request(const std::string& path, bool isParseContent)
   // Handle homepage
   else if (request_path_.compare("about:home") == 0)
   {
-    Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::show_homepage));
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::show_homepage), &tab_));
   }
   // Handle disk or Freedom Names paths
   else
@@ -399,18 +350,19 @@ void Middleware::fetch_from_freedomnames(bool isParseContent)
           // TODO: Maybe we want to abort the parser when keep_request_thread_running_ = false,
           // depending time the parser is taking?
           cmark_node* doc = parse_content();
-          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_document), doc));
+          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_document), &tab_, doc));
         }
         else
         {
           // Directly display the plain markdown content
-          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_text), get_content()));
+          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_text), &tab_, get_content()));
         }
       }
       else
       {
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "😵 File will not be displayed ",
-                                                    "File is not valid UTF-8 encoded, like a markdown or text file."));
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_,
+                                                    Glib::ustring("😵 File will not be displayed "),
+                                                    Glib::ustring("File is not valid UTF-8 encoded, like a markdown or text file.")));
       }
     }
   }
@@ -443,26 +395,29 @@ void Middleware::fetch_from_freedomnames(bool isParseContent)
         {
           message = "Message: " + errorMessage + ".\n\n";
         }
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message),
-                                                    "🎂 We're having trouble finding this site.",
-                                                    message + "You could try to reload the page or try increase the time-out (see --help)."));
+        Glib::signal_idle().connect_once(
+            sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_, Glib::ustring("🎂 We're having trouble finding this site."),
+                       Glib::ustring(message + "You could try to reload the page or try increase the time-out (see --help).")));
       }
       else if (errorMessage.starts_with("Request timed out"))
       {
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "⏰ Request timed out",
-                                                    "The lookup took too long. Time-out is set to: " + freedom_timeout_ +
-                                                        ".\n\nYou could try to reload the page or increase the time-out (see --help)."));
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_,
+                                                    Glib::ustring("⏰ Request timed out"),
+                                                    Glib::ustring("The lookup took too long. Time-out is set to: " + freedom_timeout_ +
+                                                                  ".\n\nYou could try to reload the page or increase the time-out (see --help).")));
       }
       else if (errorMessage.starts_with("Couldn't connect to server"))
       {
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "⌛ Please wait...",
-                                                    "The Freedom Names node is still spinning-up, page will automatically refresh..."));
+        Glib::signal_idle().connect_once(
+            sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_, Glib::ustring("⌛ Please wait..."),
+                       Glib::ustring("The Freedom Names node is still spinning-up, page will automatically refresh...")));
         wait_page_visible_ = true; // Please wait page is shown (auto-refresh when network is up)
       }
       else
       {
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "❌ Something went wrong",
-                                                    "Error message: " + std::string(error.what())));
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_,
+                                                    Glib::ustring("❌ Something went wrong"),
+                                                    Glib::ustring("Error message: " + std::string(error.what()))));
       }
     }
   }
@@ -491,18 +446,19 @@ void Middleware::open_from_disk(bool isParseContent)
         if (isParseContent)
         {
           cmark_node* doc = parse_content();
-          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_document), doc));
+          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_document), &tab_, doc));
         }
         else
         {
           // Directly set the plain markdown content
-          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_text), get_content()));
+          Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_text), &tab_, get_content()));
         }
       }
       else
       {
-        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "😵 File will not be displayed ",
-                                                    "File is not valid UTF-8 encoded, like a markdown file or text file."));
+        Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_,
+                                                    Glib::ustring("😵 File will not be displayed "),
+                                                    Glib::ustring("File is not valid UTF-8 encoded, like a markdown file or text file.")));
       }
     }
   }
@@ -510,89 +466,14 @@ void Middleware::open_from_disk(bool isParseContent)
   {
     std::cerr << "ERROR: Could not read file: " << final_request_path_ << ". Message: " << error.what() << ".\nError code: " << error.code()
               << std::endl;
-    Glib::signal_idle().connect_once(
-        sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "🎂 Could not read file", "Message: " + std::string(error.what())));
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_, Glib::ustring("🎂 Could not read file"),
+                                                Glib::ustring("Message: " + std::string(error.what()))));
   }
   catch (const std::runtime_error& error)
   {
     std::cerr << "ERROR: File request failed, file: " << final_request_path_ << ". Message: " << error.what() << std::endl;
-    Glib::signal_idle().connect_once(
-        sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), "🎂 File not found", "Message: " + std::string(error.what())));
-  }
-}
-
-/**
- * \brief Simple wrapper of the method below with void return
- */
-void Middleware::do_freedom_status_update_once()
-{
-  do_freedom_status_update();
-}
-
-/**
- * \brief Timeout slot: Update the Freedom Names node status every x seconds.
- * Process requests inside a separate thread, to avoid blocking the GUI thread.
- * \return always true, when running as a GTK timeout handler
- */
-bool Middleware::do_freedom_status_update()
-{
-  // Stop any on-going status calls first, if applicable
-  abort_status();
-
-  if (status_thread_ == nullptr)
-  {
-    status_thread_ = new std::thread(&Middleware::process_freedom_status, this);
-  }
-  // Keep going (never disconnect the timer)
-  return true;
-}
-
-/**
- * Process the Freedom Names status calls.
- * Runs inside a thread.
- */
-void Middleware::process_freedom_status()
-{
-  try
-  {
-    // Network I/O runs outside the lock, so GUI-thread getters never block on it
-    FreedomInfo info = freedom_status_.get_info();
-    // Version never changes for a running node; fetch it only until we have it
-    std::string version;
-    if (get_freedom_version().empty())
-      version = freedom_status_.get_health().version;
-    {
-      std::lock_guard<std::mutex> guard(status_mutex_);
-      freedom_number_of_peers_ = info.peers;
-      freedom_mode_ = info.mode;
-      freedom_network_size_ = info.network_size;
-      if (freedom_node_id_.empty())
-        freedom_node_id_ = info.node_id;
-      if (!version.empty())
-        freedom_version_ = version;
-    }
-
-    // Auto-refresh page if needed (when 'Please wait' page was shown) once the node is up.
-    if (wait_page_visible_)
-      Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::refresh_request));
-
-    // Trigger update of all status fields, in a thread-safe manner
-    Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
-  }
-  catch (const std::runtime_error& error)
-  {
-    std::string errorMessage = std::string(error.what());
-    if (errorMessage != "Request was aborted")
-    {
-      // Assume no connection or connection lost; display disconnected
-      {
-        std::lock_guard<std::mutex> guard(status_mutex_);
-        freedom_number_of_peers_ = 0;
-        freedom_mode_ = "";
-        freedom_network_size_ = -1;
-      }
-      Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
-    }
+    Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(main_window_, &MainWindow::set_message), &tab_, Glib::ustring("🎂 File not found"),
+                                                Glib::ustring("Message: " + std::string(error.what()))));
   }
 }
 
@@ -621,32 +502,6 @@ void Middleware::abort_request()
     delete request_thread_;
     request_thread_ = nullptr;
     is_request_thread_done_ = false; // reset
-  }
-}
-
-/**
- * Abort status calls and stop the thread, if applicable.
- */
-void Middleware::abort_status()
-{
-  if (status_thread_ && status_thread_->joinable())
-  {
-    if (is_status_thread_done_)
-    {
-      status_thread_->join();
-    }
-    else
-    {
-      // Trigger the thread to stop now.
-      // We call the abort method of the Freedom Names client.
-      freedom_status_.abort();
-      status_thread_->join();
-      // Reset states, allowing new threads with new API status calls
-      freedom_status_.reset();
-    }
-    delete status_thread_;
-    status_thread_ = nullptr;
-    is_status_thread_done_ = false; // reset
   }
 }
 

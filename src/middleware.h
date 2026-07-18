@@ -9,7 +9,6 @@
 #include <glibmm/ustring.h>
 #include <memory>
 #include <mutex>
-#include <sigc++/connection.h>
 #include <string>
 #include <thread>
 #include <vector>
@@ -17,15 +16,17 @@
 /* Forward declarations */
 struct cmark_node;
 class MainWindow;
+class Tab;
 
 /**
  * \class Middleware
- * \brief Handles (Freedom Names) network requests and File IO from disk towards the GUI
+ * \brief Handles (Freedom Names) network requests and File IO from disk towards the GUI.
+ * Each tab has its own middleware instance, so every tab can load its own page.
  */
 class Middleware : public MiddlewareInterface
 {
 public:
-  explicit Middleware(MainWindow& main_window, const std::string& timeout);
+  Middleware(MainWindow& main_window, Tab& tab, const std::string& timeout);
   virtual ~Middleware() override;
   void do_request(const std::string& path = std::string(),
                   bool is_set_address_bar = true,
@@ -39,36 +40,23 @@ public:
   Glib::ustring get_content() const override;
   cmark_node* parse_content() const override;
   void reset_content_and_path() override;
-  std::size_t get_freedom_number_of_peers() const override;
-  std::string get_freedom_node_id() const override;
-  std::string get_freedom_mode() const override;
-  int get_freedom_network_size() const override;
-  std::string get_freedom_version() const override;
+  bool is_wait_page_visible() const;
 
 private:
   MainWindow& main_window_;
+  Tab& tab_;
   Glib::Dispatcher request_started_;
   Glib::Dispatcher request_finished_;
-  sigc::connection status_timer_handler_;
   // Threading:
   std::thread* request_thread_;                   /* Request thread pointer */
-  std::thread* status_thread_;                    /* Status thread pointer */
   std::atomic<bool> is_request_thread_done_;      /* Indication when the single request (fetch) is done */
   std::atomic<bool> keep_request_thread_running_; /* Trigger the request thread to stop/continue */
-  std::atomic<bool> is_status_thread_done_;       /* Indication when the status calls are done */
 
   // Freedom Names node:
   std::string freedom_host_;    /* Freedom Names node host name */
   int freedom_port_;            /* Freedom Names node HTTP API port */
   std::string freedom_timeout_; /* Request time-out setting */
   FreedomNames freedom_fetch_;  /* Client for content/resolve calls */
-  FreedomNames freedom_status_; /* Client for status calls, so it doesn't conflict with the fetch request */
-  std::size_t freedom_number_of_peers_;
-  std::string freedom_node_id_;
-  std::string freedom_mode_;
-  int freedom_network_size_;
-  std::string freedom_version_;
-  mutable std::mutex status_mutex_; /* Protects the status members above; also locked by the const getters */
 
   // Image fetches: one background thread + dedicated client per image, so
   // inline images load concurrently and never share abort state with the
@@ -86,16 +74,12 @@ private:
   std::string request_path_;
   std::string final_request_path_;
   Glib::ustring current_content_;
-  bool wait_page_visible_;
+  std::atomic<bool> wait_page_visible_;
 
   void process_request(const std::string& path, bool is_parse_content);
   void fetch_from_freedomnames(bool is_parse_content);
   void open_from_disk(bool is_parse_content);
-  void do_freedom_status_update_once();
-  bool do_freedom_status_update();
-  void process_freedom_status();
   void abort_request();
-  void abort_status();
   void abort_image_fetches(bool wait);
   static bool validate_utf8(const Glib::ustring& text);
 };

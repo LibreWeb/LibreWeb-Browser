@@ -30,11 +30,6 @@ public:
   virtual Glib::ustring get_content() const = 0;
   virtual cmark_node* parse_content() const = 0;
   virtual void reset_content_and_path() = 0;
-  virtual std::size_t get_freedom_number_of_peers() const = 0;
-  virtual std::string get_freedom_node_id() const = 0;
-  virtual std::string get_freedom_mode() const = 0;
-  virtual int get_freedom_network_size() const = 0;
-  virtual std::string get_freedom_version() const = 0;
 };
 
 #endif
