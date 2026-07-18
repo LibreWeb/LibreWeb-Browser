@@ -1,11 +1,13 @@
 #ifndef DRAW_H
 #define DRAW_H
 
+#include <atomic>
 #include <cmark-gfm.h>
 #include <gdkmm/cursor.h>
 #include <gtkmm/menu.h>
 #include <gtkmm/textview.h>
 #include <gtkmm/tooltip.h>
+#include <memory>
 #include <pangomm/layout.h>
 
 class MiddlewareInterface;
@@ -38,6 +40,7 @@ public:
   };
 
   explicit Draw(MiddlewareInterface& middleware);
+  virtual ~Draw();
   void set_message(const Glib::ustring& message, const Glib::ustring& details = "");
   void show_homepage();
   void set_document(cmark_node* root_node);
@@ -98,6 +101,14 @@ private:
   bool is_ordered_list_;
   bool is_link;
   Glib::ustring link_url_;
+  bool is_image_;
+  Glib::ustring image_url_;
+  Glib::ustring image_alt_text_;
+  // Bumped on every buffer reset; pending async image insertions compare it to
+  // know their placeholder is gone. Shared with the fetch callbacks, so it
+  // outlives this widget (see insert_inline_image()).
+  std::shared_ptr<std::atomic<unsigned int>> image_generation_;
+  std::vector<Glib::RefPtr<Gtk::TextMark>> image_marks_; /* Placeholder marks of images still being fetched */
   std::map<int, int> ordered_list_counters;
   Glib::RefPtr<Gdk::Cursor> normal_cursor_;
   Glib::RefPtr<Gdk::Cursor> link_cursor_;
@@ -125,6 +136,9 @@ private:
   void insert_tag_text(const Glib::ustring& text, const Glib::ustring& tag_name);
   void insert_markup_text(const Glib::ustring& text);
   void insert_link_text(const Glib::ustring& text, const Glib::ustring& url);
+  void insert_inline_image(const Glib::ustring& url, const Glib::ustring& alt_text);
+  void remove_image_mark(const Glib::RefPtr<Gtk::TextMark>& mark);
+  void invalidate_pending_images();
   void truncate_text(int chars_truncated);
   void change_cursor(int x, int y);
   static Glib::ustring int_to_roman(int num);
