@@ -103,7 +103,7 @@ Menu::Menu(const Glib::RefPtr<Gtk::AccelGroup>& accel_group)
   auto add_bookmark_menu_item = create_menu_item("_Add Bookmark");
   add_bookmark_menu_item->add_accelerator("activate", accel_group, GDK_KEY_B, Gdk::ModifierType::CONTROL_MASK, Gtk::AccelFlags::ACCEL_VISIBLE);
   add_bookmark_menu_item->signal_activate().connect(add_bookmark);
-  auto show_bookmarks_menu_item = create_menu_item("_Edit Bookmarks...");
+  auto show_bookmarks_menu_item = create_menu_item("_Manage Bookmarks...");
   show_bookmarks_menu_item->add_accelerator("activate", accel_group, GDK_KEY_B, Gdk::ModifierType::CONTROL_MASK | Gdk::ModifierType::SHIFT_MASK,
                                             Gtk::AccelFlags::ACCEL_VISIBLE);
   show_bookmarks_menu_item->signal_activate().connect(show_bookmarks);
