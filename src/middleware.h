@@ -33,6 +33,7 @@ public:
                   bool is_disable_editor = true,
                   bool is_parse_content = true) override;
   std::string do_add(const std::string& path) override;
+  std::string do_add_file(const std::string& path) override;
   void fetch_image(const std::string& path, const std::function<void(const std::string& data)>& callback) override;
   void do_write(const std::string& path, bool is_set_address_and_title = true) override;
   void set_content(const Glib::ustring& content) override;

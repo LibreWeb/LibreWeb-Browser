@@ -86,6 +86,8 @@ protected:
   void save();
   void save_as();
   void on_save_as_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
+  void insert_image();
+  void on_insert_image_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
   void go_home();
   void show_toc();

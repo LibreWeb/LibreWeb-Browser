@@ -743,25 +743,24 @@ void Draw::insert_link()
   buffer->end_user_action();
 }
 
-void Draw::insert_image()
+/**
+ * \brief Insert image markdown (![alt](url)) at the cursor position.
+ * A text selection is used as the alt text of the image.
+ * \param alt_text Alternative text, shown while the image loads or when it can't be displayed
+ * \param url Image location (eg. a content hash from an upload, a fn:// name or file:// path)
+ */
+void Draw::insert_image(const Glib::ustring& alt_text, const Glib::ustring& url)
 {
   Gtk::TextBuffer::iterator start, end;
   auto buffer = get_buffer();
   buffer->begin_user_action();
+  Glib::ustring alt = alt_text;
   if (buffer->get_selection_bounds(start, end))
   {
-    Glib::ustring text = buffer->get_text(start, end);
+    alt = buffer->get_text(start, end);
     buffer->erase_selection();
-    buffer->insert_at_cursor("![](" + text + "]");
   }
-  else
-  {
-    int insert_offset = buffer->get_insert()->get_iter().get_offset();
-    buffer->insert_at_cursor("![](fn://image.jpg)");
-    auto begin_cursor_pos = buffer->get_iter_at_offset(insert_offset + 9);
-    auto end_cursor_pos = buffer->get_iter_at_offset(insert_offset + 18);
-    buffer->select_range(begin_cursor_pos, end_cursor_pos);
-  }
+  buffer->insert_at_cursor("![" + alt + "](" + url + ")");
   buffer->end_user_action();
 }
 
