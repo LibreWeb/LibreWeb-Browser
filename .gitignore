@@ -71,7 +71,9 @@ Thumbs.db
 *.dll
 *.exe
 # Freedom Names node binaries are downloaded (scripts/get-freedom-names.sh), never committed
+# (also without trailing slash, covering a symlinked freedom-names directory)
 freedom-names/
+/freedom-names
 # The Freedom Names node writes its libp2p identity key here on first startup; never commit it
 private.key
 # Allow the binaries in the packaging folder

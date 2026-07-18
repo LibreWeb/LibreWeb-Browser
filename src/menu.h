@@ -1,11 +1,14 @@
 #ifndef MENU_H
 #define MENU_H
 
+#include "bookmarks-storage.h"
+
 #include <gtkmm/menu.h>
 #include <gtkmm/menubar.h>
 #include <gtkmm/menuitem.h>
 #include <gtkmm/separatormenuitem.h>
 #include <signal.h>
+#include <vector>
 
 /**
  * \class Menu
@@ -41,6 +44,9 @@ public:
   sigc::signal<void> prev_tab;
   sigc::signal<void> toc;
   sigc::signal<void> source_code;
+  sigc::signal<void> add_bookmark;
+  sigc::signal<void> show_bookmarks;
+  sigc::signal<void, const std::string&> bookmark_clicked;
   sigc::signal<void> about;
 
   explicit Menu(const Glib::RefPtr<Gtk::AccelGroup>& accelgroup);
@@ -49,17 +55,20 @@ public:
   void set_forward_menu_sensitive(bool sensitive);
   void set_publish_menu_sensitive(bool sensitive);
   void set_edit_menu_sensitive(bool sensitive);
+  void populate_bookmarks(const std::vector<Bookmark>& bookmarks);
 
 protected:
   // Child widgets
   Gtk::MenuItem file_menu_item;
   Gtk::MenuItem edit_menu_item;
   Gtk::MenuItem view_menu_item;
+  Gtk::MenuItem bookmarks_menu_item;
   Gtk::MenuItem help_menu_item;
-  Gtk::Menu file_menu; /*!< File drop-down menu */
-  Gtk::Menu edit_menu; /*!< Edit drop-down menu */
-  Gtk::Menu view_menu; /*!< View drop-down menu */
-  Gtk::Menu help_menu; /*!< Help drop-down menu */
+  Gtk::Menu file_menu;      /*!< File drop-down menu */
+  Gtk::Menu edit_menu;      /*!< Edit drop-down menu */
+  Gtk::Menu view_menu;      /*!< View drop-down menu */
+  Gtk::Menu bookmarks_menu; /*!< Bookmarks drop-down menu */
+  Gtk::Menu help_menu;      /*!< Help drop-down menu */
   Gtk::SeparatorMenuItem separator1;
   Gtk::SeparatorMenuItem separator2;
   Gtk::SeparatorMenuItem separator3;
@@ -70,12 +79,14 @@ protected:
   Gtk::SeparatorMenuItem separator8;
   Gtk::SeparatorMenuItem separator9;
   Gtk::SeparatorMenuItem separator10;
+  Gtk::SeparatorMenuItem bookmarks_separator;
 
 private:
   Gtk::MenuItem* back_menu_item_;
   Gtk::MenuItem* forward_menu_item_;
   Gtk::MenuItem* publish_menu_item_;
   Gtk::MenuItem* edit_menu_item_;
+  std::vector<Gtk::MenuItem*> bookmark_menu_items_;
 
   Gtk::MenuItem* create_menu_item(const Glib::ustring& label_text);
 };
