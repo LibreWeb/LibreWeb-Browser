@@ -123,7 +123,8 @@ protected:
   void on_reader_view_changed();
   void on_icon_theme_activated(Gtk::ListBoxRow* row);
   void on_tab_switched(Gtk::Widget* page, guint page_num);
-  Tab* new_tab(const std::string& path = "about:home");
+  Tab* new_tab(const std::string& path = "about:home", bool switch_to_tab = true);
+  void open_link_in_new_tab(Glib::ustring url);
   void close_tab(Tab* tab);
   void close_current_tab();
   void switch_to_next_tab();

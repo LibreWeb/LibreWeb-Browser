@@ -2528,9 +2528,10 @@ void MainWindow::on_tab_switched(Gtk::Widget* page, guint page_num __attribute__
 /**
  * \brief Open a new tab and load the provided path
  * \param path Path that will be loaded in the new tab (default: the homepage)
+ * \param switch_to_tab If true switch to the newly created tab (default), set to false to open a background tab
  * \return Pointer to the newly created tab
  */
-Tab* MainWindow::new_tab(const std::string& path)
+Tab* MainWindow::new_tab(const std::string& path, bool switch_to_tab)
 {
   Tab* tab = Gtk::manage(new Tab(*this, timeout_));
   // Add custom CSS Provider to draw textviews
@@ -2542,6 +2543,8 @@ Tab* MainWindow::new_tab(const std::string& path)
   // Connect tab signals
   tab->draw_primary.signal_size_allocate().connect(sigc::bind(sigc::mem_fun(this, &MainWindow::on_size_alloc), tab));
   tab->draw_primary.source_code.connect(sigc::mem_fun(this, &MainWindow::show_source_code_dialog)); /*!< Open source code dialog */
+  tab->draw_primary.open_link_new_tab.connect(sigc::mem_fun(this, &MainWindow::open_link_in_new_tab));
+  tab->draw_secondary.open_link_new_tab.connect(sigc::mem_fun(this, &MainWindow::open_link_in_new_tab));
   tab->tab_close_button.signal_clicked().connect([this, tab] { close_tab(tab); });
   // Add the tab to the notebook and switch to it
   int pageNum = notebook.append_page(*tab, tab->tab_label_hbox);
@@ -2549,11 +2552,22 @@ Tab* MainWindow::new_tab(const std::string& path)
   tab->show_all();
   // Hide the secondary text view by default (only used by the editor)
   tab->scrolled_window_secondary.hide();
-  notebook.set_current_page(pageNum);
+  if (switch_to_tab)
+    notebook.set_current_page(pageNum);
   // Load the page
   if (!path.empty())
     tab->middleware.do_request(path);
   return tab;
+}
+
+/**
+ * \brief Open the provided link in a new background tab,
+ * triggered via the right-click context menu of a link
+ * \param url Link URL that will be loaded in the new tab
+ */
+void MainWindow::open_link_in_new_tab(Glib::ustring url)
+{
+  new_tab(url, false);
 }
 
 /**
