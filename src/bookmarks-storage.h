@@ -26,9 +26,11 @@ public:
   virtual ~BookmarksStorage();
 
   const std::vector<Bookmark>& get_bookmarks() const;
+  bool contains(const std::string& address) const;
   bool add(const std::string& name, const std::string& address);
   void update(std::size_t index, const std::string& name, const std::string& address);
   void remove(std::size_t index);
+  void remove_by_address(const std::string& address);
   std::size_t import_from(const std::string& path);
   void export_to(const std::string& path) const;
 

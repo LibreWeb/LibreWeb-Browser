@@ -102,6 +102,8 @@ protected:
   void show_bookmarks_dialog();
   void on_bookmark_clicked(const std::string& address);
   void update_bookmarks_menu();
+  void on_bookmark_icon_released(Gtk::EntryIconPosition icon_position, const GdkEventButton* icon_event);
+  void update_bookmark_icon();
   void show_toc();
   void copy_client_id();
   void address_bar_activate();

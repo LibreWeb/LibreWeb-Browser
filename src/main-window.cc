@@ -213,6 +213,7 @@ void MainWindow::pre_request(
   tab->title = title;
   if (isCurrentTab)
   {
+    update_bookmark_icon();
     if (!title.empty())
       set_title(title + " - " + app_name_);
     else
@@ -264,6 +265,7 @@ void MainWindow::post_write(Tab* tab, const std::string& path, const std::string
     if (tab == current_tab())
     {
       address_bar.set_text(path);
+      update_bookmark_icon();
       set_title(title + " - " + app_name_);
     }
   }
@@ -688,6 +690,10 @@ void MainWindow::init_toolbar_buttons()
   hbox_browser_toolbar.pack_start(forward_button, false, false, 0);
   hbox_browser_toolbar.pack_start(refresh_button, false, false, 0);
   hbox_browser_toolbar.pack_start(home_button, false, false, 0);
+  // Star icon overlay at the right of the address bar, for quickly adding/removing a bookmark
+  address_bar.set_icon_from_icon_name("non-starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
+  address_bar.set_icon_tooltip_text("Bookmark this page", Gtk::ENTRY_ICON_SECONDARY);
+  address_bar.set_icon_activatable(true, Gtk::ENTRY_ICON_SECONDARY);
   hbox_browser_toolbar.pack_start(address_bar, true, true, 4);
   hbox_browser_toolbar.pack_start(search_button, false, false, 0);
   hbox_browser_toolbar.pack_start(status_button, false, false, 0);
@@ -1090,13 +1096,15 @@ void MainWindow::init_signals()
   menu.about.connect(sigc::mem_fun(about, &About::show_about));                                                    /*!< Display about dialog */
   about.signal_response().connect(sigc::mem_fun(about, &About::hide_about));                                       /*!< Close about dialog */
   address_bar.signal_activate().connect(sigc::mem_fun(this, &MainWindow::address_bar_activate)); /*!< User pressed enter the address bar */
-  open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));          /*!< Button for showing Table of Contents */
-  back_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                  /*!< Button for previous page */
-  forward_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));            /*!< Button for next page */
-  refresh_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh_request));    /*!< Button for reloading the page */
-  home_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));               /*!< Button for home page */
-  search_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));           /*!< Execute the text search */
-  search_replace_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace));  /*!< Execute the text replace */
+  address_bar.signal_icon_release().connect(
+      sigc::mem_fun(this, &MainWindow::on_bookmark_icon_released));                             /*!< Click on the star icon in the address bar */
+  open_toc_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::show_toc));         /*!< Button for showing Table of Contents */
+  back_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::back));                 /*!< Button for previous page */
+  forward_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::forward));           /*!< Button for next page */
+  refresh_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::refresh_request));   /*!< Button for reloading the page */
+  home_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::go_home));              /*!< Button for home page */
+  search_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_search));          /*!< Execute the text search */
+  search_replace_entry.signal_activate().connect(sigc::mem_fun(this, &MainWindow::on_replace)); /*!< Execute the text replace */
   // Editor toolbar buttons
   open_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::open_and_edit));
   save_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::save));
@@ -1888,11 +1896,58 @@ void MainWindow::on_bookmark_clicked(const std::string& address)
 }
 
 /**
- * \brief Rebuild the bookmarks menu items from the stored bookmarks
+ * \brief Rebuild the bookmarks menu items from the stored bookmarks and refresh the star icon
  */
 void MainWindow::update_bookmarks_menu()
 {
   menu.populate_bookmarks(bookmarks_.get_bookmarks());
+  update_bookmark_icon();
+}
+
+/**
+ * \brief Called when the star icon in the address bar is clicked,
+ * toggling the bookmark for the current address
+ */
+void MainWindow::on_bookmark_icon_released(Gtk::EntryIconPosition icon_position, __attribute__((unused)) const GdkEventButton* icon_event)
+{
+  if (icon_position != Gtk::ENTRY_ICON_SECONDARY)
+    return;
+
+  std::string address = address_bar.get_text();
+  if (address.empty() || address.compare("file://unsaved") == 0)
+  {
+    show_notification("Add bookmark", "There is no valid address to bookmark. Open a page first.");
+    return;
+  }
+
+  if (bookmarks_.contains(address))
+  {
+    bookmarks_.remove_by_address(address);
+  }
+  else
+  {
+    Glib::ustring page_title = (current_tab() != nullptr) ? current_tab()->title : Glib::ustring();
+    bookmarks_.add(page_title.empty() ? address : page_title.raw(), address);
+  }
+  update_bookmarks_menu();
+}
+
+/**
+ * \brief Update the star icon in the address bar,
+ * showing a filled star when the current address is bookmarked
+ */
+void MainWindow::update_bookmark_icon()
+{
+  if (bookmarks_.contains(address_bar.get_text()))
+  {
+    address_bar.set_icon_from_icon_name("starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
+    address_bar.set_icon_tooltip_text("Remove bookmark", Gtk::ENTRY_ICON_SECONDARY);
+  }
+  else
+  {
+    address_bar.set_icon_from_icon_name("non-starred-symbolic", Gtk::ENTRY_ICON_SECONDARY);
+    address_bar.set_icon_tooltip_text("Bookmark this page", Gtk::ENTRY_ICON_SECONDARY);
+  }
 }
 
 /**
@@ -2652,8 +2707,9 @@ void MainWindow::on_tab_switched(Gtk::Widget* page, guint page_num __attribute__
   Tab* tab = dynamic_cast<Tab*>(page);
   if (tab == nullptr)
     return;
-  // Restore address bar & title
+  // Restore address bar & title, and the matching bookmark star state
   address_bar.set_text(tab->address);
+  update_bookmark_icon();
   if (!tab->title.empty())
     set_title(tab->title + " - " + app_name_);
   else

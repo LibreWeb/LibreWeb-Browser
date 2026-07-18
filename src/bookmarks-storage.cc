@@ -29,6 +29,16 @@ const std::vector<Bookmark>& BookmarksStorage::get_bookmarks() const
 }
 
 /**
+ * \brief Check whether an address is already bookmarked
+ * \param address Address to look for
+ * \return True when the address is bookmarked
+ */
+bool BookmarksStorage::contains(const std::string& address) const
+{
+  return std::any_of(bookmarks_.cbegin(), bookmarks_.cend(), [&address](const Bookmark& bookmark) { return bookmark.address == address; });
+}
+
+/**
  * \brief Add a new bookmark, or rename the existing bookmark when the address is already present
  * \param name User-friendly bookmark name
  * \param address Address the bookmark points to
@@ -73,6 +83,20 @@ void BookmarksStorage::remove(std::size_t index)
   if (index < bookmarks_.size())
   {
     bookmarks_.erase(bookmarks_.begin() + index);
+    save();
+  }
+}
+
+/**
+ * \brief Remove the bookmark matching the given address (if any)
+ * \param address Address of the bookmark to remove
+ */
+void BookmarksStorage::remove_by_address(const std::string& address)
+{
+  auto iter = std::find_if(bookmarks_.begin(), bookmarks_.end(), [&address](const Bookmark& bookmark) { return bookmark.address == address; });
+  if (iter != bookmarks_.end())
+  {
+    bookmarks_.erase(iter);
     save();
   }
 }
