@@ -1,6 +1,7 @@
 #include "bookmarks-storage.h"
 #include "file.h"
 
+#include <algorithm>
 #include <glib.h>
 #include <glibmm/miscutils.h>
 #include <iostream>
@@ -35,14 +36,12 @@ const std::vector<Bookmark>& BookmarksStorage::get_bookmarks() const
  */
 bool BookmarksStorage::add(const std::string& name, const std::string& address)
 {
-  for (Bookmark& bookmark : bookmarks_)
+  auto iter = std::find_if(bookmarks_.begin(), bookmarks_.end(), [&address](const Bookmark& bookmark) { return bookmark.address == address; });
+  if (iter != bookmarks_.end())
   {
-    if (bookmark.address == address)
-    {
-      bookmark.name = name;
-      save();
-      return false;
-    }
+    iter->name = name;
+    save();
+    return false;
   }
   bookmarks_.push_back({name, address});
   save();
@@ -92,15 +91,7 @@ std::size_t BookmarksStorage::import_from(const std::string& path)
   {
     std::string address = item.at("address").get<std::string>();
     std::string name = item.value("name", address);
-    bool exists = false;
-    for (const Bookmark& bookmark : bookmarks_)
-    {
-      if (bookmark.address == address)
-      {
-        exists = true;
-        break;
-      }
-    }
+    bool exists = std::any_of(bookmarks_.cbegin(), bookmarks_.cend(), [&address](const Bookmark& bookmark) { return bookmark.address == address; });
     if (!exists)
     {
       bookmarks_.push_back({name, address});
