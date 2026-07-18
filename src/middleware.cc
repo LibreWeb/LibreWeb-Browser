@@ -49,6 +49,7 @@ Middleware::~Middleware()
   status_timer_handler_.disconnect();
   abort_request();
   abort_status();
+  abort_image_fetches(true);
 }
 
 /**
@@ -64,6 +65,8 @@ void Middleware::do_request(const std::string& path, bool is_set_address_bar, bo
 {
   // Stop any on-going request first, if applicable
   abort_request();
+  // Also stop in-flight image fetches of the previous page (without blocking on the threads)
+  abort_image_fetches(false);
 
   if (request_thread_ == nullptr)
   {
@@ -103,6 +106,95 @@ std::string Middleware::do_add(const std::string& path)
   (void)path;
   FreedomNames freedom_publish(freedom_host_, freedom_port_, freedom_timeout_);
   return freedom_publish.add_content(get_content());
+}
+
+/**
+ * \brief Fetch the raw bytes of an inline resource (eg. an image inside a markdown page) in a
+ * background thread. Each fetch gets its own thread + client, so multiple images load concurrently
+ * and never share abort state with the page request thread (freedom_fetch_).
+ * \param path Image location: a fn:// name, a bare content hash, a file:// path, or a
+ * (relative) disk path which is resolved against the current document location
+ * \param callback Invoked from the fetch thread with the raw bytes (empty string on failure)
+ */
+void Middleware::fetch_image(const std::string& path, const std::function<void(const std::string& data)>& callback)
+{
+  // Reap the threads of fetches that finished earlier
+  {
+    std::lock_guard<std::mutex> guard(image_fetches_mutex_);
+    for (auto it = image_fetches_.begin(); it != image_fetches_.end();)
+    {
+      if (*(it->done))
+      {
+        it->thread.join();
+        it = image_fetches_.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+
+  auto client = std::make_shared<FreedomNames>(freedom_host_, freedom_port_, freedom_timeout_);
+  auto done = std::make_shared<std::atomic<bool>>(false);
+  std::string base_path = request_path_; // Current document location, for resolving relative image paths
+  std::thread thread(
+      [client, done, path, base_path, callback]()
+      {
+        std::string data;
+        try
+        {
+          if (path.starts_with("file://"))
+          {
+            data = File::read(path.substr(7), true);
+          }
+          else if (path.starts_with("fn://") || path.ends_with(".fn") || path.find(".fn/") != std::string::npos)
+          {
+            std::string name = path;
+            if (name.starts_with("fn://"))
+              name.erase(0, 5);
+            std::stringstream contents;
+            // Same routing heuristic as fetch_from_freedomnames(): a Freedom Names
+            // *name* always contains dots, a bare content hash never does
+            if (name.find('.') == std::string::npos)
+              client->get_content(name, &contents);
+            else
+              client->resolve_content(name, &contents);
+            data = contents.str();
+          }
+          else if (path.find('.') == std::string::npos)
+          {
+            // Bare content hash
+            std::stringstream contents;
+            client->get_content(path, &contents);
+            data = contents.str();
+          }
+          else
+          {
+            // Disk path; resolve a relative path against the current document directory
+            std::string file_path = path;
+            if (!path.starts_with("/") && base_path.starts_with("file://"))
+            {
+              std::string dir = base_path.substr(7);
+              dir.erase(dir.find_last_of('/') + 1);
+              file_path = dir + path;
+            }
+            data = File::read(file_path, true);
+          }
+        }
+        catch (const std::runtime_error& error)
+        {
+          std::string errorMessage = std::string(error.what());
+          if (errorMessage != "Request was aborted")
+          {
+            std::cerr << "ERROR: Image fetch failed (" << path << "), with message: " << errorMessage << std::endl;
+          }
+        }
+        callback(data);
+        *done = true;
+      });
+  std::lock_guard<std::mutex> guard(image_fetches_mutex_);
+  image_fetches_.push_back(ImageFetch{client, std::move(thread), done});
 }
 
 /**
@@ -555,6 +647,29 @@ void Middleware::abort_status()
     delete status_thread_;
     status_thread_ = nullptr;
     is_status_thread_done_ = false; // reset
+  }
+}
+
+/**
+ * \brief Abort all in-flight image fetches (on page navigation or shutdown)
+ * \param wait If true also join the fetch threads (used by the destructor); if false let them
+ * wind down in the background - they are reaped on the next fetch_image() call
+ */
+void Middleware::abort_image_fetches(bool wait)
+{
+  std::lock_guard<std::mutex> guard(image_fetches_mutex_);
+  for (ImageFetch& fetch : image_fetches_)
+  {
+    fetch.client->abort();
+  }
+  if (wait)
+  {
+    for (ImageFetch& fetch : image_fetches_)
+    {
+      if (fetch.thread.joinable())
+        fetch.thread.join();
+    }
+    image_fetches_.clear();
   }
 }
 

@@ -4,12 +4,15 @@
 #include "freedomnames.h"
 #include "middleware-i.h"
 #include <atomic>
+#include <functional>
 #include <glibmm/dispatcher.h>
 #include <glibmm/ustring.h>
+#include <memory>
 #include <mutex>
 #include <sigc++/connection.h>
 #include <string>
 #include <thread>
+#include <vector>
 
 /* Forward declarations */
 struct cmark_node;
@@ -30,6 +33,7 @@ public:
                   bool is_disable_editor = true,
                   bool is_parse_content = true) override;
   std::string do_add(const std::string& path) override;
+  void fetch_image(const std::string& path, const std::function<void(const std::string& data)>& callback) override;
   void do_write(const std::string& path, bool is_set_address_and_title = true) override;
   void set_content(const Glib::ustring& content) override;
   Glib::ustring get_content() const override;
@@ -66,6 +70,18 @@ private:
   std::string freedom_version_;
   mutable std::mutex status_mutex_; /* Protects the status members above; also locked by the const getters */
 
+  // Image fetches: one background thread + dedicated client per image, so
+  // inline images load concurrently and never share abort state with the
+  // page request. Guarded by image_fetches_mutex_.
+  struct ImageFetch
+  {
+    std::shared_ptr<FreedomNames> client;
+    std::thread thread;
+    std::shared_ptr<std::atomic<bool>> done;
+  };
+  std::vector<ImageFetch> image_fetches_;
+  std::mutex image_fetches_mutex_;
+
   // Request & Response:
   std::string request_path_;
   std::string final_request_path_;
@@ -80,6 +96,7 @@ private:
   void process_freedom_status();
   void abort_request();
   void abort_status();
+  void abort_image_fetches(bool wait);
   static bool validate_utf8(const Glib::ustring& text);
 };
 

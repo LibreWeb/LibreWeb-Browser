@@ -14,16 +14,17 @@ namespace n_fs = ::std::filesystem;
 /**
  * \brief Read file from disk
  * \param path File path location to read the file from
+ * \param binary Set to true for binary content (eg. images), keeping the bytes as-is on every platform
  * \throw std::runtime_error exception when file is not found (or not a regular file),
  *        or std::ios_base::failure when file can't be read
  * \return Contents as string
  */
-std::string File::read(const std::string& path)
+std::string File::read(const std::string& path, bool binary)
 {
   if (n_fs::exists(path) && n_fs::is_regular_file(path))
   {
     std::ifstream in_file;
-    in_file.open(path, std::ifstream::in);
+    in_file.open(path, binary ? (std::ifstream::in | std::ifstream::binary) : std::ifstream::in);
 
     std::stringstream str_stream;
     str_stream << in_file.rdbuf();

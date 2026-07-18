@@ -10,7 +10,7 @@
 class File
 {
 public:
-  static std::string read(const std::string& path);
+  static std::string read(const std::string& path, bool binary = false);
   static void write(const std::string& path, const std::string& content);
   static std::string get_filename(const std::string& path);
 };
