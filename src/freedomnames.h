@@ -13,9 +13,9 @@
  */
 struct FreedomRecord
 {
-  std::string type;  /* A | AAAA | TXT | CNAME | CONTENT */
-  std::string value; /* IP, hostname, text or content hash */
-  unsigned int ttl;  /* seconds */
+  std::string type;     /* A | AAAA | TXT | CNAME | CONTENT */
+  std::string value;    /* IP, hostname, text or content hash */
+  unsigned int ttl = 0; /* seconds */
 };
 
 /**
@@ -24,10 +24,10 @@ struct FreedomRecord
  */
 struct FreedomInfo
 {
-  std::string mode;    /* DHT mode: Auto | Client | Server | ... */
-  std::string node_id; /* libp2p peer ID of the local node */
-  std::size_t peers;   /* number of connected hosts */
-  int network_size;    /* estimated DHT network size (-1 if unknown) */
+  std::string mode;      /* DHT mode: Auto | Client | Server | ... */
+  std::string node_id;   /* libp2p peer ID of the local node */
+  std::size_t peers = 0; /* number of connected hosts */
+  int network_size = -1; /* estimated DHT network size (-1 if unknown) */
 };
 
 /**
@@ -36,8 +36,8 @@ struct FreedomInfo
  */
 struct FreedomHealth
 {
-  std::string version; /* node build version, e.g. "0.8.1" */
-  bool ready;          /* true once the DHT is initialized */
+  std::string version; /* node build version, e.g. "0.8.2" */
+  bool ready = false;  /* true once the DHT is initialized */
 };
 
 /**

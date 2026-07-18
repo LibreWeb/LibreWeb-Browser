@@ -15,12 +15,12 @@
 #   ./scripts/get-freedom-names.sh linux windows   # explicit target(s)
 #   ./scripts/get-freedom-names.sh all             # linux + windows + darwin
 # Environment:
-#   FN_VERSION   Release tag (bare, no "v" prefix), default: 0.8.1
+#   FN_VERSION   Release tag (bare, no "v" prefix), default: 0.8.2
 #   FN_ARCH      amd64 or arm64, default: auto-detect from uname -m
 #   FN_BASE_URL  Override the artifact download base URL
 set -euo pipefail
 
-FN_VERSION="${FN_VERSION:-0.8.1}"
+FN_VERSION="${FN_VERSION:-0.8.2}"
 PROJECT_URL="https://gitlab.melroy.org/freedom-names/freedom-names"
 FN_BASE_URL="${FN_BASE_URL:-$PROJECT_URL/-/jobs/artifacts/$FN_VERSION/raw/build_release}"
 CI_JOB="go-release"
@@ -31,12 +31,12 @@ DEST_DIR="$CURRENT_DIR/../freedom-names"
 # SHA256 checksums of the pinned release archives. Update when bumping FN_VERSION.
 checksum_for() {
   case "$1" in
-  0.8.1-linux-amd64) echo "dce49a7f61fcf077bf0c16f15930b967056975e0efb2cf4363d4e6cbffd7e813" ;;
-  0.8.1-linux-arm64) echo "3b3f2be663043e2d0607aa22d7549733d1a54404bee5801c7881e3c44c3c6d82" ;;
-  0.8.1-windows-amd64) echo "37d1a4c2ef9beb8cdcf7a59a5ba74975fdd067cad15af8be459f8ebe79a6ebde" ;;
-  0.8.1-windows-arm64) echo "aadb3604ec7294113bdf96434d679c4ec9d10c07fd480e9b4698f9dff6f821e2" ;;
-  0.8.1-darwin-amd64) echo "fab314914ae1449cb6fc1a78c54f43ebca6e0cefefd817414e82b9cbca0d5c4f" ;;
-  0.8.1-darwin-arm64) echo "1b56a5c0910ed65d872e90eb1d8d71786d2e37f6c7ee2bceba47875e3a107a42" ;;
+  0.8.2-linux-amd64) echo "c4a31355337f1575bb243ee309d6751fd084b4eb1a75db32c9e8a0243c72f224" ;;
+  0.8.2-linux-arm64) echo "5ed11aaaf9e0c793f90a6213af1a8c755018ea6ad76fbb4f805271e420b10879" ;;
+  0.8.2-windows-amd64) echo "7624c67313bc3fddb86bb1adcc518d0b703d28572403af42e27ba8cdf8457a11" ;;
+  0.8.2-windows-arm64) echo "0cf5ebf6c666e447682588581923be550644980ee9c6b252785e7abf888a6e43" ;;
+  0.8.2-darwin-amd64) echo "fc1fe7f8014fa0657bccd88917a0b16fc31ca9f747c87922063f202ef0cff2f4" ;;
+  0.8.2-darwin-arm64) echo "2c3d38efbe331074e04701fb4b01d316ed41783d43eff34620e656af6d851cd1" ;;
   *) echo "" ;;
   esac
 }

@@ -134,12 +134,11 @@ std::string FreedomNamesDaemon::locate_binary()
   binary_name += "-darwin";
 #endif
   // Use the current executable directory (bin folder) to locate the node binary.
-  char* path = NULL;
   int length, dirname_length;
   length = wai_getExecutablePath(NULL, 0, &dirname_length);
   if (length > 0)
   {
-    path = static_cast<char*>(malloc(length + 1));
+    char* path = static_cast<char*>(malloc(length + 1));
     if (!path)
     {
       std::cerr << "ERROR: Couldn't create executable path." << std::endl;

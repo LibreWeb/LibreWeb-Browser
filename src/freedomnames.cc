@@ -9,23 +9,23 @@
 
 namespace
 {
-// libcurl write callback appending to a std::string.
-size_t write_to_string(char* ptr, size_t size, size_t nmemb, void* userdata)
-{
-  auto* out = static_cast<std::string*>(userdata);
-  out->append(ptr, size * nmemb);
-  return size * nmemb;
-}
+  // libcurl write callback appending to a std::string.
+  size_t write_to_string(char* ptr, size_t size, size_t nmemb, void* userdata)
+  {
+    auto* out = static_cast<std::string*>(userdata);
+    out->append(ptr, size * nmemb);
+    return size * nmemb;
+  }
 
-// How long to wait for the TCP connect to the (local) node.
-constexpr long kConnectTimeoutSeconds = 30;
+  // How long to wait for the TCP connect to the (local) node.
+  constexpr long kConnectTimeoutSeconds = 30;
 
-// Progress callback: aborts the transfer when the shared abort flag is set.
-int progress_callback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
-{
-  auto* aborted = static_cast<std::atomic<bool>*>(clientp);
-  return (aborted && aborted->load()) ? 1 : 0; // non-zero aborts the transfer
-}
+  // Progress callback: aborts the transfer when the shared abort flag is set.
+  int progress_callback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_off_t)
+  {
+    auto* aborted = static_cast<std::atomic<bool>*>(clientp);
+    return (aborted && aborted->load()) ? 1 : 0; // non-zero aborts the transfer
+  }
 } // namespace
 
 /**
@@ -35,7 +35,10 @@ int progress_callback(void* clientp, curl_off_t, curl_off_t, curl_off_t, curl_of
  * \param timeout time-out string like "6s" or "5m" (matched to the IPFS client contract)
  */
 FreedomNames::FreedomNames(const std::string& host, int port, const std::string& timeout)
-    : host_(host), port_(port), timeout_seconds_(parse_timeout_seconds(timeout)), abort_(false)
+    : host_(host),
+      port_(port),
+      timeout_seconds_(parse_timeout_seconds(timeout)),
+      abort_(false)
 {
 }
 
@@ -260,7 +263,7 @@ std::string FreedomNames::http_post(const std::string& url, const std::string& b
 std::string FreedomNames::url_encode(const std::string& value)
 {
   std::ostringstream escaped;
-  escaped.fill('0');
+  static_cast<void>(escaped.fill('0'));
   escaped << std::hex;
   for (unsigned char c : value)
   {
