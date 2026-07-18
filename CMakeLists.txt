@@ -108,10 +108,9 @@ if(WIN32)
 elseif(APPLE)
   # Apple macOS specific
   # Note: these install rules run *after* the fixup_bundle() call in src/,
-  # on purpose: the pre-built helper binaries below and the Freedom Names
-  # node binary should not be scanned/rewritten by BundleUtilities.
+  # on purpose: the Freedom Names node binary should not be scanned or
+  # rewritten by BundleUtilities.
   install(DIRECTORY misc/packaging_icons/ DESTINATION ${DATADIR}/icons)
-  install(DIRECTORY misc/packaging_macos/ DESTINATION ${MACOSDIR})
   set(FREEDOM_NAMES_BINARY ${CMAKE_SOURCE_DIR}/freedom-names/freedom-names-darwin)
   set(FREEDOM_NAMES_DESTINATION ${MACOSDIR})
 elseif(UNIX)

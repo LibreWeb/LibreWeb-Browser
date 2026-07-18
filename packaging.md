@@ -1,7 +1,7 @@
 # Packaging
 
-The additional files in `packaging_win` and `packaging_macos` are required for packaging 
-to respectively the Windows and macOS platforms (after the cross-compile went successfully).
+The additional files in `packaging_win` are required for packaging 
+to the Windows platform (after the cross-compile went successfully).
 
 ## Freedom Names node binary
 
@@ -35,9 +35,13 @@ During `cmake --install`/`cpack`, the [BundleUtilities](https://cmake.org/cmake/
 gtk-mac-integration, resolved from the Homebrew prefix via pkg-config) into the app bundle and rewrites the
 install names, so the shipped app is standalone.
 
-The pre-built helper binaries in `misc/packaging_macos` (dbus/gdbus, x86_64) are copied into `Contents/MacOS`
-as-is, deliberately *after* the bundle fix-up. Code signing / notarization is not done yet (see the TODO in
-`scripts/build-macos-prod.sh`).
+No D-Bus helper binaries are bundled: the browser runs as `APPLICATION_NON_UNIQUE` (no session bus needed for
+GApplication uniqueness), GSettings uses the keyfile backend on macOS and processes are spawned directly via
+`Glib::spawn`. Should a session bus ever become necessary, install fresh `dbus`/`glib` binaries from Homebrew
+at package time on the runner (do not check pre-built Mach-O binaries into git — they go stale and their
+hardcoded Homebrew keg paths break on other machines).
+
+Code signing / notarization is not done yet (see the TODO in `scripts/build-macos-prod.sh`).
 
 ## Windows platform
 
