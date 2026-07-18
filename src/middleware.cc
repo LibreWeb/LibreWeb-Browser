@@ -109,6 +109,21 @@ std::string Middleware::do_add(const std::string& path)
 }
 
 /**
+ * \brief Add a file from disk (eg. an image) to the Freedom Names content network.
+ * \param path File path on disk
+ * \throw std::runtime_error when the file can't be read or the upload fails
+ * \return Content hash (base36 sha2-256 multihash)
+ *
+ * Uses a dedicated client instance for the same reason as do_add() above.
+ * TODO: Run this within a separate thread, to avoid blocking the main thread.
+ */
+std::string Middleware::do_add_file(const std::string& path)
+{
+  FreedomNames freedom_publish(freedom_host_, freedom_port_, freedom_timeout_);
+  return freedom_publish.add_content(File::read(path, true));
+}
+
+/**
  * \brief Fetch the raw bytes of an inline resource (eg. an image inside a markdown page) in a
  * background thread. Each fetch gets its own thread + client, so multiple images load concurrently
  * and never share abort state with the page request thread (freedom_fetch_).
