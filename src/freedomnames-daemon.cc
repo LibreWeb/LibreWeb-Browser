@@ -26,7 +26,7 @@ static const char* kFreedomBinaryName = "freedom-names";
  * \brief Spawn the freedom-names node in an async manner using Glib.
  *
  * The node's HTTP API and DNS resolver are bound to the loopback interface via
- * environment variables so nothing is exposed off-host.
+ * CLI flags so nothing is exposed off-host.
  */
 void FreedomNamesDaemon::spawn()
 {
@@ -44,29 +44,22 @@ void FreedomNamesDaemon::spawn()
       std::cout << "INFO: Starting Freedom Names node: " << command << "..." << std::endl;
       try
       {
+        // Bind the node's services to loopback only. The CLI flags take
+        // precedence over any FREEDOM_* environment variables (see
+        // freedom-names main.go applyNodeFlags), so the parent environment can
+        // be passed along untouched.
         std::vector<std::string> argv;
         argv.push_back(command);
-
-        // Bind the node's services to loopback only. The phase-1 node reads these
-        // env vars (see freedom-names config.go); once it grows CLI flags we can
-        // switch to --api-bind/--http-addr.
-        // Note: Glib::listenv() only returns the variable *names*, so build the
-        // KEY=VALUE pairs ourselves. Skip any pre-existing FREEDOM_* entries so
-        // our loopback values are the only ones the child sees.
-        std::vector<std::string> envp;
-        for (const std::string& name : Glib::listenv())
-        {
-          if (name != "FREEDOM_HTTP_ADDR" && name != "FREEDOM_DNS_ADDR")
-            envp.push_back(name + "=" + Glib::getenv(name));
-        }
-        envp.push_back("FREEDOM_HTTP_ADDR=127.0.0.1:8420");
-        envp.push_back("FREEDOM_DNS_ADDR=127.0.0.1:8053");
+        argv.push_back("--http-addr");
+        argv.push_back("127.0.0.1:8420");
+        argv.push_back("--dns-addr");
+        argv.push_back("127.0.0.1:8053");
 
         // Send stdout & stderr to /dev/null. Don't reap the child automatically.
         Glib::SpawnFlags flags =
             Glib::SPAWN_STDOUT_TO_DEV_NULL | Glib::SPAWN_STDERR_TO_DEV_NULL | Glib::SPAWN_DO_NOT_REAP_CHILD | Glib::SPAWN_SEARCH_PATH;
 
-        Glib::spawn_async(working_dir_, argv, envp, flags, Glib::SlotSpawnChildSetup(), &pid_);
+        Glib::spawn_async(working_dir_, argv, flags, Glib::SlotSpawnChildSetup(), &pid_);
 
         if (child_watch_connection_handler.connected())
           child_watch_connection_handler.disconnect();

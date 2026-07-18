@@ -347,7 +347,9 @@ void MainWindow::update_status_popover_and_icon()
   connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
   peers_status_label.set_text(std::to_string(nrOfPeers));
   mode_status_label.set_text(middleware_.get_freedom_mode());
-  node_id_status_label.set_text(middleware_.get_freedom_node_id());
+  const std::string nodeId = middleware_.get_freedom_node_id();
+  node_id_status_label.set_text(nodeId);
+  node_id_status_label.set_tooltip_text(nodeId);
   int networkSize = middleware_.get_freedom_network_size();
   network_size_status_label.set_text(networkSize >= 0 ? "~" + std::to_string(networkSize) : "unknown");
   node_version_status_label.set_text(middleware_.get_freedom_version());
@@ -717,6 +719,11 @@ void MainWindow::init_status_popover()
   node_id_status_label.set_xalign(1.0);
   network_size_status_label.set_xalign(1.0);
   node_version_status_label.set_xalign(1.0);
+  // The peer ID has no break points and would otherwise stretch the whole
+  // popover; truncate it in the middle (the full value is in the tooltip and
+  // the "Copy your node ID" button).
+  node_id_status_label.set_ellipsize(Pango::EllipsizeMode::ELLIPSIZE_MIDDLE);
+  node_id_status_label.set_max_width_chars(20);
   connectivity_label.get_style_context()->add_class("dim-label");
   peers_label.get_style_context()->add_class("dim-label");
   mode_label.get_style_context()->add_class("dim-label");

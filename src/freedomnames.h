@@ -13,8 +13,8 @@
  */
 struct FreedomRecord
 {
-  std::string type;  /* A | AAAA | TXT | CNAME (and CONTENT once the node supports it) */
-  std::string value; /* IP, hostname, text or (future) content hash */
+  std::string type;  /* A | AAAA | TXT | CNAME | CONTENT */
+  std::string value; /* IP, hostname, text or content hash */
   unsigned int ttl;  /* seconds */
 };
 
@@ -36,7 +36,7 @@ struct FreedomInfo
  */
 struct FreedomHealth
 {
-  std::string version; /* node build version, e.g. "0.3.0" */
+  std::string version; /* node build version, e.g. "0.8.1" */
   bool ready;          /* true once the DHT is initialized */
 };
 

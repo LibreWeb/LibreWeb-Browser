@@ -119,10 +119,13 @@ elseif(UNIX)
 endif()
 if(EXISTS ${FREEDOM_NAMES_BINARY})
   install(PROGRAMS ${FREEDOM_NAMES_BINARY} DESTINATION ${FREEDOM_NAMES_DESTINATION})
+elseif(PACKAGE)
+  message(FATAL_ERROR "Freedom Names node binary not found at ${FREEDOM_NAMES_BINARY}. "
+                      "Packaged builds must bundle it — run ./scripts/get-freedom-names.sh first.")
 else()
   message(WARNING "Freedom Names node binary not found at ${FREEDOM_NAMES_BINARY}; "
                   "it will NOT be installed. The browser needs it at runtime — "
-                  "place the binary there before packaging.")
+                  "run ./scripts/get-freedom-names.sh to fetch it.")
 endif()
 # General
 install(DIRECTORY images DESTINATION ${DATADIR}/libreweb)
