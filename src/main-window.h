@@ -346,7 +346,7 @@ private:
   bool is_valid_tab(Tab* tab);
   std::vector<Tab*> get_tabs();
   Middleware& middleware();
-  void update_tab_label(Tab* tab, const std::string& path);
+  static void update_tab_label(Tab* tab, const std::string& path);
   void enable_edit();
   void disable_edit(Tab* tab);
   bool is_editor_enabled();

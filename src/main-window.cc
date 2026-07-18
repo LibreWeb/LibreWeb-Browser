@@ -2167,7 +2167,7 @@ void MainWindow::disable_edit(Tab* tab)
  */
 bool MainWindow::is_editor_enabled()
 {
-  Tab* tab = current_tab();
+  const Tab* tab = current_tab();
   return tab ? tab->is_editor_active : false;
 }
 
