@@ -26,6 +26,23 @@ namespace
     auto* aborted = static_cast<std::atomic<bool>*>(clientp);
     return (aborted && aborted->load()) ? 1 : 0; // non-zero aborts the transfer
   }
+
+  // Parse a node response body, translating nlohmann's exceptions into the
+  // std::runtime_error every method here documents. nlohmann::json::parse_error
+  // and type_error derive from std::exception, *not* std::runtime_error, so
+  // without this a malformed but 2xx body escapes every caller's catch and
+  // terminates the browser.
+  nlohmann::json parse_response(const std::string& body, const std::string& endpoint)
+  {
+    try
+    {
+      return nlohmann::json::parse(body);
+    }
+    catch (const nlohmann::json::exception& error)
+    {
+      throw std::runtime_error("Malformed JSON from the Freedom Names node at " + endpoint + ": " + error.what());
+    }
+  }
 } // namespace
 
 /**
@@ -67,15 +84,24 @@ std::vector<FreedomRecord> FreedomNames::resolve(const std::string& name, const 
   std::string body = http_get(url);
 
   std::vector<FreedomRecord> records;
-  auto json = nlohmann::json::parse(body);
+  auto json = parse_response(body, "/resolve");
   if (json.contains("records") && json["records"].is_array())
   {
     for (const auto& rr : json["records"])
     {
+      if (!rr.is_object())
+        continue; // skip a malformed entry rather than failing the whole lookup
       FreedomRecord record;
-      record.type = rr.value("type", "");
-      record.value = rr.value("value", "");
-      record.ttl = rr.value("ttl", 0u);
+      try
+      {
+        record.type = rr.value("type", "");
+        record.value = rr.value("value", "");
+        record.ttl = rr.value("ttl", 0u);
+      }
+      catch (const nlohmann::json::exception&)
+      {
+        continue; // a field with an unexpected type: drop just this record
+      }
       records.push_back(record);
     }
   }
@@ -110,8 +136,15 @@ void FreedomNames::get_content(const std::string& hash, std::iostream* contents)
 std::string FreedomNames::add_content(const std::string& data)
 {
   const std::string body = http_post(base_url() + "/content", data);
-  auto json = nlohmann::json::parse(body);
-  return json.value("hash", "");
+  auto json = parse_response(body, "/content");
+  try
+  {
+    return json.value("hash", "");
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    throw std::runtime_error(std::string("Unexpected /content payload from the Freedom Names node: ") + error.what());
+  }
 }
 
 /**
@@ -122,13 +155,20 @@ std::string FreedomNames::add_content(const std::string& data)
 FreedomInfo FreedomNames::get_info()
 {
   std::string body = http_get(base_url() + "/info");
-  auto json = nlohmann::json::parse(body);
+  auto json = parse_response(body, "/info");
 
   FreedomInfo info;
-  info.mode = json.value("mode", "");
-  info.node_id = json.value("peerID", "");
-  info.peers = json.value("hostsConnected", 0);
-  info.network_size = json.value("networkSize", -1);
+  try
+  {
+    info.mode = json.value("mode", "");
+    info.node_id = json.value("peerID", "");
+    info.peers = json.value("hostsConnected", 0);
+    info.network_size = json.value("networkSize", -1);
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    throw std::runtime_error(std::string("Unexpected /info payload from the Freedom Names node: ") + error.what());
+  }
   return info;
 }
 
@@ -139,11 +179,20 @@ FreedomInfo FreedomNames::get_info()
 FreedomHealth FreedomNames::get_health()
 {
   std::string body = http_get(base_url() + "/health");
-  auto json = nlohmann::json::parse(body);
+  auto json = parse_response(body, "/health");
 
   FreedomHealth health;
-  health.version = json.value("version", "");
-  health.ready = json.value("ready", false);
+  try
+  {
+    health.version = json.value("version", "");
+    health.ready = json.value("ready", false);
+    health.role = json.value("role", ""); // empty on nodes older than 0.8.4
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    // A key present with an unexpected type, eg. {"ready": "yes"}.
+    throw std::runtime_error(std::string("Unexpected /health payload from the Freedom Names node: ") + error.what());
+  }
   return health;
 }
 

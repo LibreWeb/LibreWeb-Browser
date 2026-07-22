@@ -36,8 +36,11 @@ struct FreedomInfo
  */
 struct FreedomHealth
 {
-  std::string version; /* node build version, e.g. "0.8.3" */
+  std::string version; /* node build version, e.g. "0.8.4" */
   bool ready = false;  /* true once the DHT is initialized */
+  /* Node role, since node 0.8.4: "node" (normal) | "bootstrap". Always present
+   * on a 0.8.4+ node, even while ready is still false. Empty for older nodes. */
+  std::string role;
 };
 
 /**
