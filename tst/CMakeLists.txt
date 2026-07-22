@@ -35,12 +35,19 @@ target_include_directories(parser PRIVATE ${CMAKE_SOURCE_DIR}/src ${CMARK_BINARY
 target_link_libraries(parser PRIVATE libreweb-browser-lib-parser ${GTKMM_LIBRARIES} LibCommonMarker gtest_main)
 add_test(NAME parser_test COMMAND parser)
 
+add_executable(freedomnames freedomnames_test.cc)
+target_compile_features(freedomnames PUBLIC cxx_std_20)
+set_target_properties(freedomnames PROPERTIES CXX_EXTENSIONS OFF)
+target_include_directories(freedomnames PRIVATE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(freedomnames PRIVATE libreweb-browser-lib-freedomnames gtest_main)
+add_test(NAME freedomnames_test COMMAND freedomnames)
+
 # Add target that runs all unit-tests
 # The unit tests are running in xvfb (virtual frame buffer), allowing us
 # to use GTK widgets.
 add_custom_target(tests ALL
   COMMAND xvfb-run env GTEST_COLOR=1 ${CMAKE_CTEST_COMMAND} --verbose --output-on-failure
-  DEPENDS draw file parser
+  DEPENDS draw file parser freedomnames
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/tst
   COMMENT "Execute all unit-tests"
   VERBATIM

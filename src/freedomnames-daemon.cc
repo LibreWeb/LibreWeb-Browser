@@ -198,9 +198,11 @@ bool FreedomNamesDaemon::adopt_existing_node()
   {
     health = probe.get_health();
   }
-  catch (const std::runtime_error&)
+  catch (const std::exception&)
   {
-    // Nothing listening, or it does not speak the node API: spawn our own.
+    // Nothing listening, or whatever answered is not a node we can use (refused
+    // connection, HTTP error, malformed body). Catch std::exception rather than
+    // std::runtime_error: a probe failure must never abort browser start-up.
     return false;
   }
 
