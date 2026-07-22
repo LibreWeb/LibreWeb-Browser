@@ -144,6 +144,7 @@ FreedomHealth FreedomNames::get_health()
   FreedomHealth health;
   health.version = json.value("version", "");
   health.ready = json.value("ready", false);
+  health.role = json.value("role", ""); // empty on nodes older than 0.8.4
   return health;
 }
 

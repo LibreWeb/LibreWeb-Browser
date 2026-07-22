@@ -1,10 +1,12 @@
 #include "freedomnames-daemon.h"
 
+#include "freedomnames.h"
 #include <glibmm/fileutils.h>
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
 #include <glibmm/shell.h>
 #include <iostream>
+#include <stdexcept>
 #include <unistd.h>
 #include <whereami.h>
 
@@ -22,6 +24,15 @@ namespace n_fs = ::std::filesystem;
 // Binary name of the freedom-names node shipped alongside the browser.
 static const char* kFreedomBinaryName = "freedom-names";
 
+// Loopback endpoint the node is spawned on and probed at. Both must agree:
+// the probe answers "is a usable node already on the port I am about to use?".
+static const char* kNodeHost = "127.0.0.1";
+static const int kNodePort = 8420;
+static const char* kNodeDnsAddr = "127.0.0.1:8053";
+// Short time-out for the start-up probe, so a missing node does not delay
+// start-up. On loopback a closed port is refused immediately anyway.
+static const char* kProbeTimeout = "2s";
+
 /**
  * \brief Spawn the freedom-names node in an async manner using Glib.
  *
@@ -30,13 +41,8 @@ static const char* kFreedomBinaryName = "freedom-names";
  */
 void FreedomNamesDaemon::spawn()
 {
-  int daemon_pid = FreedomNamesDaemon::get_existing_pid();
-  // cppcheck-suppress knownConditionTrueFalse
-  if (daemon_pid > 0)
-  {
-    std::cout << "INFO: Freedom Names node is already running. Do not start another process." << std::endl;
-  }
-  else
+  // A usable node may already be serving the port we would bind; leave it be.
+  if (!FreedomNamesDaemon::adopt_existing_node())
   {
     std::string command = FreedomNamesDaemon::locate_binary();
     if (n_fs::exists(command))
@@ -51,9 +57,9 @@ void FreedomNamesDaemon::spawn()
         std::vector<std::string> argv;
         argv.push_back(command);
         argv.push_back("--http-addr");
-        argv.push_back("127.0.0.1:8420");
+        argv.push_back(std::string(kNodeHost) + ":" + std::to_string(kNodePort));
         argv.push_back("--dns-addr");
-        argv.push_back("127.0.0.1:8053");
+        argv.push_back(kNodeDnsAddr);
 
         // Send stdout & stderr to /dev/null. Don't reap the child automatically.
         Glib::SpawnFlags flags =
@@ -171,31 +177,45 @@ std::string FreedomNamesDaemon::locate_binary()
 }
 
 /**
- * \brief Retrieve existing running freedom-names PID for **UNIX only** (zero if non-existent)
- * \return Process ID (0 if non-existent)
+ * \brief Check whether an already-running node on our endpoint should be adopted.
+ *
+ * Probes GET /health on the very address the node would be spawned on. This asks
+ * the question that actually matters -- "is a usable node reachable on the port I
+ * am about to bind?" -- rather than the old process-name match, which also picked
+ * up bootstrap nodes and orphans, and only ever worked on Linux.
+ *
+ * A bootstrap node is deliberately not adopted: it serves no DNS and is not the
+ * node the browser needs. Since node 0.8.4 a bootstrap node defaults to :8430, so
+ * this only happens when someone explicitly points one at our port.
+ *
+ * \return true when an existing node is adopted (do not spawn), false to spawn
  */
-int FreedomNamesDaemon::get_existing_pid()
+bool FreedomNamesDaemon::adopt_existing_node()
 {
-  int pid = 0;
-#ifdef __linux__
-  int exitCode = -3;
-  std::string stdout_str;
+  FreedomNames probe(kNodeHost, kNodePort, kProbeTimeout);
+  FreedomHealth health;
   try
   {
-    Glib::spawn_command_line_sync("pidof -s freedom-names", &stdout_str, nullptr, &exitCode);
-    if (exitCode == 0)
-    {
-      pid = std::stoi(stdout_str);
-    }
+    health = probe.get_health();
   }
-  catch (Glib::SpawnError& error)
+  catch (const std::runtime_error&)
   {
-    std::cerr << "ERROR: Could not check for running Freedom Names process. Reason: " << error.what() << std::endl;
+    // Nothing listening, or it does not speak the node API: spawn our own.
+    return false;
   }
-  catch (Glib::ShellError& error)
+
+  const std::string endpoint = std::string(kNodeHost) + ":" + std::to_string(kNodePort);
+  if (health.role == "bootstrap")
   {
-    std::cerr << "ERROR: Could not check for running Freedom Names process. Reason: " << error.what() << std::endl;
+    std::cerr << "WARN: A Freedom Names *bootstrap* node is listening on " << endpoint << ", which LibreWeb needs for its own node." << std::endl
+              << "WARN: Move it to another port (bootstrap nodes default to 127.0.0.1:8430 since node 0.8.4)." << std::endl
+              << "WARN: Starting our own node anyway; it will fail to bind and name resolution will not work until then." << std::endl;
+    return false;
   }
-#endif
-  return pid;
+
+  // role "node", or empty on a node older than 0.8.4 (adopt, as before).
+  std::cout << "INFO: Found a running Freedom Names node on " << endpoint << " (version " << (health.version.empty() ? "unknown" : health.version)
+            << ", role " << (health.role.empty() ? "unreported" : health.role) << ")." << std::endl
+            << "INFO: Reusing it. It was not started by LibreWeb, so it keeps running when the browser exits." << std::endl;
+  return true;
 }
