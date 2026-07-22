@@ -9,6 +9,13 @@ variables:
   GIT_SUBMODULE_STRATEGY: recursive
   PACKAGE_REGISTRY_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/libreweb-browser/${CI_COMMIT_TAG}"
   RELEASE_LINKS_URL: "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/releases/${CI_COMMIT_TAG}/assets/links"
+  # GitHub mirror. The repository itself is push-mirrored by GitLab; the release
+  # job additionally publishes the built packages there as a GitHub release.
+  # $GH_TOKEN (a fine-grained PAT with Contents: read+write) comes from the
+  # masked+protected CI/CD variable, and is read implicitly by the gh CLI.
+  GH_REPO: "LibreWeb/LibreWeb-Browser"
+  # Pinned; bump deliberately.
+  GH_CLI_VERSION: "2.96.0"
 
 include:
   - template: Security/SAST.gitlab-ci.yml
@@ -178,5 +185,38 @@ upload_and_release:
       --header "Content-Type: application/json"
       --data "{\"name\":\"${PROJECT_NAME} - Ubuntu 25.04 (Plucky Puffin) (.deb)\",\"url\":\"${PACKAGE_REGISTRY_URL}/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-plucky.deb\",\"link_type\":\"package\"}"
       ${RELEASE_LINKS_URL}'
+
+    # --- GitHub mirror ------------------------------------------------------
+    # Publish the same packages as a GitHub release on $GH_REPO. Runs last, so
+    # a GitHub outage or an expired token cannot prevent the GitLab assets
+    # above from being published. The image has no `gh`, so fetch the pinned
+    # CLI tarball (the shared runners are amd64).
+    #
+    # create-or-upload: `create` fails if the release already exists (a retried
+    # job, or one made by hand), in which case `upload --clobber` attaches the
+    # assets to it instead. That makes re-running this job idempotent.
+    #
+    # --target pins the release to this commit so GitHub creates the tag itself
+    # if the (asynchronous) push mirror has not delivered it yet.
+    - |
+      curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_CLI_VERSION}/gh_${GH_CLI_VERSION}_linux_amd64.tar.gz" \
+        | tar -xz -C /tmp
+      export PATH="/tmp/gh_${GH_CLI_VERSION}_linux_amd64/bin:$PATH"
+      ASSETS="build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-bookworm.deb
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-trixie.deb
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-forky.deb
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-noble.deb
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}-plucky.deb
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}.rpm
+      build_prod/${PACKAGE_NAME}-v${CI_COMMIT_TAG}.tar.gz
+      build_prod/${PACKAGE_NAME}-source-v${CI_COMMIT_TAG}.tar.gz"
+      gh release create "$CI_COMMIT_TAG" $ASSETS \
+        --repo "$GH_REPO" \
+        --target "$CI_COMMIT_SHA" \
+        --title "v$CI_COMMIT_TAG" \
+        --notes "${PROJECT_NAME} $CI_COMMIT_TAG" || \
+      gh release upload "$CI_COMMIT_TAG" $ASSETS \
+        --repo "$GH_REPO" \
+        --clobber
 
 # TODO: look into: https://docs.gitlab.com/cli/release/upload/
