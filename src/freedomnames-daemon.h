@@ -29,6 +29,6 @@ private:
   sigc::connection child_watch_connection_handler;
 
   static std::string locate_binary();
-  static int get_existing_pid();
+  static bool adopt_existing_node();
 };
 #endif

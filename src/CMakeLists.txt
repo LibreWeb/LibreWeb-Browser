@@ -211,6 +211,7 @@ else()
     add_library(${PROJECT_TARGET_LIB}-file STATIC file.h file.cc)
     add_library(${PROJECT_TARGET_LIB}-draw STATIC draw.h draw.cc md-parser.h md-parser.cc)
     add_library(${PROJECT_TARGET_LIB}-parser STATIC md-parser.h md-parser.cc)
+    add_library(${PROJECT_TARGET_LIB}-freedomnames STATIC freedomnames.h freedomnames.cc)
 
     # Set C++20 for all libs
     target_compile_features(${PROJECT_TARGET_LIB}-file PUBLIC cxx_std_20)
@@ -219,6 +220,8 @@ else()
     set_target_properties(${PROJECT_TARGET_LIB}-draw PROPERTIES CXX_EXTENSIONS OFF)
     target_compile_features(${PROJECT_TARGET_LIB}-parser PUBLIC cxx_std_20)
     set_target_properties(${PROJECT_TARGET_LIB}-parser PROPERTIES CXX_EXTENSIONS OFF)
+    target_compile_features(${PROJECT_TARGET_LIB}-freedomnames PUBLIC cxx_std_20)
+    set_target_properties(${PROJECT_TARGET_LIB}-freedomnames PROPERTIES CXX_EXTENSIONS OFF)
 
     # Only link/include external libs we really need for the unittest libaries
     target_include_directories(${PROJECT_TARGET_LIB}-draw PRIVATE
@@ -242,4 +245,9 @@ else()
         LibCommonMarker
         LibCommonMarkerExtensions
     )
+    target_link_libraries(${PROJECT_TARGET_LIB}-freedomnames PUBLIC
+        nlohmann_json::nlohmann_json
+        ${CURL_LIBRARIES}
+    )
+    target_include_directories(${PROJECT_TARGET_LIB}-freedomnames PUBLIC ${CURL_INCLUDE_DIRS})
 endif()
