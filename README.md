@@ -18,7 +18,7 @@ LibreWeb is:
 - Free and open-source
 - Decentralized
 - Censorship resistant
-- Available for Linux and Windows (macOS coming soon)
+- Available for Linux, Windows and MacOS
 
 ## For Users
 
@@ -49,7 +49,7 @@ You could help us with:
 - [Documentation](https://docs.libreweb.org)
 - Discussions on the [Telegram](https://t.me/libreweb) or [Matrix](https://matrix.to/#/#libreweb:melroy.org?via=melroy.org) groups
 - [Bugs & Feature requests](https://github.com/LibreWeb/LibreWeb-Browser/issues)
-- [Official GitLab project](https://gitlab.melroy.org/libreweb/) (contact me for access)
+- [Official GitLab project](https://gitlab.melroy.org/libreweb/libreweb-browser) (contact me for access)
 - [Sponsor us](https://docs.libreweb.org/project/sponsor/)
 
 [Read more how to contribute](https://docs.libreweb.org/project/contribute/) to the LibreWeb project.
@@ -69,7 +69,7 @@ The current success criteria:
 
 - Everyone should be able to easily **read** and **create** a site/blog/news page and publish the content online (without minimal technical knowledge);
 - Built-in easy-to-use **editor** (whenever you want to publish some content without programming language knowledge);
-- **Decentralized** (no single-point of failure or censorship), using [Freedom Names](https://gitlab.melroy.org/freedom-names/freedom-names);
+- **Decentralized** (no single-point of failure or censorship), using [Freedom Names](https://freedomnames.org/) ([GitLab project of Freedom names](https://gitlab.melroy.org/freedom-names/freedom-names));
 - _No_ client-server approach (the client is also the server and visa versa) - think **mesh network**.
 - **Encrypted** transfers;
 - Data is stored **redundantly** within the network (no single-point of failure);
