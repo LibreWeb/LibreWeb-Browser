@@ -36,7 +36,7 @@ struct FreedomInfo
  */
 struct FreedomHealth
 {
-  std::string version; /* node build version, e.g. "0.8.2" */
+  std::string version; /* node build version, e.g. "0.8.3" */
   bool ready = false;  /* true once the DHT is initialized */
 };
 

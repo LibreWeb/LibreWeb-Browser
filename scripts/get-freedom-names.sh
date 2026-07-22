@@ -31,12 +31,12 @@ DEST_DIR="$CURRENT_DIR/../freedom-names"
 # SHA256 checksums of the pinned release archives. Update when bumping FN_VERSION.
 checksum_for() {
   case "$1" in
-  0.8.3-linux-amd64) echo "82d9a37cbba009bc66c4dac8a8e3d64faa7abb3833360bea049cc0533b3953f0" ;;
-  0.8.3-linux-arm64) echo "1ae441a99a7b1c0f68946c88e21e9aee8536ed8290f0d35ed145a590dfe9dd8d" ;;
-  0.8.3-windows-amd64) echo "7370b7aa2fd542b20e3195aaea054c6437c87cf55fc90de767c1225d0a7a4510" ;;
-  0.8.3-windows-arm64) echo "84e3044a7f4349274479793fc473c8767580bd7cdb40698f92626467cccaa01e" ;;
-  0.8.3-darwin-amd64) echo "1874779605c25dde4fad19753254fb7f4fd83f6699a57375c5846b9a0caa3fce" ;;
-  0.8.3-darwin-arm64) echo "ba56504fdd65791be29c2743e25b5a42b7342fadcc465265b7da386a3a9641c9" ;;
+  0.8.3-linux-amd64) echo "a564c2592cadf332cb9397b8b1f5c6fadb6e4a736de8021d3bb9b4700ad1193a" ;;
+  0.8.3-linux-arm64) echo "d4331bdd85422c6788923c555be929dafac4669479536aa3833bafbb33311af8" ;;
+  0.8.3-windows-amd64) echo "9e4b6bc838cfdec834decc71008ebdd9769e25321cd2ecc81057bf46454e7676" ;;
+  0.8.3-windows-arm64) echo "fa7e3834373e5b39ff2d8c24ae4fc4b40a10159ca1485898228815744dcac996" ;;
+  0.8.3-darwin-amd64) echo "09476ccbb6836ff40ec28ac59ba97605c43fbd2fac67b77841bb5f7f49d83937" ;;
+  0.8.3-darwin-arm64) echo "5455ea1ec229388700d39210d374cc14491a6d77f015dbbf281a74281d71d246" ;;
   *) echo "" ;;
   esac
 }
