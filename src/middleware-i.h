@@ -25,6 +25,7 @@ public:
                           bool isParseContent = true) = 0;
   virtual std::string do_add(const std::string& path) = 0;
   virtual std::string do_add_file(const std::string& path) = 0;
+  virtual void do_clear_cache() = 0;
   virtual void fetch_image(const std::string& path, const std::function<void(const std::string& data)>& callback) = 0;
   virtual void do_write(const std::string& path, bool isSetAddressAndTitle = true) = 0;
   virtual void set_content(const Glib::ustring& content) = 0;

@@ -1,6 +1,7 @@
 #include "freedomnames-daemon.h"
 
 #include "freedomnames.h"
+#include <glib/gstdio.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/main.h>
 #include <glibmm/miscutils.h>
@@ -65,7 +66,7 @@ void FreedomNamesDaemon::spawn()
         Glib::SpawnFlags flags =
             Glib::SPAWN_STDOUT_TO_DEV_NULL | Glib::SPAWN_STDERR_TO_DEV_NULL | Glib::SPAWN_DO_NOT_REAP_CHILD | Glib::SPAWN_SEARCH_PATH;
 
-        Glib::spawn_async(working_dir_, argv, flags, Glib::SlotSpawnChildSetup(), &pid_);
+        Glib::spawn_async(FreedomNamesDaemon::node_working_dir(), argv, flags, Glib::SlotSpawnChildSetup(), &pid_);
 
         if (child_watch_connection_handler.connected())
           child_watch_connection_handler.disconnect();
@@ -174,6 +175,36 @@ std::string FreedomNamesDaemon::locate_binary()
   {
     return "";
   }
+}
+
+/**
+ * \brief Directory to run the node process in, created when it does not exist.
+ *
+ * This is not cosmetic: the node stores its libp2p identity key relative to its
+ * working directory. Up to 0.8.x that is always ./private.key; from 0.9.x the key
+ * lives in ~/.freedom, but an existing ./private.key is still honoured first.
+ * Running the node in ~/.freedom makes both rules name the very same file, so the
+ * node keeps its peer ID across that upgrade -- and, either way, the key stops
+ * being written into whatever directory the browser happened to be started from
+ * (a repo checkout, /tmp, someone's Desktop), where it would silently change
+ * identity depending on how the browser was launched.
+ *
+ * \return the directory, or "" to let the node inherit our own working directory
+ */
+std::string FreedomNamesDaemon::node_working_dir()
+{
+  const std::string home = Glib::get_home_dir();
+  if (home.empty())
+    return ""; // no home directory to speak of; keep the old behaviour
+  const std::string dir = Glib::build_filename(home, ".freedom");
+  // 0700, because this directory holds the node's private identity key. The node
+  // creates it with the same mode itself; we only get here first.
+  if (g_mkdir_with_parents(dir.c_str(), 0700) != 0)
+  {
+    std::cerr << "WARN: Could not create " << dir << ". Starting the Freedom Names node in the current directory instead." << std::endl;
+    return "";
+  }
+  return dir;
 }
 
 /**

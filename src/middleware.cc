@@ -116,6 +116,22 @@ std::string Middleware::do_add_file(const std::string& path)
 }
 
 /**
+ * \brief Drop the node's resolver cache, so the next lookup of every name goes
+ * back to the DHT instead of answering from a cached record.
+ * \throw std::runtime_error when the node can't be reached or refuses the call
+ *
+ * Uses a dedicated client instance for the same reason as do_add() above. This
+ * runs on the GUI thread, which is fine here and only here: the node is on
+ * loopback and the call does no network I/O of its own, so it either returns at
+ * once or is refused at once.
+ */
+void Middleware::do_clear_cache()
+{
+  FreedomNames freedom_cache(freedom_host_, freedom_port_, freedom_timeout_);
+  freedom_cache.clear_cache();
+}
+
+/**
  * \brief Fetch the raw bytes of an inline resource (eg. an image inside a markdown page) in a
  * background thread. Each fetch gets its own thread + client, so multiple images load concurrently
  * and never share abort state with the page request thread (freedom_fetch_).

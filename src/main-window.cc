@@ -3,6 +3,7 @@
 #include "file.h"
 #include "menu.h"
 #include "project_config.h"
+#include <algorithm>
 #include <cmark-gfm.h>
 #include <cstdint>
 #include <gdk-pixbuf/gdk-pixbuf.h>
@@ -87,6 +88,9 @@ MainWindow::MainWindow(const std::string& timeout)
       mode_label("Mode:"),
       node_id_label("Node ID:"),
       network_size_label("Network size:"),
+      routing_table_label("Routing table:"),
+      listen_addresses_label("Listen addresses:"),
+      protocols_label("Protocols:"),
       node_version_label("Node version:"),
       network_incoming_label("Incoming"),
       network_outgoing_label("Outgoing"),
@@ -383,32 +387,35 @@ void MainWindow::set_message(Tab* tab, const Glib::ustring& message, const Glib:
  */
 void MainWindow::update_status_popover_and_icon()
 {
-  std::string networkStatus;
-  std::size_t nrOfPeers = status_.get_number_of_peers();
-  // Update status icon
-  if (nrOfPeers > 0)
+  const NodeState nodeState = status_.get_state();
+  const std::size_t nrOfPeers = status_.get_number_of_peers();
+  // The icon answers "can I browse right now?", which needs a node that is up
+  // *and* has someone to ask, so it only goes online once there are peers.
+  const bool online = (nodeState == NodeState::Running) && (nrOfPeers > 0);
+  if (use_current_gtk_icon_theme_)
   {
-    networkStatus = "Connected";
-    if (use_current_gtk_icon_theme_)
-    {
-      status_icon.set_from_icon_name("network-wired-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    }
-    else
-    {
-      status_icon.set(status_online_icon);
-    }
+    status_icon.set_from_icon_name(online ? "network-wired-symbolic" : "network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
   }
   else
   {
+    status_icon.set(online ? status_online_icon : status_offline_icon);
+  }
+
+  // The written status is more precise than the icon: a node that is still
+  // starting up, or that is up but has not found a peer yet, is a very
+  // different situation from no node at all, and used to read "Disconnected".
+  std::string networkStatus;
+  switch (nodeState)
+  {
+  case NodeState::Unreachable:
     networkStatus = "Disconnected";
-    if (use_current_gtk_icon_theme_)
-    {
-      status_icon.set_from_icon_name("network-wired-disconnected-symbolic", Gtk::IconSize(Gtk::ICON_SIZE_MENU));
-    }
-    else
-    {
-      status_icon.set(status_offline_icon);
-    }
+    break;
+  case NodeState::Starting:
+    networkStatus = "Starting...";
+    break;
+  case NodeState::Running:
+    networkStatus = (nrOfPeers > 0) ? "Connected" : "No peers";
+    break;
   }
   connectivity_status_label.set_markup("<b>" + networkStatus + "</b>");
   peers_status_label.set_text(std::to_string(nrOfPeers));
@@ -418,10 +425,69 @@ void MainWindow::update_status_popover_and_icon()
   node_id_status_label.set_tooltip_text(nodeId);
   int networkSize = status_.get_network_size();
   network_size_status_label.set_text(networkSize >= 0 ? "~" + std::to_string(networkSize) : "unknown");
+  // Lists are far too long for the pop-over grid, so the row carries the count
+  // and the values live in the tooltip.
+  set_status_list_label(routing_table_status_label, status_.get_routing_table(), "No peers in the routing table");
+  set_status_list_label(protocols_status_label, status_.get_protocols(), "No protocols registered");
+  // Listen addresses are counted but deliberately not listed: a node listens on
+  // some thirty multiaddrs, nearly all of them loopback and link-local spellings
+  // of the same handful of ports. That is more than a tooltip can usefully hold,
+  // and reading it is a `freedom-names` diagnostic job, not a browsing one.
+  const std::string listenCount = std::to_string(status_.get_listen_addresses().size());
+  if (listen_addresses_status_label.get_text() != listenCount)
+    listen_addresses_status_label.set_text(listenCount);
   node_version_status_label.set_text(status_.get_version());
   // Bandwidth rates are not exposed by the node (yet).
   network_incoming_status_label.set_text("n/a");
   network_outgoing_status_label.set_text("n/a");
+  // Clearing the cache of a node that isn't there only produces an error dialog.
+  clear_cache_button.set_sensitive(nodeState == NodeState::Running);
+}
+
+/**
+ * \brief Show a list of node status values as a count, with the values themselves in the tooltip
+ * \param label Status label to fill in
+ * \param values The values (peer IDs, listen addresses, protocol IDs)
+ * \param empty_tooltip Tooltip to use when there are no values at all
+ *
+ * Two details matter for the tooltip to be readable at all. It is capped,
+ * because a node listens on some thirty multiaddrs and its routing table can
+ * hold far more than that -- a tooltip that tall is not something anyone reads.
+ * And the values are sorted and only written when they actually changed: this
+ * runs on a 4-second poll, and every set_tooltip_text() cancels a tooltip that
+ * is waiting to appear, so a list that merely comes back in a different order
+ * would keep the tooltip permanently just out of reach.
+ */
+void MainWindow::set_status_list_label(Gtk::Label& label, const std::vector<std::string>& values, const std::string& empty_tooltip)
+{
+  // Cap chosen so the tooltip stays shorter than a comfortable pop-over.
+  static const std::size_t max_tooltip_values = 12;
+
+  const std::string count = std::to_string(values.size());
+  if (label.get_text() != count)
+    label.set_text(count);
+
+  std::string tooltip;
+  if (values.empty())
+  {
+    tooltip = empty_tooltip;
+  }
+  else
+  {
+    std::vector<std::string> sorted(values);
+    std::sort(sorted.begin(), sorted.end());
+    const std::size_t shown = std::min(sorted.size(), max_tooltip_values);
+    for (std::size_t i = 0; i < shown; i++)
+    {
+      if (!tooltip.empty())
+        tooltip += "\n";
+      tooltip += sorted.at(i);
+    }
+    if (sorted.size() > shown)
+      tooltip += "\n... and " + std::to_string(sorted.size() - shown) + " more";
+  }
+  if (label.get_tooltip_text() != tooltip)
+    label.set_tooltip_text(tooltip);
 }
 
 /**
@@ -793,12 +859,18 @@ void MainWindow::init_status_popover()
   mode_label.set_xalign(0.0);
   node_id_label.set_xalign(0.0);
   network_size_label.set_xalign(0.0);
+  routing_table_label.set_xalign(0.0);
+  listen_addresses_label.set_xalign(0.0);
+  protocols_label.set_xalign(0.0);
   node_version_label.set_xalign(0.0);
   connectivity_status_label.set_xalign(1.0);
   peers_status_label.set_xalign(1.0);
   mode_status_label.set_xalign(1.0);
   node_id_status_label.set_xalign(1.0);
   network_size_status_label.set_xalign(1.0);
+  routing_table_status_label.set_xalign(1.0);
+  listen_addresses_status_label.set_xalign(1.0);
+  protocols_status_label.set_xalign(1.0);
   node_version_status_label.set_xalign(1.0);
   // The peer ID has no break points and would otherwise stretch the whole
   // popover; truncate it in the middle (the full value is in the tooltip and
@@ -810,6 +882,18 @@ void MainWindow::init_status_popover()
   mode_label.get_style_context()->add_class("dim-label");
   node_id_label.get_style_context()->add_class("dim-label");
   network_size_label.get_style_context()->add_class("dim-label");
+  routing_table_label.get_style_context()->add_class("dim-label");
+  listen_addresses_label.get_style_context()->add_class("dim-label");
+  protocols_label.get_style_context()->add_class("dim-label");
+  // Each of these rows is a count, and a bare number invites the wrong reading:
+  // routing-table peers are not connected peers, and a listen address is not a
+  // peer at all. Explain them once here -- these never change, so unlike the
+  // value tooltips they are never rewritten by the status poll.
+  peers_label.set_tooltip_text("Peers this node currently holds a connection to.");
+  routing_table_label.set_tooltip_text("Peers this node knows how to reach in the DHT routing table. It does not have to be connected to them.");
+  listen_addresses_label.set_tooltip_text(
+      "How many network addresses this node accepts connections on. One node has many: every interface, in several transports.");
+  protocols_label.set_tooltip_text("How many libp2p protocols this node speaks. Hover the number to see them.");
   node_version_label.get_style_context()->add_class("dim-label");
   // Status popover grid
   status_grid.set_column_homogeneous(true);
@@ -829,8 +913,14 @@ void MainWindow::init_status_popover()
   status_grid.attach(node_id_status_label, 1, 3);
   status_grid.attach(network_size_label, 0, 4);
   status_grid.attach(network_size_status_label, 1, 4);
-  status_grid.attach(node_version_label, 0, 5);
-  status_grid.attach(node_version_status_label, 1, 5);
+  status_grid.attach(routing_table_label, 0, 5);
+  status_grid.attach(routing_table_status_label, 1, 5);
+  status_grid.attach(listen_addresses_label, 0, 6);
+  status_grid.attach(listen_addresses_status_label, 1, 6);
+  status_grid.attach(protocols_label, 0, 7);
+  status_grid.attach(protocols_status_label, 1, 7);
+  status_grid.attach(node_version_label, 0, 8);
+  status_grid.attach(node_version_status_label, 1, 8);
   // Network activity status grid
   network_kilo_bytes_label.get_style_context()->add_class("dim-label");
   activity_status_grid.set_column_homogeneous(true);
@@ -852,6 +942,13 @@ void MainWindow::init_status_popover()
   copy_id_button.set_label("Copy your node ID");
   copy_id_button.set_margin_start(6);
   copy_id_button.set_margin_end(6);
+  // Clear resolver cache button. Only useful against a running node, so it is
+  // enabled from update_status_popover_and_icon() once one answers.
+  clear_cache_button.set_label("Clear resolver cache");
+  clear_cache_button.set_tooltip_text("Forget every cached name lookup, so the next visit resolves again from the network.");
+  clear_cache_button.set_margin_start(6);
+  clear_cache_button.set_margin_end(6);
+  clear_cache_button.set_sensitive(false);
   // Add all items to status box & status popover
   vbox_status.set_margin_start(10);
   vbox_status.set_margin_end(10);
@@ -865,6 +962,7 @@ void MainWindow::init_status_popover()
   vbox_status.add(activity_status_grid);
   vbox_status.add(separator10);
   vbox_status.add(copy_id_button);
+  vbox_status.add(clear_cache_button);
   status_popover.set_position(Gtk::POS_BOTTOM);
   status_popover.set_size_request(100, 250);
   status_popover.set_margin_end(2);
@@ -1145,6 +1243,7 @@ void MainWindow::init_signals()
   highlight_button.signal_clicked().connect([this] { current_tab()->draw_primary.make_highlight(); });
   // Status pop-over buttons
   copy_id_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::copy_client_id));
+  clear_cache_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::clear_resolver_cache));
   // Settings pop-over buttons
   zoom_out_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_out));
   zoom_restore_button.signal_clicked().connect(sigc::mem_fun(this, &MainWindow::on_zoom_restore));
@@ -2028,6 +2127,27 @@ void MainWindow::copy_client_id()
   else
   {
     std::cerr << "WARNING: Freedom Names node ID has not been set yet. Skip clipboard action." << std::endl;
+  }
+}
+
+/**
+ * \brief Triggered when the user pressed the 'Clear resolver cache' button in the status pop-over.
+ *
+ * Drops every cached name lookup in the node, so the next visit to a name asks
+ * the network again. Useful when a site's owner has just republished it and the
+ * previous record has not expired yet.
+ */
+void MainWindow::clear_resolver_cache()
+{
+  try
+  {
+    middleware().do_clear_cache();
+    show_notification("Resolver cache cleared", "The next visit to a site will be resolved from the network again.");
+  }
+  catch (const std::runtime_error& error)
+  {
+    std::cerr << "ERROR: Could not clear the Freedom Names resolver cache: " << error.what() << std::endl;
+    show_notification("Could not clear the resolver cache", "The Freedom Names node did not accept the request.");
   }
 }
 
