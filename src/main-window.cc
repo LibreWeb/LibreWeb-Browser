@@ -1,8 +1,10 @@
 #include "main-window.h"
 
 #include "file.h"
+#include "freedomnames.h"
 #include "menu.h"
 #include "project_config.h"
+#include "publish-dialog.h"
 #include <algorithm>
 #include <cmark-gfm.h>
 #include <cstdint>
@@ -191,6 +193,21 @@ MainWindow::MainWindow(const std::string& timeout)
   // Load test file during development
   new_tab("file://../../test.md");
 #endif
+}
+
+/**
+ * \brief MainWindow destructor
+ *
+ * A publish runs in its own thread and touches this object when it finishes, so
+ * it has to be joined before any of that goes away.
+ */
+MainWindow::~MainWindow()
+{
+  join_publish_thread();
+  // The worker may have queued its GUI callback immediately before returning.
+  // Once this window is being destroyed that callback must not dereference it.
+  if (publish_finished_connection_.connected())
+    publish_finished_connection_.disconnect();
 }
 
 /**
@@ -1891,53 +1908,162 @@ void MainWindow::publish()
     result = dialog.run();
   }
 
-  // Continue ...
-  if (result == Gtk::RESPONSE_YES)
+  if (result != Gtk::RESPONSE_YES)
+    return;
+
+  // A publish already in flight owns the thread; do not start a second one.
+  if (publish_thread_ != nullptr)
+    return;
+
+  // Discover owner-name support from the running node. Older adopted nodes do
+  // not advertise it, in which case publishing by immutable content hash stays
+  // available without guessing a version or authoring port.
+  std::vector<FreedomName> names;
+  std::string authoring_api;
+  try
   {
-    std::string path = "new_file.md";
-    // Retrieve filename from saved file (if present)
-    if (!current_tab()->current_file_saved_path.empty())
+    FreedomNames node("127.0.0.1", 8420, timeout_);
+    const FreedomHealth health = node.get_health();
+    if (health.has_capability("authoring") && !health.authoring_api.empty())
     {
-      path = current_tab()->current_file_saved_path;
-    }
-    else
-    {
-      // TODO: path is not defined yet. however, this may change anyway once we try to build more complex
-      // websites, needing to use directory structures.
-    }
-
-    try
-    {
-      // Add content to the Freedom Names content network
-      std::string hash = middleware().do_add(path);
-      if (hash.empty())
-      {
-        throw std::runtime_error("Content hash is empty.");
-      }
-      // Show dialog
-      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File is successfully published!"));
-      content_published_dialog->set_secondary_text("The content is now available on the decentralized web, via:");
-      // Add custom label
-      Gtk::Label* label = Gtk::manage(new Gtk::Label("fn://" + hash));
-      label->set_selectable(true);
-      Gtk::Box* box = content_published_dialog->get_content_area();
-      box->pack_end(*label);
-
-      content_published_dialog->set_modal(true);
-      // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
-      content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
-      content_published_dialog->show_all();
-    }
-    catch (const std::runtime_error& error)
-    {
-      content_published_dialog.reset(new Gtk::MessageDialog(*this, "File could not be published", false, Gtk::MESSAGE_ERROR));
-      content_published_dialog->set_secondary_text("Error message: " + std::string(error.what()));
-      content_published_dialog->set_modal(true);
-      // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
-      content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
-      content_published_dialog->show();
+      names = node.list_names(health.authoring_api);
+      authoring_api = health.authoring_api;
     }
   }
+  catch (const std::runtime_error& error)
+  {
+    std::cerr << "WARN: Freedom Names owner-name management is unavailable: " << error.what() << std::endl;
+  }
+
+  PublishDialog dialog(*this, names, !authoring_api.empty());
+  if (!dialog.run_dialog())
+    return;
+  dialog.hide(); // gone before the work starts, so the wait is not behind it
+
+  // Snapshot everything the worker needs now, on the GUI thread: the user is
+  // free to keep typing, switch tabs or close one while the publish runs.
+  const bool to_name = dialog.target() == PublishDialog::Target::Name;
+  const std::string label = dialog.label();
+  const bool is_new_label = dialog.is_new_label();
+  const std::string content = middleware().get_content();
+
+  set_publish_in_progress(true);
+  publish_thread_ = new std::thread([this, to_name, label, is_new_label, authoring_api, content]()
+                                    { this->process_publish(to_name, label, is_new_label, authoring_api, content); });
+}
+
+/**
+ * \brief Do the actual publishing. Runs inside a thread.
+ * \param to_name True to publish to an owner name, false for a content hash only
+ * \param label Owner label, when publishing to a name
+ * \param is_new_label True when the key for that label still has to be generated
+ * \param authoring_api Loopback authoring origin discovered through /health
+ * \param content Document bytes, snapshotted before the thread started
+ *
+ * Publishing to a name is a DHT put, which the node bounds at 60 seconds, so
+ * this must never run on the GUI thread. The content-hash path is quick but runs
+ * here too, so both outcomes reach the user the same way.
+ */
+void MainWindow::process_publish(
+    bool to_name, const std::string& label, bool is_new_label, const std::string& authoring_api, const std::string& content)
+{
+  std::string address;
+  std::string error_message;
+  try
+  {
+    FreedomNames publisher("127.0.0.1", 8420, timeout_);
+    const std::string hash = publisher.add_content(content);
+    if (hash.empty())
+      throw std::runtime_error("Content hash is empty.");
+
+    if (!to_name)
+      address = hash;
+    else
+    {
+      if (authoring_api.empty())
+        throw std::runtime_error("The local Freedom Names node does not provide owner-name management.");
+      if (is_new_label)
+        publisher.create_name(authoring_api, label);
+      address = publisher.publish_name(authoring_api, label, hash);
+    }
+  }
+  catch (const std::runtime_error& error)
+  {
+    error_message = error.what();
+  }
+
+  publish_finished_connection_ = Glib::signal_idle().connect(
+      [this, address, error_message]()
+      {
+        on_publish_finished(address, error_message);
+        return false; // one-shot idle callback
+      });
+}
+
+/**
+ * \brief Report the outcome of a publish. Runs on the GUI thread.
+ * \param address Published name or content hash, empty when it failed
+ * \param error_message Reason it failed, empty on success
+ */
+void MainWindow::on_publish_finished(const std::string& address, const std::string& error_message)
+{
+  set_publish_in_progress(false);
+
+  if (error_message.empty())
+  {
+    content_published_dialog.reset(new Gtk::MessageDialog(*this, "File is successfully published!"));
+    content_published_dialog->set_secondary_text("The content is now available on the decentralized web, via:");
+    // Add custom label
+    Gtk::Label* label = Gtk::manage(new Gtk::Label("fn://" + address));
+    label->set_selectable(true);
+    Gtk::Box* box = content_published_dialog->get_content_area();
+    box->pack_end(*label);
+
+    content_published_dialog->set_modal(true);
+    // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
+    content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
+    content_published_dialog->show_all();
+  }
+  else
+  {
+    content_published_dialog.reset(new Gtk::MessageDialog(*this, "File could not be published", false, Gtk::MESSAGE_ERROR));
+    content_published_dialog->set_secondary_text("Error message: " + error_message);
+    content_published_dialog->set_modal(true);
+    // content_published_dialog->set_hide_on_close(true); available in gtk-4.0
+    content_published_dialog->signal_response().connect(sigc::hide(sigc::mem_fun(*content_published_dialog, &Gtk::Widget::hide)));
+    content_published_dialog->show();
+  }
+}
+
+/**
+ * \brief Reflect an in-flight publish in the UI, and reap the worker when it ends.
+ * \param in_progress True when a publish has just been started
+ */
+void MainWindow::set_publish_in_progress(bool in_progress)
+{
+  publish_button.set_sensitive(!in_progress);
+  menu.set_publish_menu_sensitive(!in_progress);
+  publish_button.set_tooltip_text(in_progress ? "Publishing..." : "Publish document... (Ctrl+P)");
+
+  if (!in_progress)
+    join_publish_thread();
+}
+
+/**
+ * \brief Join the publish worker, if there is one.
+ *
+ * Called once the worker has posted its result, and again from the destructor:
+ * a publish can outlive the window it was started from, and the thread touches
+ * this object, so it must be joined before the object goes away.
+ */
+void MainWindow::join_publish_thread()
+{
+  // join() blocks until the worker has actually returned, so it is safe to call
+  // this from the very handler the worker posted on its way out.
+  if (publish_thread_ && publish_thread_->joinable())
+    publish_thread_->join();
+  delete publish_thread_;
+  publish_thread_ = nullptr;
 }
 
 /**

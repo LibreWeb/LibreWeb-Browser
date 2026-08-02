@@ -1,5 +1,6 @@
 #include "freedomnames.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cstdio>
 #include <curl/curl.h>
@@ -60,7 +61,49 @@ namespace
     }
     return values;
   }
+
+  bool valid_port(const std::string& value)
+  {
+    if (value.empty() || !std::all_of(value.begin(), value.end(), [](unsigned char c) { return std::isdigit(c); }))
+      return false;
+    try
+    {
+      const unsigned long port = std::stoul(value);
+      return port > 0 && port <= 65535;
+    }
+    catch (const std::exception&)
+    {
+      return false;
+    }
+  }
+
+  bool valid_ipv4_loopback(const std::string& host)
+  {
+    if (host.rfind("127.", 0) != 0)
+      return false;
+    int dots = 0;
+    std::size_t start = 0;
+    while (start < host.size())
+    {
+      const std::size_t end = host.find('.', start);
+      const std::string part = host.substr(start, end == std::string::npos ? std::string::npos : end - start);
+      if (part.empty() || part.size() > 3 || !std::all_of(part.begin(), part.end(), [](unsigned char c) { return std::isdigit(c); }))
+        return false;
+      if (std::stoul(part) > 255)
+        return false;
+      if (end == std::string::npos)
+        break;
+      dots++;
+      start = end + 1;
+    }
+    return dots == 3;
+  }
 } // namespace
+
+bool FreedomHealth::has_capability(const std::string& capability) const
+{
+  return std::find(capabilities.begin(), capabilities.end(), capability) != capabilities.end();
+}
 
 /**
  * \brief FreedomNames constructor.
@@ -165,6 +208,83 @@ std::string FreedomNames::add_content(const std::string& data)
 }
 
 /**
+ * \brief List owner names managed by the local node.
+ */
+std::vector<FreedomName> FreedomNames::list_names(const std::string& authoring_api)
+{
+  if (!is_loopback_http_origin(authoring_api))
+    throw std::runtime_error("The Freedom Names node did not advertise a safe local authoring API.");
+
+  const auto json = parse_response(http_get(authoring_api + "/authoring/names"), "/authoring/names");
+  const auto names = json.find("names");
+  if (names == json.end() || !names->is_array())
+    throw std::runtime_error("Unexpected /authoring/names payload from the Freedom Names node.");
+
+  std::vector<FreedomName> result;
+  try
+  {
+    for (const auto& entry : *names)
+    {
+      if (!entry.is_object() || !entry.contains("label") || !entry["label"].is_string() || !entry.contains("name") || !entry["name"].is_string())
+        throw std::runtime_error("Unexpected name entry from the Freedom Names node.");
+      result.push_back({entry["label"].get<std::string>(), entry["name"].get<std::string>()});
+    }
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    throw std::runtime_error(std::string("Unexpected /authoring/names payload from the Freedom Names node: ") + error.what());
+  }
+  return result;
+}
+
+/**
+ * \brief Create an owner key for label and return its full name.
+ */
+std::string FreedomNames::create_name(const std::string& authoring_api, const std::string& label)
+{
+  if (!is_loopback_http_origin(authoring_api))
+    throw std::runtime_error("The Freedom Names node did not advertise a safe local authoring API.");
+
+  const nlohmann::json request = {{"label", label}};
+  const auto response = parse_response(http_post_json(authoring_api + "/authoring/names", request.dump()), "/authoring/names");
+  try
+  {
+    const std::string name = response.value("name", "");
+    if (name.empty())
+      throw std::runtime_error("The Freedom Names node returned an empty name after creating the owner key.");
+    return name;
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    throw std::runtime_error(std::string("Unexpected /authoring/names payload from the Freedom Names node: ") + error.what());
+  }
+}
+
+/**
+ * \brief Point an owned name at content_hash and return the full published name.
+ */
+std::string FreedomNames::publish_name(const std::string& authoring_api, const std::string& label, const std::string& content_hash)
+{
+  if (!is_loopback_http_origin(authoring_api))
+    throw std::runtime_error("The Freedom Names node did not advertise a safe local authoring API.");
+
+  const nlohmann::json request = {{"records", nlohmann::json::array({{{"type", "CONTENT"}, {"value", content_hash}, {"ttl", 300}}})}};
+  const std::string endpoint = "/authoring/names/" + url_encode(label) + "/publish";
+  const auto response = parse_response(http_post_json(authoring_api + endpoint, request.dump()), endpoint);
+  try
+  {
+    const std::string name = response.value("published", "");
+    if (name.empty())
+      throw std::runtime_error("The Freedom Names node returned an empty name after publishing.");
+    return name;
+  }
+  catch (const nlohmann::json::exception& error)
+  {
+    throw std::runtime_error(std::string("Unexpected ") + endpoint + " payload from the Freedom Names node: " + error.what());
+  }
+}
+
+/**
  * \brief Get node status from GET /info.
  * \return FreedomInfo with the fields the phase-1 node exposes
  * \throw std::runtime_error on transport/HTTP/parse error
@@ -208,6 +328,10 @@ FreedomHealth FreedomNames::get_health()
     health.version = json.value("version", "");
     health.ready = json.value("ready", false);
     health.role = json.value("role", ""); // empty on nodes older than 0.8.4
+    health.capabilities = string_array(json, "capabilities");
+    const std::string authoring_api = json.value("authoringAPI", "");
+    if (health.has_capability("authoring") && is_loopback_http_origin(authoring_api))
+      health.authoring_api = authoring_api;
   }
   catch (const nlohmann::json::exception& error)
   {
@@ -343,6 +467,36 @@ std::string FreedomNames::http_post(const std::string& url, const std::string& b
 }
 
 /**
+ * \brief Perform a POST request carrying a JSON object.
+ */
+std::string FreedomNames::http_post_json(const std::string& url, const std::string& body)
+{
+  CURL* curl = curl_easy_init();
+  if (!curl)
+    throw std::runtime_error("Could not init curl");
+  curl_slist* headers = curl_slist_append(nullptr, "Content-Type: application/json");
+  if (!headers)
+  {
+    curl_easy_cleanup(curl);
+    throw std::runtime_error("Could not allocate HTTP request headers");
+  }
+  curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.data());
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
+  try
+  {
+    const std::string response = perform(curl, url);
+    curl_slist_free_all(headers);
+    return response;
+  }
+  catch (...)
+  {
+    curl_slist_free_all(headers);
+    throw;
+  }
+}
+
+/**
  * \brief Perform a DELETE request and return the response body.
  */
 std::string FreedomNames::http_delete(const std::string& url)
@@ -378,6 +532,43 @@ std::string FreedomNames::url_encode(const std::string& value)
     }
   }
   return escaped.str();
+}
+
+/**
+ * \brief Accept only a bare HTTP origin on numeric 127/8 or ::1 loopback.
+ */
+bool FreedomNames::is_loopback_http_origin(const std::string& url)
+{
+  static const std::string scheme = "http://";
+  if (url.rfind(scheme, 0) != 0)
+    return false;
+  const std::string authority = url.substr(scheme.size());
+  if (authority.empty() || authority.find_first_of("/?#@") != std::string::npos)
+    return false;
+
+  std::string host;
+  std::string port;
+  if (authority.front() == '[')
+  {
+    const std::size_t close = authority.find(']');
+    if (close == std::string::npos || close + 1 >= authority.size() || authority.at(close + 1) != ':')
+      return false;
+    host = authority.substr(1, close - 1);
+    port = authority.substr(close + 2);
+    if (host != "::1")
+      return false;
+  }
+  else
+  {
+    const std::size_t colon = authority.rfind(':');
+    if (colon == std::string::npos)
+      return false;
+    host = authority.substr(0, colon);
+    port = authority.substr(colon + 1);
+    if (!valid_ipv4_loopback(host))
+      return false;
+  }
+  return valid_port(port);
 }
 
 /**

@@ -28,6 +28,7 @@ set(HEADERS
     file.h
     freedomnames.h
     freedomnames-status.h
+    publish-dialog.h
     middleware-i.h
     middleware.h
     tab.h
@@ -49,6 +50,7 @@ set(SOURCES
   file.cc
   freedomnames.cc
   freedomnames-status.cc
+  publish-dialog.cc
   middleware.cc
   tab.cc
   toolbar-button.cc
