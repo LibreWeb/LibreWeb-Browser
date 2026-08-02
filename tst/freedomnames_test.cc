@@ -37,19 +37,48 @@ namespace
       getsockname(listen_fd_, reinterpret_cast<sockaddr*>(&addr), &len);
       port_ = ntohs(addr.sin_port);
 
+      std::string response_body = body;
+      const std::string marker = "{PORT}";
+      std::string::size_type at = 0;
+      while ((at = response_body.find(marker, at)) != std::string::npos)
+      {
+        response_body.replace(at, marker.size(), std::to_string(port_));
+        at += std::to_string(port_).size();
+      }
+
       thread_ = std::thread(
-          [this, body, status]()
+          [this, response_body, status]()
           {
             int client = accept(listen_fd_, nullptr, nullptr);
             if (client < 0)
               return;
             char scratch[4096];
-            ssize_t ignored = recv(client, scratch, sizeof(scratch), 0); // drain the request
-            (void)ignored;
+            while (request_.find("\r\n\r\n") == std::string::npos)
+            {
+              const ssize_t received = recv(client, scratch, sizeof(scratch), 0);
+              if (received <= 0)
+                break;
+              request_.append(scratch, static_cast<std::size_t>(received));
+            }
+            const std::size_t headers_end = request_.find("\r\n\r\n");
+            const std::size_t length_at = request_.find("Content-Length:");
+            if (headers_end != std::string::npos && length_at != std::string::npos && length_at < headers_end)
+            {
+              const std::size_t value_at = length_at + std::string("Content-Length:").size();
+              const std::size_t value_end = request_.find("\r\n", value_at);
+              const std::size_t content_length = std::stoul(request_.substr(value_at, value_end - value_at));
+              while (request_.size() < headers_end + 4 + content_length)
+              {
+                const ssize_t received = recv(client, scratch, sizeof(scratch), 0);
+                if (received <= 0)
+                  break;
+                request_.append(scratch, static_cast<std::size_t>(received));
+              }
+            }
             const std::string response = "HTTP/1.1 " + status +
                                          "\r\nContent-Type: application/json"
                                          "\r\nContent-Length: " +
-                                         std::to_string(body.size()) + "\r\nConnection: close\r\n\r\n" + body;
+                                         std::to_string(response_body.size()) + "\r\nConnection: close\r\n\r\n" + response_body;
             ssize_t sent = send(client, response.c_str(), response.size(), 0);
             (void)sent;
             close(client);
@@ -69,9 +98,17 @@ namespace
       return port_;
     }
 
+    std::string request()
+    {
+      if (thread_.joinable())
+        thread_.join();
+      return request_;
+    }
+
   private:
     int listen_fd_ = -1;
     int port_ = 0;
+    std::string request_;
     std::thread thread_;
   };
 
@@ -86,6 +123,80 @@ namespace
     EXPECT_EQ(health.version, "0.8.4");
     EXPECT_TRUE(health.ready);
     EXPECT_EQ(health.role, "bootstrap");
+  }
+
+  TEST(FreedomNamesTest, HealthDiscoversLocalAuthoringApi)
+  {
+    OneShotHttpServer server(
+        R"({"status":"ok","version":"0.9.4","ready":true,"role":"node","capabilities":["authoring"],"authoringAPI":"http://127.0.0.1:{PORT}"})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    const FreedomHealth health = client.get_health();
+
+    EXPECT_TRUE(health.has_capability("authoring"));
+    EXPECT_EQ(health.authoring_api, "http://127.0.0.1:" + std::to_string(server.port()));
+  }
+
+  TEST(FreedomNamesTest, HealthDoesNotTrustNonLoopbackAuthoringApi)
+  {
+    OneShotHttpServer server(
+        R"({"status":"ok","version":"0.9.4","ready":true,"role":"node","capabilities":["authoring"],"authoringAPI":"http://example.com:8421"})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    const FreedomHealth health = client.get_health();
+
+    EXPECT_TRUE(health.has_capability("authoring"));
+    EXPECT_TRUE(health.authoring_api.empty());
+  }
+
+  TEST(FreedomNamesTest, ListsOwnedNames)
+  {
+    OneShotHttpServer server(R"({"names":[{"label":"blog","name":"blog.owner.fn"},{"label":"damaged","name":""}]})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    const std::vector<FreedomName> names = client.list_names("http://127.0.0.1:" + std::to_string(server.port()));
+
+    ASSERT_EQ(names.size(), 2u);
+    EXPECT_EQ(names.at(0).label, "blog");
+    EXPECT_EQ(names.at(0).name, "blog.owner.fn");
+    EXPECT_EQ(names.at(1).label, "damaged");
+  }
+
+  TEST(FreedomNamesTest, CreatesNameWithJsonRequest)
+  {
+    OneShotHttpServer server(R"({"label":"blog","name":"blog.owner.fn"})", "201 Created");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    const std::string name = client.create_name("http://127.0.0.1:" + std::to_string(server.port()), "blog");
+    const std::string request = server.request();
+
+    EXPECT_EQ(name, "blog.owner.fn");
+    EXPECT_NE(request.find("POST /authoring/names HTTP/1.1"), std::string::npos);
+    EXPECT_NE(request.find("Content-Type: application/json"), std::string::npos);
+    EXPECT_NE(request.find(R"({"label":"blog"})"), std::string::npos);
+  }
+
+  TEST(FreedomNamesTest, PublishesContentRecordWithJsonRequest)
+  {
+    OneShotHttpServer server(R"({"published":"blog.owner.fn","seq":4,"expires":123})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    const std::string name = client.publish_name("http://127.0.0.1:" + std::to_string(server.port()), "bad/label", "k2k4hash");
+    const std::string request = server.request();
+
+    EXPECT_EQ(name, "blog.owner.fn");
+    EXPECT_NE(request.find("POST /authoring/names/bad%2Flabel/publish HTTP/1.1"), std::string::npos);
+    EXPECT_NE(request.find(R"("records":[{"ttl":300,"type":"CONTENT","value":"k2k4hash"}])"), std::string::npos);
+  }
+
+  TEST(FreedomNamesTest, AuthoringRefusesUnsafeApiOrigin)
+  {
+    FreedomNames client("127.0.0.1", 8420, "5s");
+
+    EXPECT_THROW(client.create_name("http://example.com:8421", "blog"), std::runtime_error);
+    EXPECT_THROW(client.create_name("https://127.0.0.1:8421", "blog"), std::runtime_error);
+    EXPECT_THROW(client.create_name("http://localhost:8421", "blog"), std::runtime_error);
+    EXPECT_THROW(client.create_name("http://127.0.0.1:8421/path", "blog"), std::runtime_error);
   }
 
   // A node older than 0.8.4 omits "role" entirely; it must parse, not throw.

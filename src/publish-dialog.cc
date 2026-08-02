@@ -6,12 +6,13 @@
  * \brief PublishDialog constructor
  * \param parent Parent window, so the dialog is modal to the browser
  */
-PublishDialog::PublishDialog(Gtk::Window& parent)
+PublishDialog::PublishDialog(Gtk::Window& parent, const std::vector<FreedomName>& names, bool authoring_available)
     : Gtk::Dialog("Publish document", parent, true),
       vbox_choices(Gtk::ORIENTATION_VERTICAL),
       intro_label("Publish to:"),
       hint_label(""),
-      hbox_new_name(Gtk::ORIENTATION_HORIZONTAL)
+      hbox_new_name(Gtk::ORIENTATION_HORIZONTAL),
+      names_(names)
 {
   set_default_size(420, -1);
   set_resizable(false);
@@ -23,19 +24,17 @@ PublishDialog::PublishDialog(Gtk::Window& parent)
 
   // The user's existing names come first: re-publishing an existing one is by
   // far the common case once someone has a site.
-  if (FreedomNamesCli::available())
-    keys_ = FreedomNamesCli::list_keys();
-  for (const FreedomKey& key : keys_)
+  for (const FreedomName& name : names_)
   {
-    // A key whose full name could not be read still publishes fine -- the CLI
-    // resolves the label itself -- so show the label rather than hiding it.
-    const std::string caption = key.full_name.empty() ? key.label : key.full_name;
+    // A damaged key is returned with an empty full name so it remains visible
+    // instead of looking available for replacement.
+    const std::string caption = name.name.empty() ? name.label : name.name;
     key_buttons_.push_back(std::make_unique<Gtk::RadioButton>(group, caption));
-    key_buttons_.back()->set_tooltip_text("Owner key \"" + key.label + "\" in ~/.freedom/keys");
+    key_buttons_.back()->set_tooltip_text("Owner key \"" + name.label + "\" managed by your local Freedom Names node");
     vbox_choices.pack_start(*key_buttons_.back(), false, false, 0);
   }
 
-  if (FreedomNamesCli::available())
+  if (authoring_available)
   {
     new_name_button_ = std::make_unique<Gtk::RadioButton>(group, "New name:");
     new_label_entry.set_placeholder_text("blog");
@@ -131,9 +130,8 @@ bool PublishDialog::run_dialog()
     if (run() != Gtk::RESPONSE_OK)
       return false;
 
-    // The CLI validates labels authoritatively (they end up as file names, so it
-    // rejects anything path-like); this only catches the empty case, which would
-    // otherwise produce a confusing error from a child process.
+    // The authoring API validates labels authoritatively; this catches the empty
+    // case early so the user gets a focused message in the dialog.
     if (target() == Target::Name && is_new_label() && label().empty())
     {
       Gtk::MessageDialog error(*this, "Please enter a name to publish to.", false, Gtk::MESSAGE_WARNING, Gtk::BUTTONS_OK, true);
@@ -161,7 +159,7 @@ std::string PublishDialog::label() const
   for (std::size_t i = 0; i < key_buttons_.size(); i++)
   {
     if (key_buttons_.at(i)->get_active())
-      return keys_.at(i).label;
+      return names_.at(i).label;
   }
   return new_label_entry.get_text();
 }

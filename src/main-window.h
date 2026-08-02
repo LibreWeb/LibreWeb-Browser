@@ -100,7 +100,7 @@ protected:
   void insert_image();
   void on_insert_image_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
-  void process_publish(bool to_name, const std::string& label, bool is_new_label, const std::string& path, const std::string& content);
+  void process_publish(bool to_name, const std::string& label, bool is_new_label, const std::string& authoring_api, const std::string& content);
   void on_publish_finished(const std::string& address, const std::string& error_message);
   void set_publish_in_progress(bool in_progress);
   void join_publish_thread();
@@ -319,7 +319,8 @@ protected:
   Gtk::Label reader_view_label;
   Gtk::Label icon_theme_label;
   std::unique_ptr<Gtk::MessageDialog> content_published_dialog;
-  std::thread* publish_thread_ = nullptr; /* Worker for an in-flight publish, nullptr when idle */
+  std::thread* publish_thread_ = nullptr;        /* Worker for an in-flight publish, nullptr when idle */
+  sigc::connection publish_finished_connection_; /* Idle callback posted by the publish worker */
   Gtk::ScrolledWindow scrolled_toc;
   Gtk::SeparatorMenuItem separator1;
   Gtk::SeparatorMenuItem separator2;

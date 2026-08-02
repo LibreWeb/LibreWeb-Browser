@@ -27,7 +27,6 @@ set(HEADERS
     draw.h
     file.h
     freedomnames.h
-    freedomnames-cli.h
     freedomnames-status.h
     publish-dialog.h
     middleware-i.h
@@ -50,7 +49,6 @@ set(SOURCES
   draw.cc
   file.cc
   freedomnames.cc
-  freedomnames-cli.cc
   freedomnames-status.cc
   publish-dialog.cc
   middleware.cc

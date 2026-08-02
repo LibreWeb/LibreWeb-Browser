@@ -1,20 +1,18 @@
 #include "main-window.h"
 
 #include "file.h"
-#include "freedomnames-cli.h"
+#include "freedomnames.h"
 #include "menu.h"
 #include "project_config.h"
 #include "publish-dialog.h"
 #include <algorithm>
 #include <cmark-gfm.h>
 #include <cstdint>
-#include <cstdio>
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <giomm/file.h>
 #include <giomm/notification.h>
 #include <giomm/settingsschemasource.h>
 #include <giomm/themedicon.h>
-#include <glib/gstdio.h>
 #include <glibmm/convert.h>
 #include <glibmm/fileutils.h>
 #include <glibmm/miscutils.h>
@@ -206,6 +204,10 @@ MainWindow::MainWindow(const std::string& timeout)
 MainWindow::~MainWindow()
 {
   join_publish_thread();
+  // The worker may have queued its GUI callback immediately before returning.
+  // Once this window is being destroyed that callback must not dereference it.
+  if (publish_finished_connection_.connected())
+    publish_finished_connection_.disconnect();
 }
 
 /**
@@ -1913,22 +1915,30 @@ void MainWindow::publish()
   if (publish_thread_ != nullptr)
     return;
 
-  PublishDialog dialog(*this);
+  // Discover owner-name support from the running node. Older adopted nodes do
+  // not advertise it, in which case publishing by immutable content hash stays
+  // available without guessing a version or authoring port.
+  std::vector<FreedomName> names;
+  std::string authoring_api;
+  try
+  {
+    FreedomNames node("127.0.0.1", 8420, timeout_);
+    const FreedomHealth health = node.get_health();
+    if (health.has_capability("authoring") && !health.authoring_api.empty())
+    {
+      names = node.list_names(health.authoring_api);
+      authoring_api = health.authoring_api;
+    }
+  }
+  catch (const std::runtime_error& error)
+  {
+    std::cerr << "WARN: Freedom Names owner-name management is unavailable: " << error.what() << std::endl;
+  }
+
+  PublishDialog dialog(*this, names, !authoring_api.empty());
   if (!dialog.run_dialog())
     return;
   dialog.hide(); // gone before the work starts, so the wait is not behind it
-
-  std::string path = "new_file.md";
-  // Retrieve filename from saved file (if present)
-  if (!current_tab()->current_file_saved_path.empty())
-  {
-    path = current_tab()->current_file_saved_path;
-  }
-  else
-  {
-    // TODO: path is not defined yet. however, this may change anyway once we try to build more complex
-    // websites, needing to use directory structures.
-  }
 
   // Snapshot everything the worker needs now, on the GUI thread: the user is
   // free to keep typing, switch tabs or close one while the publish runs.
@@ -1938,8 +1948,8 @@ void MainWindow::publish()
   const std::string content = middleware().get_content();
 
   set_publish_in_progress(true);
-  publish_thread_ =
-      new std::thread([this, to_name, label, is_new_label, path, content]() { this->process_publish(to_name, label, is_new_label, path, content); });
+  publish_thread_ = new std::thread([this, to_name, label, is_new_label, authoring_api, content]()
+                                    { this->process_publish(to_name, label, is_new_label, authoring_api, content); });
 }
 
 /**
@@ -1947,48 +1957,34 @@ void MainWindow::publish()
  * \param to_name True to publish to an owner name, false for a content hash only
  * \param label Owner label, when publishing to a name
  * \param is_new_label True when the key for that label still has to be generated
- * \param path File name reported for a content-hash publish
+ * \param authoring_api Loopback authoring origin discovered through /health
  * \param content Document bytes, snapshotted before the thread started
  *
  * Publishing to a name is a DHT put, which the node bounds at 60 seconds, so
  * this must never run on the GUI thread. The content-hash path is quick but runs
  * here too, so both outcomes reach the user the same way.
  */
-void MainWindow::process_publish(bool to_name, const std::string& label, bool is_new_label, const std::string& path, const std::string& content)
+void MainWindow::process_publish(
+    bool to_name, const std::string& label, bool is_new_label, const std::string& authoring_api, const std::string& content)
 {
   std::string address;
   std::string error_message;
   try
   {
-    if (to_name)
-    {
-      if (is_new_label)
-        FreedomNamesCli::keygen(label);
+    FreedomNames publisher("127.0.0.1", 8420, timeout_);
+    const std::string hash = publisher.add_content(content);
+    if (hash.empty())
+      throw std::runtime_error("Content hash is empty.");
 
-      // `freedom put` takes a file, and the document being published may never
-      // have been saved to disk. Write the snapshot to a temporary file and
-      // remove it again as soon as the CLI is done with it. file_open_tmp picks
-      // the name and creates it, so two publishes cannot pick the same path.
-      std::string temp_path;
-      g_close(Glib::file_open_tmp(temp_path, "libreweb-publish-"), nullptr);
-      File::write(temp_path, content);
-      try
-      {
-        address = FreedomNamesCli::put(label, temp_path);
-      }
-      catch (...)
-      {
-        std::remove(temp_path.c_str());
-        throw;
-      }
-      std::remove(temp_path.c_str());
-    }
+    if (!to_name)
+      address = hash;
     else
     {
-      const std::string hash = middleware().do_add(path);
-      if (hash.empty())
-        throw std::runtime_error("Content hash is empty.");
-      address = hash;
+      if (authoring_api.empty())
+        throw std::runtime_error("The local Freedom Names node does not provide owner-name management.");
+      if (is_new_label)
+        publisher.create_name(authoring_api, label);
+      address = publisher.publish_name(authoring_api, label, hash);
     }
   }
   catch (const std::runtime_error& error)
@@ -1996,7 +1992,12 @@ void MainWindow::process_publish(bool to_name, const std::string& label, bool is
     error_message = error.what();
   }
 
-  Glib::signal_idle().connect_once(sigc::bind(sigc::mem_fun(this, &MainWindow::on_publish_finished), address, error_message));
+  publish_finished_connection_ = Glib::signal_idle().connect(
+      [this, address, error_message]()
+      {
+        on_publish_finished(address, error_message);
+        return false; // one-shot idle callback
+      });
 }
 
 /**

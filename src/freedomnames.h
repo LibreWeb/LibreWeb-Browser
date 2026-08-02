@@ -19,6 +19,16 @@ struct FreedomRecord
 };
 
 /**
+ * \struct FreedomName
+ * \brief One name whose owner key is managed by the local node.
+ */
+struct FreedomName
+{
+  std::string label; /* local owner-key label, eg. "blog" */
+  std::string name;  /* full "label.<pubKeyID>.fn" name */
+};
+
+/**
  * \struct FreedomInfo
  * \brief Node status returned by GET /info, used to populate the status popover.
  */
@@ -51,6 +61,14 @@ struct FreedomHealth
   /* Node role, since node 0.8.4: "node" (normal) | "bootstrap". Always present
    * on a 0.8.4+ node, even while ready is still false. Empty for older nodes. */
   std::string role;
+  /* Optional capabilities advertised by newer nodes. Authoring is deliberately
+   * feature-detected rather than inferred from a version number. */
+  std::vector<std::string> capabilities;
+  /* Dedicated loopback origin for owner-key operations. Empty when unavailable
+   * or when a node advertises an unsafe/non-loopback URL. */
+  std::string authoring_api;
+
+  bool has_capability(const std::string& capability) const;
 };
 
 /**
@@ -83,6 +101,12 @@ public:
   // (POST /content). Returns the content hash. Replaces `ipfs add`.
   std::string add_content(const std::string& data);
 
+  // Owner-name management. The API URL must come from /health; every method
+  // re-validates that it is a plain HTTP loopback origin before using it.
+  std::vector<FreedomName> list_names(const std::string& authoring_api);
+  std::string create_name(const std::string& authoring_api, const std::string& label);
+  std::string publish_name(const std::string& authoring_api, const std::string& label, const std::string& content_hash);
+
   // Status
   FreedomInfo get_info();
   FreedomHealth get_health();
@@ -107,9 +131,11 @@ private:
   // Performs a GET/POST and returns the body; throws std::runtime_error on transport/HTTP error.
   std::string http_get(const std::string& url);
   std::string http_post(const std::string& url, const std::string& body);
+  std::string http_post_json(const std::string& url, const std::string& body);
   std::string http_delete(const std::string& url);
   std::string perform(void* curl_handle, const std::string& url);
   static std::string url_encode(const std::string& value);
+  static bool is_loopback_http_origin(const std::string& url);
   static long parse_timeout_seconds(const std::string& timeout);
 };
 #endif
