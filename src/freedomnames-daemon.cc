@@ -29,6 +29,7 @@ static const char* kFreedomBinaryName = "freedom-names";
 // the probe answers "is a usable node already on the port I am about to use?".
 static const char* kNodeHost = "127.0.0.1";
 static const int kNodePort = 8420;
+static const char* kNodeAuthoringAddr = "127.0.0.1:8421";
 static const char* kNodeDnsAddr = "127.0.0.1:8053";
 // Short time-out for the start-up probe, so a missing node does not delay
 // start-up. On loopback a closed port is refused immediately anyway.
@@ -59,6 +60,8 @@ void FreedomNamesDaemon::spawn()
         argv.push_back(command);
         argv.push_back("--http-addr");
         argv.push_back(std::string(kNodeHost) + ":" + std::to_string(kNodePort));
+        argv.push_back("--authoring-addr");
+        argv.push_back(kNodeAuthoringAddr);
         argv.push_back("--dns-addr");
         argv.push_back(kNodeDnsAddr);
 

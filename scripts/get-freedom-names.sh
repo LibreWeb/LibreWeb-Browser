@@ -15,12 +15,12 @@
 #   ./scripts/get-freedom-names.sh linux windows   # explicit target(s)
 #   ./scripts/get-freedom-names.sh all             # linux + windows + darwin
 # Environment:
-#   FN_VERSION   Release tag (bare, no "v" prefix), default: 0.9.3
+#   FN_VERSION   Release tag (bare, no "v" prefix), default: 0.9.4
 #   FN_ARCH      amd64 or arm64, default: auto-detect from uname -m
 #   FN_BASE_URL  Override the artifact download base URL
 set -euo pipefail
 
-FN_VERSION="${FN_VERSION:-0.9.3}"
+FN_VERSION="${FN_VERSION:-0.9.4}"
 PROJECT_URL="https://gitlab.melroy.org/freedom-names/freedom-names"
 FN_BASE_URL="${FN_BASE_URL:-$PROJECT_URL/-/jobs/artifacts/$FN_VERSION/raw/build_release}"
 CI_JOB="go-release"
@@ -31,6 +31,12 @@ DEST_DIR="$CURRENT_DIR/../freedom-names"
 # SHA256 checksums of the pinned release archives. Update when bumping FN_VERSION.
 checksum_for() {
   case "$1" in
+  0.9.4-linux-amd64) echo "fab1880ab06e35c700a2181ad01b1776f4dd326959689007cc85377e2acabfa4" ;;
+  0.9.4-linux-arm64) echo "dded7d7a7f5e2b34bfabeb23ab137bcecda9bfc5186164fedb3a89fa3c15fdbf" ;;
+  0.9.4-windows-amd64) echo "d33e46430491ed8d4115ce5d04fc361a69e773f6f31ca76cc6888c134334b563" ;;
+  0.9.4-windows-arm64) echo "922d25b73e29fc2e5ddcc048e4f767af7cab4d2357b756598ca977a026cb6a9c" ;;
+  0.9.4-darwin-amd64) echo "39dfa4df55bba244a6a27cff8a4a1d0213f9e7ff01a5bab9bf9850da0b61158a" ;;
+  0.9.4-darwin-arm64) echo "d17e215a1fd610d47cf501686ed73dd5218db26aa69282af7305305fb96d00f1" ;;
   0.9.3-linux-amd64) echo "87339b28735cec9ac4c57cf4decc1dc77acf74dfd28f5f445e5075d24c91e44c" ;;
   0.9.3-linux-arm64) echo "40764a0b75edbe7acd316f37297728dba080accad67c2f080f6508aef5eb475f" ;;
   0.9.3-windows-amd64) echo "6f68d406ddee3bbbbce295e74814273b163a2a0f1bf3b69f0eec6b890a57ad36" ;;
