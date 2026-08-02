@@ -43,6 +43,23 @@ namespace
       throw std::runtime_error("Malformed JSON from the Freedom Names node at " + endpoint + ": " + error.what());
     }
   }
+
+  // Read an array-of-strings status field, skipping anything that isn't a
+  // string. These fields only feed the status pop-over, so one odd entry should
+  // never cost the caller the rest of the update.
+  std::vector<std::string> string_array(const nlohmann::json& json, const char* key)
+  {
+    std::vector<std::string> values;
+    const auto field = json.find(key);
+    if (field == json.end() || !field->is_array())
+      return values;
+    for (const auto& entry : *field)
+    {
+      if (entry.is_string())
+        values.push_back(entry.get<std::string>());
+    }
+    return values;
+  }
 } // namespace
 
 /**
@@ -164,6 +181,10 @@ FreedomInfo FreedomNames::get_info()
     info.node_id = json.value("peerID", "");
     info.peers = json.value("hostsConnected", 0);
     info.network_size = json.value("networkSize", -1);
+    info.version = json.value("version", "");
+    info.routing_table = string_array(json, "peers");
+    info.listen_addresses = string_array(json, "listenAddresses");
+    info.protocols = string_array(json, "protocols");
   }
   catch (const nlohmann::json::exception& error)
   {
@@ -204,6 +225,21 @@ std::size_t FreedomNames::get_nr_peers()
 std::string FreedomNames::get_node_id()
 {
   return get_info().node_id;
+}
+
+/**
+ * \brief Drop the node's resolver cache (DELETE /clear_cache).
+ *
+ * Every subsequent lookup goes back to the DHT rather than answering from a
+ * cached record, which is what you want after a name's owner republishes it and
+ * the old record has not expired yet.
+ *
+ * \throw std::runtime_error on transport/HTTP error
+ */
+void FreedomNames::clear_cache()
+{
+  // The handler answers with an empty 200 body; there is nothing to parse.
+  http_delete(base_url() + "/clear_cache");
 }
 
 /**
@@ -303,6 +339,18 @@ std::string FreedomNames::http_post(const std::string& url, const std::string& b
   // body outlives perform(), so curl may reference it directly
   curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body.data());
   curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, static_cast<long>(body.size()));
+  return perform(curl, url);
+}
+
+/**
+ * \brief Perform a DELETE request and return the response body.
+ */
+std::string FreedomNames::http_delete(const std::string& url)
+{
+  CURL* curl = curl_easy_init();
+  if (!curl)
+    throw std::runtime_error("Could not init curl");
+  curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
   return perform(curl, url);
 }
 

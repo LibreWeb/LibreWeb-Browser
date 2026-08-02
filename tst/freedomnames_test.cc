@@ -150,6 +150,74 @@ namespace
     EXPECT_THROW(client.get_info(), std::runtime_error);
   }
 
+  // The status pop-over reads the counts and the version straight off /info.
+  TEST(FreedomNamesTest, InfoParsesListsAndVersion)
+  {
+    OneShotHttpServer server(R"({"version":"0.9.2","mode":"Auto","peerID":"12D3Koo","hostsConnected":2,"networkSize":7,)"
+                             R"("peers":["12D3KooA","12D3KooB"],)"
+                             R"("listenAddresses":["/ip4/127.0.0.1/tcp/4001","/ip4/10.0.0.2/udp/4001/quic-v1"],)"
+                             R"("protocols":["/ipfs/id/1.0.0"]})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    FreedomInfo info = client.get_info();
+
+    EXPECT_EQ(info.version, "0.9.2");
+    EXPECT_EQ(info.peers, 2u);
+    EXPECT_EQ(info.network_size, 7);
+    // "peers" is the DHT routing table, which is not the connected-host count.
+    ASSERT_EQ(info.routing_table.size(), 2u);
+    EXPECT_EQ(info.routing_table[0], "12D3KooA");
+    EXPECT_EQ(info.listen_addresses.size(), 2u);
+    ASSERT_EQ(info.protocols.size(), 1u);
+    EXPECT_EQ(info.protocols[0], "/ipfs/id/1.0.0");
+  }
+
+  // The lists are status decoration, so a junk entry costs only that entry, and
+  // an absent field is simply empty. Neither may fail the whole status update.
+  TEST(FreedomNamesTest, InfoSkipsNonStringListEntriesAndMissingLists)
+  {
+    OneShotHttpServer server(R"({"mode":"Auto","peerID":"12D3Koo","hostsConnected":0,)"
+                             R"("peers":["12D3KooA",42,null,"12D3KooB"]})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    FreedomInfo info = client.get_info();
+
+    ASSERT_EQ(info.routing_table.size(), 2u);
+    EXPECT_EQ(info.routing_table[1], "12D3KooB");
+    EXPECT_TRUE(info.listen_addresses.empty());
+    EXPECT_TRUE(info.protocols.empty());
+  }
+
+  // A list field of the wrong type altogether is ignored rather than fatal.
+  TEST(FreedomNamesTest, InfoIgnoresListFieldThatIsNotAnArray)
+  {
+    OneShotHttpServer server(R"({"mode":"Auto","peerID":"12D3Koo","hostsConnected":0,"protocols":"none"})");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    FreedomInfo info = client.get_info();
+
+    EXPECT_TRUE(info.protocols.empty());
+  }
+
+  // clear_cache() sends a DELETE and accepts the node's empty 200 body: there is
+  // nothing to parse, so an empty body here must not be treated as an error.
+  TEST(FreedomNamesTest, ClearCacheAcceptsEmptyBody)
+  {
+    OneShotHttpServer server("");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    EXPECT_NO_THROW(client.clear_cache());
+  }
+
+  // A node that refuses the call (eg. wrong method) still surfaces as an error.
+  TEST(FreedomNamesTest, ClearCacheThrowsOnHttpError)
+  {
+    OneShotHttpServer server("Method not allowed", "405 Method Not Allowed");
+    FreedomNames client("127.0.0.1", server.port(), "5s");
+
+    EXPECT_THROW(client.clear_cache(), std::runtime_error);
+  }
+
   // A malformed record is dropped, but the well-formed ones still resolve --
   // one bad entry should not fail the whole lookup.
   TEST(FreedomNamesTest, ResolveSkipsMalformedRecords)

@@ -46,6 +46,7 @@
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
 #include <string>
+#include <vector>
 #if defined(__APPLE__)
 #include <gtkosxapplication.h>
 #endif
@@ -106,6 +107,8 @@ protected:
   void update_bookmark_icon();
   void show_toc();
   void copy_client_id();
+  void clear_resolver_cache();
+  static void set_status_list_label(Gtk::Label& label, const std::vector<std::string>& values, const std::string& empty_tooltip);
   void address_bar_activate();
   void on_search();
   void on_replace();
@@ -271,6 +274,7 @@ protected:
   Gtk::Popover status_popover;
   Gtk::PopoverMenu settings_popover;
   Gtk::ModelButton copy_id_button;
+  Gtk::ModelButton clear_cache_button;
   Gtk::Switch reader_view_switch;
   Gtk::Switch theme_switch;
   Gtk::Label table_of_contents_label;
@@ -286,6 +290,12 @@ protected:
   Gtk::Label node_id_status_label;
   Gtk::Label network_size_label;
   Gtk::Label network_size_status_label;
+  Gtk::Label routing_table_label;
+  Gtk::Label routing_table_status_label;
+  Gtk::Label listen_addresses_label;
+  Gtk::Label listen_addresses_status_label;
+  Gtk::Label protocols_label;
+  Gtk::Label protocols_status_label;
   Gtk::Label node_version_label;
   Gtk::Label node_version_status_label;
   Gtk::Label network_incoming_label;
