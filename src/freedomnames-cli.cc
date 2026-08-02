@@ -136,7 +136,7 @@ std::string FreedomNamesCli::put(const std::string& label, const std::string& fi
   // Drop the trailing " (seq ..., N record(s))" summary.
   const std::string::size_type space = rest.find(' ');
   if (space != std::string::npos)
-    rest = rest.substr(0, space);
+    rest.resize(space);
   if (rest.empty())
     throw std::runtime_error("The Freedom Names CLI reported an empty name for \"" + label + "\".");
   return rest;
