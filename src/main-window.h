@@ -46,6 +46,7 @@
 #include <gtkmm/window.h>
 #include <sigc++/connection.h>
 #include <string>
+#include <thread>
 #include <vector>
 #if defined(__APPLE__)
 #include <gtkosxapplication.h>
@@ -62,6 +63,7 @@ class MainWindow : public Gtk::Window
 public:
   static const int DefaultFontSize = 10;
   explicit MainWindow(const std::string& timeout);
+  virtual ~MainWindow();
   void
   pre_request(Tab* tab, const std::string& path, const std::string& title, bool is_set_address_bar, bool is_history_request, bool is_disable_editor);
   void post_write(Tab* tab, const std::string& path, const std::string& title, bool is_set_address_and_title);
@@ -98,6 +100,10 @@ protected:
   void insert_image();
   void on_insert_image_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
   void publish();
+  void process_publish(bool to_name, const std::string& label, bool is_new_label, const std::string& path, const std::string& content);
+  void on_publish_finished(const std::string& address, const std::string& error_message);
+  void set_publish_in_progress(bool in_progress);
+  void join_publish_thread();
   void go_home();
   void add_bookmark();
   void show_bookmarks_dialog();
@@ -313,6 +319,7 @@ protected:
   Gtk::Label reader_view_label;
   Gtk::Label icon_theme_label;
   std::unique_ptr<Gtk::MessageDialog> content_published_dialog;
+  std::thread* publish_thread_ = nullptr; /* Worker for an in-flight publish, nullptr when idle */
   Gtk::ScrolledWindow scrolled_toc;
   Gtk::SeparatorMenuItem separator1;
   Gtk::SeparatorMenuItem separator2;

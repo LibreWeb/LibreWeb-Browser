@@ -20,6 +20,11 @@ public:
   int get_pid() const;
   sigc::signal<void, int> exited;
 
+  // Full path to the bundled node binary, or "" when it cannot be found. Public
+  // because the same binary is also the `freedom` management CLI, which
+  // FreedomNamesCli drives to sign and publish records.
+  static std::string locate_binary();
+
 protected:
   void child_watch_exit(Glib::Pid pid, int child_status);
 
@@ -27,7 +32,6 @@ private:
   Glib::Pid pid_ = 0;
   sigc::connection child_watch_connection_handler;
 
-  static std::string locate_binary();
   static std::string node_working_dir();
   static bool adopt_existing_node();
 };
