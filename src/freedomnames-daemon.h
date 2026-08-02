@@ -24,11 +24,11 @@ protected:
   void child_watch_exit(Glib::Pid pid, int child_status);
 
 private:
-  std::string working_dir_ = ""; // cwd
   Glib::Pid pid_ = 0;
   sigc::connection child_watch_connection_handler;
 
   static std::string locate_binary();
+  static std::string node_working_dir();
   static bool adopt_existing_node();
 };
 #endif

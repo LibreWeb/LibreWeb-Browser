@@ -14,6 +14,7 @@ FreedomNamesStatus::FreedomNamesStatus(MainWindow& main_window, const std::strin
       status_thread_(nullptr),
       is_status_thread_done_(false),
       freedom_status_("127.0.0.1", 8420, timeout),
+      state_(NodeState::Unreachable),
       number_of_peers_(0),
       network_size_(-1)
 {
@@ -31,6 +32,16 @@ FreedomNamesStatus::~FreedomNamesStatus()
 {
   status_timer_handler_.disconnect();
   abort_status();
+}
+
+/**
+ * \brief Get what the last poll found on the node's HTTP API
+ * \return node state (Unreachable, Starting or Running)
+ */
+NodeState FreedomNamesStatus::get_state() const
+{
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return state_;
 }
 
 /**
@@ -83,6 +94,36 @@ std::string FreedomNamesStatus::get_version() const
   return version_;
 }
 
+/**
+ * \brief Get the peer IDs in the node's DHT routing table
+ * \return peer IDs (may be empty)
+ */
+std::vector<std::string> FreedomNamesStatus::get_routing_table() const
+{
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return routing_table_;
+}
+
+/**
+ * \brief Get the multiaddresses the node is listening on
+ * \return listen addresses (may be empty)
+ */
+std::vector<std::string> FreedomNamesStatus::get_listen_addresses() const
+{
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return listen_addresses_;
+}
+
+/**
+ * \brief Get the libp2p protocols the node speaks
+ * \return protocol IDs (may be empty)
+ */
+std::vector<std::string> FreedomNamesStatus::get_protocols() const
+{
+  std::lock_guard<std::mutex> guard(status_mutex_);
+  return protocols_;
+}
+
 /************************************************
  * Private methods
  ************************************************/
@@ -123,19 +164,21 @@ void FreedomNamesStatus::process_status()
   {
     // Network I/O runs outside the lock, so GUI-thread getters never block on it
     FreedomInfo info = freedom_status_.get_info();
-    // Version never changes for a running node; fetch it only until we have it
-    std::string version;
-    if (get_version().empty())
-      version = freedom_status_.get_health().version;
     {
       std::lock_guard<std::mutex> guard(status_mutex_);
+      state_ = NodeState::Running;
       number_of_peers_ = info.peers;
       mode_ = info.mode;
       network_size_ = info.network_size;
+      routing_table_ = std::move(info.routing_table);
+      listen_addresses_ = std::move(info.listen_addresses);
+      protocols_ = std::move(info.protocols);
       if (node_id_.empty())
         node_id_ = info.node_id;
-      if (!version.empty())
-        version_ = version;
+      // /info reports the version as well, so a running node costs one request
+      // per poll; /health is only needed when /info does not answer (below).
+      if (!info.version.empty())
+        version_ = info.version;
     }
 
     // Auto-refresh tabs that are showing the 'Please wait' page, now the node is up
@@ -149,12 +192,37 @@ void FreedomNamesStatus::process_status()
     std::string errorMessage = std::string(error.what());
     if (errorMessage != "Request was aborted")
     {
-      // Assume no connection or connection lost; display disconnected
+      // A failure here does not by itself mean there is no node: /info is the
+      // one endpoint that answers 500 before the DHT is initialized. /health
+      // always answers and carries `ready`, which separates a node that is
+      // still coming up from one that is not there at all. See NodeState on why
+      // this is a guard rather than a state the current node ever shows.
+      NodeState state = NodeState::Unreachable;
+      std::string version;
+      try
+      {
+        const FreedomHealth health = freedom_status_.get_health();
+        // ready with /info down is a rare race (the DHT finished initializing
+        // between the two calls); the next poll picks up the details.
+        state = health.ready ? NodeState::Running : NodeState::Starting;
+        version = health.version;
+      }
+      catch (const std::exception&)
+      {
+        // Nothing answered either: no connection, or the connection was lost.
+        // Leave the state at Unreachable.
+      }
       {
         std::lock_guard<std::mutex> guard(status_mutex_);
+        state_ = state;
         number_of_peers_ = 0;
         mode_ = "";
         network_size_ = -1;
+        routing_table_.clear();
+        listen_addresses_.clear();
+        protocols_.clear();
+        if (!version.empty())
+          version_ = version;
       }
       Glib::signal_idle().connect_once(sigc::mem_fun(main_window_, &MainWindow::update_status_popover_and_icon));
     }

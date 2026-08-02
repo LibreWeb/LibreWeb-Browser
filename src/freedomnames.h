@@ -28,6 +28,16 @@ struct FreedomInfo
   std::string node_id;   /* libp2p peer ID of the local node */
   std::size_t peers = 0; /* number of connected hosts */
   int network_size = -1; /* estimated DHT network size (-1 if unknown) */
+  /* Node build version. /info reports the same value as /health, so a caller
+   * that already polls /info needs no second request to learn it. */
+  std::string version;
+  /* Peer IDs in the DHT routing table. Deliberately not the same thing as
+   * `peers` above: that counts the hosts we currently hold a connection to,
+   * while a routing-table entry is a peer we know how to reach. Either can be
+   * the larger of the two. */
+  std::vector<std::string> routing_table;
+  std::vector<std::string> listen_addresses; /* multiaddrs the node listens on */
+  std::vector<std::string> protocols;        /* libp2p protocols the node speaks */
 };
 
 /**
@@ -79,6 +89,10 @@ public:
   std::size_t get_nr_peers();
   std::string get_node_id();
 
+  // Drop the node's resolver cache (DELETE /clear_cache), so the next lookup of
+  // every name goes back to the DHT instead of answering from a cached record.
+  void clear_cache();
+
   // Thread control (same contract the middleware relies on for the old IPFS client)
   void abort();
   void reset();
@@ -93,6 +107,7 @@ private:
   // Performs a GET/POST and returns the body; throws std::runtime_error on transport/HTTP error.
   std::string http_get(const std::string& url);
   std::string http_post(const std::string& url, const std::string& body);
+  std::string http_delete(const std::string& url);
   std::string perform(void* curl_handle, const std::string& url);
   static std::string url_encode(const std::string& value);
   static long parse_timeout_seconds(const std::string& timeout);
